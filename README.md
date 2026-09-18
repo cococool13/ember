@@ -2,7 +2,7 @@
 
 Mac menu bar app that changes screen color with the day. Cool light in the morning. Warm and dim at night.
 
-Site: https://ember.cohencool.workers.dev
+**Download:** https://ember.cohencool.workers.dev
 
 ```bash
 xcodegen generate
