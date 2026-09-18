@@ -14,26 +14,37 @@ enum Solar {
         on date: Date,
         latitude: Double,
         longitude: Double,
-        calendar: Calendar = .current,
         timeZone: TimeZone = .current
     ) -> Events? {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = timeZone
         let start = cal.startOfDay(for: date)
-        let offsetHours = Double(timeZone.secondsFromGMT(for: start)) / 3600
+        // Noon offset so DST spring-forward / fall-back days use the daytime zone.
+        let noon = cal.date(byAdding: .hour, value: 12, to: start) ?? date
+        let offsetHours = Double(timeZone.secondsFromGMT(for: noon)) / 3600
         let y = cal.component(.year, from: start)
         let m = cal.component(.month, from: start)
         let d = cal.component(.day, from: start)
         let dayOfYear = julianDay(year: y, month: m, day: d) - julianDay(year: y, month: 1, day: 1) + 1
 
         guard let sunriseH = localHours(kind: .sunrise, dayOfYear: dayOfYear, latitude: latitude, longitude: longitude, offsetHours: offsetHours),
-              let sunsetH = localHours(kind: .sunset, dayOfYear: dayOfYear, latitude: latitude, longitude: longitude, offsetHours: offsetHours)
+              let sunsetH = localHours(kind: .sunset, dayOfYear: dayOfYear, latitude: latitude, longitude: longitude, offsetHours: offsetHours),
+              let sunrise = civilDate(hours: sunriseH, on: start, calendar: cal),
+              let sunset = civilDate(hours: sunsetH, on: start, calendar: cal)
         else { return nil }
 
-        return Events(
-            sunrise: start.addingTimeInterval(sunriseH * 3600),
-            sunset: start.addingTimeInterval(sunsetH * 3600)
-        )
+        return Events(sunrise: sunrise, sunset: sunset)
+    }
+
+    /// NOAA hours are civil clock time in `offsetHours`, not elapsed seconds from midnight.
+    private static func civilDate(hours: Double, on start: Date, calendar: Calendar) -> Date? {
+        var totalSeconds = Int((normalize(hours, 24) * 3600).rounded())
+        if totalSeconds >= 86400 { totalSeconds = 86399 }
+        var comps = calendar.dateComponents([.year, .month, .day], from: start)
+        comps.hour = totalSeconds / 3600
+        comps.minute = (totalSeconds % 3600) / 60
+        comps.second = totalSeconds % 60
+        return calendar.date(from: comps)
     }
 
     private enum Kind { case sunrise, sunset }
@@ -59,9 +70,9 @@ enum Solar {
         var l = mAnom + (1.916 * sin(mAnom * .pi / 180)) + (0.020 * sin(2 * mAnom * .pi / 180)) + 282.634
         l = normalize(l, 360)
 
-        var ra = atan(0.91764 * tan(l * .pi / 180)) * 180 / .pi
-        ra = normalize(ra, 360)
-        ra = (ra + (floor(l / 90) * 90 - floor(ra / 90) * 90)) / 15
+        let lRad = l * .pi / 180
+        var ra = atan2(0.91764 * sin(lRad), cos(lRad)) * 180 / .pi
+        ra = normalize(ra, 360) / 15
 
         let sinDec = 0.39782 * sin(l * .pi / 180)
         let cosDec = cos(asin(sinDec))

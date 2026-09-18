@@ -9,6 +9,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
     @Published private(set) var denied = false
 
     private let manager = CLLocationManager()
+    private var hasFix = false
 
     override init() {
         super.init()
@@ -21,10 +22,18 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
         case .denied, .restricted:
-            denied = true
-            usingFallback = true
+            applyDenied()
         default:
             manager.requestLocation()
+        }
+    }
+
+    func refresh() {
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            manager.requestLocation()
+        default:
+            break
         }
     }
 
@@ -33,8 +42,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
         case .notDetermined:
             break
         case .denied, .restricted:
-            denied = true
-            usingFallback = true
+            applyDenied()
         default:
             denied = false
             manager.requestLocation()
@@ -45,11 +53,22 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
         guard let loc = locations.last else { return }
         latitude = loc.coordinate.latitude
         longitude = loc.coordinate.longitude
+        hasFix = true
         usingFallback = false
         denied = false
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        if !hasFix {
+            usingFallback = true
+        }
+    }
+
+    private func applyDenied() {
+        denied = true
         usingFallback = true
+        hasFix = false
+        latitude = Solar.fallbackLatitude
+        longitude = Solar.fallbackLongitude
     }
 }

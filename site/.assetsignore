@@ -4,3 +4,4 @@ wrangler.jsonc
 *.md
 .DS_Store
 qa
+_headers

@@ -5,9 +5,10 @@ enum DisplayEngine {
     static func apply(_ state: LightState) {
         let rgb = Temperature.rgb(kelvin: state.kelvin)
         let blueCut = melanopicBlueCut(kelvin: state.kelvin)
-        var count: UInt32 = 16
-        var displays = [CGDirectDisplayID](repeating: 0, count: 16)
-        guard CGGetActiveDisplayList(16, &displays, &count) == .success else { return }
+        var count: UInt32 = 0
+        guard CGGetActiveDisplayList(0, nil, &count) == .success, count > 0 else { return }
+        var displays = [CGDirectDisplayID](repeating: 0, count: Int(count))
+        guard CGGetActiveDisplayList(count, &displays, &count) == .success else { return }
         for i in 0..<Int(count) {
             apply(display: displays[i], red: rgb.r, green: rgb.g, blue: rgb.b * blueCut, dim: state.dim)
         }

@@ -36,7 +36,10 @@ final class AppModel: ObservableObject {
     @Published var fluxQuit = false
     @Published var colorAppName: String?
     @Published var openAtLogin: Bool {
-        didSet { LoginItem.setEnabled(openAtLogin) }
+        didSet {
+            guard oldValue != openAtLogin, !Self.isRunningTests else { return }
+            LoginItem.setEnabled(openAtLogin)
+        }
     }
 
     let location = LocationService()
@@ -58,38 +61,44 @@ final class AppModel: ObservableObject {
         enabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
         wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? 7 * 60)
         bed = ClockTime.from(minutes: defaults.object(forKey: Keys.bed) as? Int ?? 23 * 60)
-        if defaults.object(forKey: Keys.didSetLogin) == nil {
+        let testing = Self.isRunningTests
+        if !testing, defaults.object(forKey: Keys.didSetLogin) == nil {
             LoginItem.setEnabled(true)
             defaults.set(true, forKey: Keys.didSetLogin)
         }
-        openAtLogin = LoginItem.isEnabled
-        location.start()
+        openAtLogin = testing ? false : LoginItem.isEnabled
+        if !testing {
+            location.start()
+        }
         start()
     }
 
     func start() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.tick() }
-        }
-        timer?.tolerance = 2
-        RunLoop.main.add(timer!, forMode: .common)
+        tick()
+        if Self.isRunningTests { return }
 
-        let center = NSWorkspace.shared.notificationCenter
-        observers.append(center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.tick() }
-        })
-        observers.append(NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.tick() }
-        })
-        observers.append(center.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.tick() }
-        })
+        let workspace = NSWorkspace.shared.notificationCenter
+        observe(workspace, NSWorkspace.didWakeNotification) { [weak self] in
+            self?.location.refresh()
+            self?.tick()
+        }
+        observe(workspace, NSWorkspace.screensDidWakeNotification) { [weak self] in
+            self?.location.refresh()
+            self?.tick()
+        }
+        observe(workspace, NSWorkspace.screensDidSleepNotification) {
+            DisplayEngine.restore()
+        }
+        observe(workspace, NSWorkspace.didActivateApplicationNotification) { [weak self] in
+            self?.tick()
+        }
+        observe(NotificationCenter.default, NSApplication.didChangeScreenParametersNotification) { [weak self] in
+            self?.tick()
+        }
         location.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.tick() }
             .store(in: &cancellables)
-        tick()
     }
 
     func pause(hours: Double) {
@@ -112,28 +121,34 @@ final class AppModel: ObservableObject {
         if let pausedUntil, pausedUntil <= Date() {
             self.pausedUntil = nil
         }
-        openAtLogin = LoginItem.isEnabled
-        colorAppName = ColorApps.match(NSWorkspace.shared.frontmostApplication)
-        solar = Solar.events(
+        if !Self.isRunningTests {
+            let login = LoginItem.isEnabled
+            if openAtLogin != login {
+                openAtLogin = login
+            }
+        }
+        let nextColor = ColorApps.match(NSWorkspace.shared.frontmostApplication)
+        if colorAppName != nextColor { colorAppName = nextColor }
+        let nextSolar = Solar.events(
             on: Date(),
             latitude: location.latitude,
             longitude: location.longitude
         )
-        state = Schedule.state(
+        if solar != nextSolar { solar = nextSolar }
+        let nextState = Schedule.state(
             now: Date(),
             wake: wake,
             bed: bed,
             sunrise: solar?.sunrise,
             sunset: solar?.sunset
         )
+        if state != nextState { state = nextState }
+        if Self.isRunningTests { return }
         retuneTimer()
         guard isActive else {
-            if !isRunningTests, enabled == false || isPaused {
-                DisplayEngine.restore()
-            }
+            DisplayEngine.restore()
             return
         }
-        if isRunningTests { return }
         NightShift.disable()
         if FluxGuard.quitIfRunning() {
             fluxQuit = true
@@ -142,12 +157,19 @@ final class AppModel: ObservableObject {
     }
 
     deinit {
-        observers.forEach { NotificationCenter.default.removeObserver($0) }
         timer?.invalidate()
+        for observer in observers {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 
-    private var isRunningTests: Bool {
-        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    static var isRunningTests: Bool {
+        let env = ProcessInfo.processInfo.environment
+        if env["XCTestConfigurationFilePath"] != nil { return true }
+        if env["XCTestSessionIdentifier"] != nil { return true }
+        if env["XCTestBundlePath"] != nil { return true }
+        return ProcessInfo.processInfo.arguments.contains { $0.contains("xctest") }
     }
 
     private func retuneTimer() {
@@ -161,6 +183,12 @@ final class AppModel: ObservableObject {
         if let timer {
             RunLoop.main.add(timer, forMode: .common)
         }
+    }
+
+    private func observe(_ center: NotificationCenter, _ name: Notification.Name, _ handler: @escaping () -> Void) {
+        observers.append(center.addObserver(forName: name, object: nil, queue: .main) { _ in
+            Task { @MainActor in handler() }
+        })
     }
 
     private func persistClock(_ time: ClockTime, key: String) {

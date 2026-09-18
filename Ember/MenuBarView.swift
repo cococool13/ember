@@ -149,7 +149,7 @@ struct MenuBarView: View {
             f.dateFormat = "h:mm a"
             parts.append("Sunset \(f.string(from: solar.sunset))")
         }
-        if model.location.denied {
+        if model.location.usingFallback {
             parts.append("Using Brunswick sun")
         }
         if model.fluxQuit {

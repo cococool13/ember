@@ -8,6 +8,7 @@ final class StatusItem: NSObject {
     private let item: NSStatusItem
     private var panel: NSPanel?
     private var cancellables = Set<AnyCancellable>()
+    private var eventMonitors: [Any] = []
 
     init(model: AppModel) {
         self.model = model
@@ -21,6 +22,12 @@ final class StatusItem: NSObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.refreshChrome() }
             .store(in: &cancellables)
+    }
+
+    deinit {
+        for monitor in eventMonitors {
+            NSEvent.removeMonitor(monitor)
+        }
     }
 
     private func refreshChrome() {
@@ -84,10 +91,44 @@ final class StatusItem: NSObject {
         panel.setFrameOrigin(origin)
         panel.orderFrontRegardless()
         self.panel = panel
+        listenForDismiss()
     }
 
     private func close() {
+        clearMonitors()
         panel?.orderOut(nil)
         panel = nil
+    }
+
+    private func listenForDismiss() {
+        clearMonitors()
+        if let local = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .keyDown]) { [weak self] event in
+            guard let self else { return event }
+            if event.type == .keyDown {
+                if event.keyCode == 53 {
+                    self.close()
+                    return nil
+                }
+                return event
+            }
+            if event.window == self.panel { return event }
+            if event.window == self.item.button?.window { return event }
+            self.close()
+            return event
+        } {
+            eventMonitors.append(local)
+        }
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            self?.close()
+        } {
+            eventMonitors.append(global)
+        }
+    }
+
+    private func clearMonitors() {
+        for monitor in eventMonitors {
+            NSEvent.removeMonitor(monitor)
+        }
+        eventMonitors.removeAll()
     }
 }

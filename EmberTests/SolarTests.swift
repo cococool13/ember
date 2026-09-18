@@ -16,14 +16,11 @@ final class SolarTests: XCTestCase {
             on: noon,
             latitude: Solar.fallbackLatitude,
             longitude: Solar.fallbackLongitude,
-            calendar: calendar,
             timeZone: tz
         )
         XCTAssertNotNil(events)
-        let sunriseHour = calendar.component(.hour, from: events!.sunrise)
-        let sunsetHour = calendar.component(.hour, from: events!.sunset)
-        XCTAssertTrue((6...8).contains(sunriseHour), "sunrise hour \(sunriseHour)")
-        XCTAssertTrue((18...20).contains(sunsetHour), "sunset hour \(sunsetHour)")
+        XCTAssertEqual(minutes(events!.sunrise, calendar), 7 * 60 + 30, accuracy: 8.0)
+        XCTAssertEqual(minutes(events!.sunset, calendar), 19 * 60 + 37, accuracy: 8.0)
         XCTAssertGreaterThan(events!.sunset.timeIntervalSince(events!.sunrise), 11 * 3600)
         XCTAssertLessThan(events!.sunset.timeIntervalSince(events!.sunrise), 13 * 3600)
     }
@@ -42,14 +39,40 @@ final class SolarTests: XCTestCase {
                 on: calendar.date(from: c)!,
                 latitude: Solar.fallbackLatitude,
                 longitude: Solar.fallbackLongitude,
-                calendar: calendar,
                 timeZone: tz
             )!
         }
         let june = events(month: 6, day: 21)
         let dec = events(month: 12, day: 21)
-        XCTAssertGreaterThan(calendar.component(.hour, from: dec.sunrise) * 60 + calendar.component(.minute, from: dec.sunrise),
-                             calendar.component(.hour, from: june.sunrise) * 60 + calendar.component(.minute, from: june.sunrise))
+        XCTAssertGreaterThan(minutes(dec.sunrise, calendar), minutes(june.sunrise, calendar))
         XCTAssertGreaterThan(june.sunset.timeIntervalSince(june.sunrise), dec.sunset.timeIntervalSince(dec.sunrise))
+        XCTAssertEqual(minutes(june.sunrise, calendar), 6 * 60 + 22, accuracy: 8.0)
+        XCTAssertEqual(minutes(june.sunset, calendar), 20 * 60 + 33, accuracy: 8.0)
+        XCTAssertEqual(minutes(dec.sunrise, calendar), 7 * 60 + 20, accuracy: 8.0)
+        XCTAssertEqual(minutes(dec.sunset, calendar), 17 * 60 + 28, accuracy: 8.0)
+    }
+
+    func testPolarSummerHasNoSunrise() {
+        XCTAssertNil(Solar.events(on: utcNoon(month: 6, day: 21), latitude: 70, longitude: 0, timeZone: TimeZone(secondsFromGMT: 0)!))
+    }
+
+    func testPolarWinterHasNoSunrise() {
+        XCTAssertNil(Solar.events(on: utcNoon(month: 12, day: 21), latitude: 70, longitude: 0, timeZone: TimeZone(secondsFromGMT: 0)!))
+    }
+
+    private func utcNoon(month: Int, day: Int) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        var c = DateComponents()
+        c.year = 2026
+        c.month = month
+        c.day = day
+        c.hour = 12
+        return calendar.date(from: c)!
+    }
+
+    private func minutes(_ date: Date, _ calendar: Calendar) -> Double {
+        Double(calendar.component(.hour, from: date) * 60 + calendar.component(.minute, from: date))
+            + Double(calendar.component(.second, from: date)) / 60
     }
 }

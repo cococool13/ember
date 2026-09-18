@@ -29,15 +29,6 @@ enum Phase: String, Equatable, Sendable, CaseIterable {
     case evening
     case night
 
-    var index: String {
-        switch self {
-        case .morning: return "01"
-        case .day: return "02"
-        case .evening: return "03"
-        case .night: return "04"
-        }
-    }
-
     var shortLabel: String {
         switch self {
         case .morning: return "Dawn"
@@ -74,10 +65,6 @@ struct LightState: Equatable, Sendable {
     var minutesUntilNext: Int
     var dayProgress: Double
 
-    var melanopicDER: Double {
-        Schedule.melanopicDER(kelvin: kelvin)
-    }
-
     var nextCaption: String {
         let h = minutesUntilNext / 60
         let m = minutesUntilNext % 60
@@ -111,19 +98,18 @@ enum Schedule {
         sunset: Date?
     ) -> LightState {
         let nowM = wrap(minutes(in: now, calendar: calendar))
-        let wakeM = wrap(wake.minutes)
-        let bedM = wrap(bed.minutes)
+        let wakeM = wrap(Double(wake.minutes))
+        let bedM = wrap(Double(bed.minutes))
         let awake = minutesBetween(wakeM, bedM)
         let elapsed = minutesBetween(wakeM, nowM)
 
-        if awake <= minimumMorningRamp + minimumEveningRamp || elapsed >= awake {
-            let untilWake = minutesBetween(nowM, wakeM)
+        if awake <= Double(minimumMorningRamp + minimumEveningRamp) || elapsed >= awake {
             return LightState(
                 kelvin: nightKelvin,
                 dim: nightDim,
                 phase: .night,
                 nextPhase: .morning,
-                minutesUntilNext: untilWake,
+                minutesUntilNext: remainingMinutes(minutesBetween(nowM, wakeM)),
                 dayProgress: 1
             )
         }
@@ -132,38 +118,40 @@ enum Schedule {
         let sunsetElapsed = sunset.map { minutesBetween(wakeM, wrap(minutes(in: $0, calendar: calendar))) }
 
         let morningFromSun = sunriseElapsed.flatMap { $0 <= 6 * 60 ? $0 : nil }
-        let morningEnd = max(minimumMorningRamp, morningFromSun ?? 0)
+        let morningEnd = max(Double(minimumMorningRamp), morningFromSun ?? 0)
 
-        var eveningStart = max(0, awake - eveningLeadMinutes)
-        if let sunsetElapsed, sunsetElapsed < eveningStart, sunsetElapsed > awake / 2 {
+        var eveningStart = max(0, awake - Double(eveningLeadMinutes))
+        // Sunset during the wake window, if earlier than bedtime−3h. Do not
+        // require elapsed > awake/2: that skipped legitimate early winter sunsets.
+        if let sunsetElapsed, sunsetElapsed < eveningStart {
             eveningStart = sunsetElapsed
         }
-        eveningStart = min(eveningStart, awake - minimumEveningRamp)
+        eveningStart = min(eveningStart, awake - Double(minimumEveningRamp))
         eveningStart = max(eveningStart, morningEnd)
 
         if elapsed < morningEnd {
-            let t = smoothstep(Double(elapsed) / Double(max(morningEnd, 1)))
+            let t = smoothstep(elapsed / max(morningEnd, 1))
             return LightState(
                 kelvin: lerp(nightKelvin, morningKelvin, t),
                 dim: lerp(nightDim, dayDim, t),
                 phase: .morning,
                 nextPhase: .day,
-                minutesUntilNext: morningEnd - elapsed,
-                dayProgress: Double(elapsed) / Double(awake)
+                minutesUntilNext: remainingMinutes(morningEnd - elapsed),
+                dayProgress: elapsed / awake
             )
         }
         if elapsed >= eveningStart {
             let span = max(awake - eveningStart, 1)
             let into = elapsed - eveningStart
-            let cut = min(eveningCutMinutes, max(span / 3, 1))
+            let cut = min(Double(eveningCutMinutes), max(span / 3, 1))
             let kelvin: Double
             let dim: Double
             if into < cut {
-                let t = smoothstep(Double(into) / Double(cut))
+                let t = smoothstep(into / cut)
                 kelvin = lerp(dayKelvin, duskKelvin, t)
                 dim = lerp(dayDim, duskDim, t)
             } else {
-                let t = smoothstep(Double(into - cut) / Double(max(span - cut, 1)))
+                let t = smoothstep((into - cut) / max(span - cut, 1))
                 kelvin = lerp(duskKelvin, nightKelvin, t)
                 dim = lerp(duskDim, nightDim, t)
             }
@@ -172,8 +160,8 @@ enum Schedule {
                 dim: dim,
                 phase: .evening,
                 nextPhase: .night,
-                minutesUntilNext: awake - elapsed,
-                dayProgress: Double(elapsed) / Double(awake)
+                minutesUntilNext: remainingMinutes(awake - elapsed),
+                dayProgress: elapsed / awake
             )
         }
         return LightState(
@@ -181,8 +169,8 @@ enum Schedule {
             dim: dayDim,
             phase: .day,
             nextPhase: .evening,
-            minutesUntilNext: eveningStart - elapsed,
-            dayProgress: Double(elapsed) / Double(awake)
+            minutesUntilNext: remainingMinutes(eveningStart - elapsed),
+            dayProgress: elapsed / awake
         )
     }
 
@@ -191,17 +179,25 @@ enum Schedule {
         return min(1.0, max(0.16, 0.000145 * k - 0.05))
     }
 
-    static func minutes(in date: Date, calendar: Calendar) -> Int {
-        let c = calendar.dateComponents([.hour, .minute], from: date)
-        return (c.hour ?? 0) * 60 + (c.minute ?? 0)
+    static func minutes(in date: Date, calendar: Calendar) -> Double {
+        let c = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: date)
+        return Double((c.hour ?? 0) * 60 + (c.minute ?? 0))
+            + Double(c.second ?? 0) / 60
+            + Double(c.nanosecond ?? 0) / 60_000_000_000
     }
 
-    static func wrap(_ minutes: Int) -> Int {
-        ((minutes % 1440) + 1440) % 1440
+    static func wrap(_ minutes: Double) -> Double {
+        var v = minutes.truncatingRemainder(dividingBy: 1440)
+        if v < 0 { v += 1440 }
+        return v
     }
 
-    static func minutesBetween(_ start: Int, _ end: Int) -> Int {
+    static func minutesBetween(_ start: Double, _ end: Double) -> Double {
         wrap(end - start)
+    }
+
+    static func remainingMinutes(_ value: Double) -> Int {
+        Int(ceil(max(0, value) - 1e-9))
     }
 
     static func lerp(_ a: Double, _ b: Double, _ t: Double) -> Double {

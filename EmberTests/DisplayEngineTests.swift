@@ -19,5 +19,15 @@ final class DisplayEngineTests: XCTestCase {
     func testMelanopicBlueCutIsStrongerAtNight() {
         XCTAssertEqual(DisplayEngine.melanopicBlueCut(kelvin: 6800), 1, accuracy: 0.02)
         XCTAssertLessThan(DisplayEngine.melanopicBlueCut(kelvin: 1800), 0.65)
+        XCTAssertGreaterThan(DisplayEngine.melanopicBlueCut(kelvin: 4000), DisplayEngine.melanopicBlueCut(kelvin: 2200))
+    }
+
+    func testTemperatureClampsExtremeKelvin() {
+        let cold = Temperature.rgb(kelvin: 100)
+        let hot = Temperature.rgb(kelvin: 100_000)
+        XCTAssertEqual(cold.r, 1, accuracy: 0.01)
+        XCTAssertEqual(cold.b, 0, accuracy: 0.01)
+        XCTAssertEqual(hot.b, 1, accuracy: 0.01)
+        XCTAssertGreaterThan(hot.r, 0.5)
     }
 }

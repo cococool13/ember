@@ -17,8 +17,4 @@ enum FluxGuard {
         }
         return quitAny
     }
-
-    static var isRunning: Bool {
-        bundleIDs.contains { !NSRunningApplication.runningApplications(withBundleIdentifier: $0).isEmpty }
-    }
 }
