@@ -3,6 +3,7 @@ DerivedData/
 xcuserdata/
 .DS_Store
 *.xcuserstate
+dist/
 site/.wrangler
 site/downloads/
 .idea/
