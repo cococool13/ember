@@ -11,7 +11,19 @@
   </head>
   <body>
     <header class="nav">
-      <a class="wordmark" href="/">Ember</a>
+      <a class="wordmark" href="/">
+          <svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true">
+            <defs>
+              <mask id="nav-crescent">
+                <circle cx="32" cy="32" r="20" fill="#fff"/>
+                <circle cx="24.8" cy="32" r="20" fill="#000"/>
+              </mask>
+            </defs>
+            <circle cx="32" cy="32" r="20" fill="#cc6437" mask="url(#nav-crescent)"/>
+            <circle cx="32" cy="32" r="20" fill="none" stroke="#cc6437" stroke-width="1.4"/>
+          </svg>
+          Ember
+        </a>
       <a class="pill" href="/">Back</a>
     </header>
     <main class="legal">

@@ -58,7 +58,13 @@ p { margin: 0; }
   max-width: 1400px;
   margin: 0 auto;
 }
-.wordmark { font-size: 20px; }
+.wordmark {
+  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.wordmark svg { display: block; }
 
 .pill {
   display: inline-block;
@@ -96,7 +102,7 @@ p { margin: 0; }
   text-align: center;
   max-width: 560px;
 }
-.mark { width: 64px; height: 64px; margin: 0 auto; }
+.mark { width: 72px; height: 72px; margin: 0 auto 8px; }
 .lede {
   font-size: 15px;
   line-height: 1.43;
