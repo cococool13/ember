@@ -1,0 +1,58 @@
+name: Ember
+options:
+  bundleIdPrefix: com.cohen
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    DEVELOPMENT_TEAM: CU8NTJWQ43
+    ENABLE_TESTABILITY: YES
+targets:
+  Ember:
+    type: application
+    platform: macOS
+    sources:
+      - Ember
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cohen.ember
+        PRODUCT_NAME: Ember
+        ARCHS: arm64
+        EXCLUDED_ARCHS: x86_64
+        ENABLE_APP_SANDBOX: NO
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Ember
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        INFOPLIST_KEY_NSHumanReadableCopyright: Copyright 2026 Cohen Coolidge
+        INFOPLIST_KEY_LSMinimumSystemVersion: "14.0"
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_LSMultipleInstancesProhibited: YES
+        INFOPLIST_KEY_NSLocationUsageDescription: Ember uses your location to time sunrise and sunset for the daily light curve.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Ember uses your location to time sunrise and sunset for the daily light curve.
+        CODE_SIGN_ENTITLEMENTS: Ember/Ember.entitlements
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: YES
+        COMBINE_HIDPI_IMAGES: YES
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    scheme:
+      testTargets:
+        - EmberTests
+  EmberTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - EmberTests
+    dependencies:
+      - target: Ember
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cohen.ember.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Ember.app/Contents/MacOS/Ember
+        BUNDLE_LOADER: $(TEST_HOST)
