@@ -2,9 +2,11 @@
   --void: #0b0b0b;
   --abyss: #050505;
   --charcoal: #272a2a;
+  --graphite: #303231;
   --bone: #edebe7;
   --ember: #cc6437;
   --ash: #cecece;
+  --smoke: #928f8a;
   --steel: #484848;
   --white: #ffffff;
   --display: "Barlow Condensed", "Oswald", sans-serif;
@@ -43,12 +45,18 @@ p { margin: 0; }
 
 .news {
   background: var(--abyss);
+  color: var(--smoke);
   text-align: center;
   padding: 10px 20px;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: -0.02em;
   text-transform: uppercase;
+  border-bottom: 1px solid rgba(204, 100, 55, 0.35);
+}
+.news em {
+  font-style: normal;
+  color: var(--ember);
 }
 .nav {
   display: flex;
@@ -142,8 +150,9 @@ p { margin: 0; }
   padding: 80px 32px;
 }
 .eyebrow {
-  font-size: 14px;
-  color: var(--ash);
+  font-size: 13px;
+  color: var(--smoke);
+  letter-spacing: 0.02em;
   margin: 0 0 8px;
 }
 
@@ -154,21 +163,32 @@ p { margin: 0; }
 }
 .card {
   background: var(--charcoal);
-  border-radius: 10px;
-  padding: 32px 20px;
+  border-radius: 12px;
+  padding: 32px 22px 28px;
 }
 .card p, .steps p, .compare p, .faq dd {
   color: var(--ash);
   font-family: var(--body);
   text-transform: none;
   letter-spacing: -0.01em;
+  line-height: 1.5;
+}
+.card .reading {
+  display: block;
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--smoke);
 }
 .badge {
   display: inline-block;
-  border: 1px solid var(--ash);
+  border: 1px solid var(--smoke);
   border-radius: 1440px;
   padding: 5px 11px;
   font-size: 14px;
+  color: var(--ash);
 }
 @media (min-width: 900px) {
   .cards {
@@ -210,7 +230,7 @@ p { margin: 0; }
   font-family: var(--mono);
   font-size: 11px;
   text-transform: uppercase;
-  color: var(--ash);
+  color: var(--smoke);
   margin-top: 16px;
 }
 

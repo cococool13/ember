@@ -90,23 +90,27 @@
         <div class="cards">
           <article class="card wide">
             <span class="badge">01</span>
-            <h3>Morning</h3>
-            <p>Cool, bright light as soon as you wake. Melanopsin wants a strong day signal here. Ember raises it in about 25 minutes.</p>
+            <h3>Morning light</h3>
+            <p>Cool, bright light as soon as you wake tells your body clock the day has started. Ember rises to it in about 25 minutes, then settles into daylight over the next hour.</p>
+            <span class="reading">1800K → 6800K → 6500K · Full brightness</span>
           </article>
           <article class="card">
             <span class="badge">02</span>
-            <h3>Day</h3>
-            <p>Full color at about 6500K. The screen stays out of the way while you work.</p>
+            <h3>Daylight</h3>
+            <p>True color at 6500K. Nothing is cut. The screen stays out of the way while you work.</p>
+            <span class="reading">6500K · Full color</span>
           </article>
           <article class="card">
             <span class="badge">03</span>
-            <h3>Evening</h3>
-            <p>Starts at sunset or three hours before bed, whichever comes first. Blue light drops fast in the first 40 minutes.</p>
+            <h3>Winding down</h3>
+            <p>Starts at sunset or three hours before bed, whichever comes first. Blue light eases off fast in the first 40 minutes so melatonin can rise, then slides toward night.</p>
+            <span class="reading">6500K → 2700K in 40 min · Blue light −70%</span>
           </article>
           <article class="card">
             <span class="badge">04</span>
-            <h3>Night</h3>
-            <p>Warm and dim until morning. Pause one hour when you need true color.</p>
+            <h3>Night light</h3>
+            <p>Warm and dim until you wake. Choose Gentle, Standard, or Deep. Pause one hour when you need true color.</p>
+            <span class="reading">1800K · 55% · Blue light −87%</span>
           </article>
         </div>
       </section>
@@ -128,7 +132,7 @@
           <li>
             <span class="badge">03</span>
             <h3>Leave it on</h3>
-            <p>Ember turns Night Shift off and quits f.lux so they do not fight. Photos, Figma, and Photoshop get true color automatically.</p>
+            <p>Ember turns Night Shift off and quits f.lux so they do not fight. Photos, Figma, and Photoshop get true color automatically. Every change fades in; nothing snaps.</p>
           </li>
         </ol>
       </section>
@@ -143,7 +147,7 @@
           </div>
           <div>
             <h3>Ember</h3>
-            <p>Follows wake, bed, and the sun. Cuts the blue primary that hits melanopsin. Dims at night. Cool light in the morning, not only warmth at dusk.</p>
+            <p>Follows wake, bed, and the sun. Cuts the blue primary that hits melanopsin. Dims at night. Cool light in the morning, not only warmth at dusk. Ramps are blended in mired, the scale the eye uses, so the change is even from start to end.</p>
           </div>
         </div>
       </section>
@@ -198,29 +202,48 @@
     <script>
       (function () {
         var live = document.getElementById("live");
+        // Mirrors Ember/Schedule.swift: mired blend, smootherstep, wake 7, bed 23.
+        function ease(t) {
+          var x = Math.min(1, Math.max(0, t));
+          return x * x * x * (x * (x * 6 - 15) + 10);
+        }
+        function blendK(a, b, t) {
+          return 1e6 / (1e6 / a + (1e6 / b - 1e6 / a) * ease(t));
+        }
+        function lerp(a, b, t) { return a + (b - a) * ease(t); }
+        function der(k) {
+          var c = Math.min(Math.max(k, 1000), 8000);
+          return Math.min(1, Math.max(0.16, 0.000145 * c - 0.05));
+        }
         function phase(d) {
           var m = d.getHours() * 60 + d.getMinutes();
           var wake = 7 * 60;
           var bed = 23 * 60;
           var evening = bed - 180;
-          if (m >= bed || m < wake) return { t: "NIGHT LIGHT", k: 1800 };
+          if (m >= bed || m < wake) return { t: "NIGHT LIGHT", k: 1800, dim: 0.55 };
           if (m < wake + 25) {
             var t = (m - wake) / 25;
-            return { t: "MORNING LIGHT", k: Math.round(1800 + 5000 * t) };
+            return { t: "MORNING LIGHT", k: blendK(1800, 6800, t), dim: lerp(0.55, 1, t) };
+          }
+          if (m < wake + 85) {
+            return { t: "DAYLIGHT", k: blendK(6800, 6500, (m - wake - 25) / 60), dim: 1 };
           }
           if (m >= evening) {
             var into = m - evening;
-            var k = into < 40
-              ? 6500 - (3800 * into) / 40
-              : 2700 - (900 * (into - 40)) / 140;
-            return { t: "WINDING DOWN", k: Math.round(k) };
+            if (into < 40) {
+              return { t: "WINDING DOWN", k: blendK(6500, 2700, into / 40), dim: lerp(1, 0.82, into / 40) };
+            }
+            var u = (into - 40) / 140;
+            return { t: "WINDING DOWN", k: blendK(2700, 1800, u), dim: lerp(0.82, 0.55, u) };
           }
-          return { t: "DAYLIGHT", k: 6500 };
+          return { t: "DAYLIGHT", k: 6500, dim: 1 };
         }
         function tick() {
           if (!live) return;
           var p = phase(new Date());
-          live.textContent = "YOUR SCREEN · " + p.t + " · " + p.k + "K";
+          var signal = (der(p.k) * p.dim) / der(6500);
+          var reading = signal >= 0.98 ? "FULL COLOR" : "BLUE LIGHT −" + Math.round((1 - signal) * 100) + "%";
+          live.innerHTML = "YOUR SCREEN · <em>" + p.t + "</em> · " + Math.round(p.k) + "K · " + reading;
         }
         tick();
         setInterval(tick, 30000);
