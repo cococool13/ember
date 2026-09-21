@@ -40,7 +40,7 @@ final class StatusItem: NSObject {
         } else if model.isTimedPause {
             item.button?.toolTip = "Ember paused"
         } else {
-            item.button?.toolTip = "\(model.state.phase.title) · \(Int(model.state.kelvin.rounded()))K"
+            item.button?.toolTip = "\(model.state.phase.title) · \(model.state.signalLabel)"
         }
     }
 
@@ -56,10 +56,11 @@ final class StatusItem: NSObject {
         guard let button = item.button, let buttonWindow = button.window else { return }
         let host = NSHostingController(rootView: MenuBarView().environmentObject(model))
         host.view.wantsLayer = true
-        host.view.layer?.backgroundColor = NSColor(srgbRed: 11 / 255, green: 11 / 255, blue: 11 / 255, alpha: 1).cgColor
-        host.view.frame = NSRect(x: 0, y: 0, width: 360, height: 10)
+        host.view.layer?.backgroundColor = NSColor.clear.cgColor
+        let width = Theme.panelWidth
+        host.view.frame = NSRect(x: 0, y: 0, width: width, height: 10)
         let height = max(host.view.fittingSize.height, 420)
-        let size = NSSize(width: 360, height: height)
+        let size = NSSize(width: width, height: height)
         host.view.frame = NSRect(origin: .zero, size: size)
 
         let panel = NSPanel(
@@ -71,9 +72,11 @@ final class StatusItem: NSObject {
         panel.isFloatingPanel = true
         panel.level = .statusBar
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        panel.isOpaque = true
-        panel.backgroundColor = NSColor(srgbRed: 11 / 255, green: 11 / 255, blue: 11 / 255, alpha: 1)
-        panel.hasShadow = false
+        // The SwiftUI root paints the void and its rounded hairline edge; the
+        // panel stays clear so the corners read against the desktop.
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.becomesKeyOnlyIfNeeded = true
         panel.contentViewController = host
