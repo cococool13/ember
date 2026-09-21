@@ -16,8 +16,8 @@ Ship: `scripts/package.sh` (Developer ID, `notarytool submit --wait`, staple, `s
 
 Do not enable App Sandbox. Hardened runtime on. Team `CU8NTJWQ43`.
 
-Curve: Brown et al. 2022 + CIE S 026. Morning ramps to ~6800K in 25 minutes. Day 6500K. Evening starts at the earlier of sunset and bedtime−3h; first 40 minutes drop to ~2700K, then night ~1800K at 55% dim. Extra cut on the display blue primary. Location for sun times; Brunswick, GA if location is off.
+Curve: Brown et al. 2022 + CIE S 026. Morning ramps to ~6800K in 25 minutes, then settles to 6500K over the next hour. Day 6500K, true color (no blue cut). Evening starts at the earlier of sunset and bedtime−3h; first 40 minutes drop to ~2700K, then night. Night strength: Standard ~1800K at 55% dim (default), Gentle 2200K/68%, Deep 1600K/45%. Ramps blend in mired with a smootherstep ease (`Schedule.blendKelvin`, `Schedule.ease`); every phase boundary is continuous. Extra cut on the display blue primary below daylight. Large jumps (on, resume, leaving a color app, screen wake) fade over 1.8 s via `DisplayFader`. Location for sun times; Brunswick, GA if location is off.
 
-While enabled, Ember quits f.lux and turns Night Shift off. Pause 1h restores the display. Photos, Preview, Figma, Photoshop, and other color apps get true color while frontmost. Menu bar mark fills at dusk and night.
+While enabled, Ember quits f.lux and turns Night Shift off. Pause 1h restores the display. Photos, Preview, Figma, Photoshop, and other color apps get true color while frontmost (toggle: True color apps). Menu bar mark fills at dusk and night.
 
-Design: Ciridae (Refero `a1b78a21-a304-482b-8ce5-f612d95d44fe`). Void `#0b0b0b`, charcoal cards, ghost pills, ember rust hairlines only, Barlow Condensed 400 uppercase labels, Inter/system for sentences, Roboto Mono for readings. Raster icons from `scripts/make-icon.py`.
+Design: Ciridae (Refero `a1b78a21-a304-482b-8ce5-f612d95d44fe`). Void `#0b0b0b`, charcoal `#272a2a` cards with graphite `#303231` raised stages, ghost pills, ember rust hairlines only, smoke `#928f8a` for secondary text, steel for dividers, Barlow Condensed 400 uppercase labels, Inter/system for sentences, Roboto Mono for readings. Panel copy is phase-of-day and sleep language first; kelvin is a secondary reading. Raster icons from `scripts/make-icon.py`.
