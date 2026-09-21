@@ -2,15 +2,47 @@ import CoreGraphics
 import Foundation
 
 enum DisplayEngine {
+    struct Target: Equatable, Sendable {
+        var kelvin: Double
+        var dim: Double
+
+        static let neutral = Target(kelvin: Schedule.dayKelvin, dim: Schedule.dayDim)
+
+        init(kelvin: Double, dim: Double) {
+            self.kelvin = kelvin
+            self.dim = dim
+        }
+
+        init(_ state: LightState) {
+            self.init(kelvin: state.kelvin, dim: state.dim)
+        }
+
+        /// Perceptual distance: mired difference plus dim difference.
+        func distance(to other: Target) -> Double {
+            abs(1_000_000 / kelvin - 1_000_000 / other.kelvin) + abs(dim - other.dim) * 400
+        }
+
+        static func blend(_ a: Target, _ b: Target, _ t: Double) -> Target {
+            Target(
+                kelvin: Schedule.blendKelvin(a.kelvin, b.kelvin, t),
+                dim: Schedule.lerp(a.dim, b.dim, min(1, max(0, t)))
+            )
+        }
+    }
+
     static func apply(_ state: LightState) {
-        let rgb = Temperature.rgb(kelvin: state.kelvin)
-        let blueCut = melanopicBlueCut(kelvin: state.kelvin)
+        apply(Target(state))
+    }
+
+    static func apply(_ target: Target) {
+        let rgb = Temperature.rgb(kelvin: target.kelvin)
+        let blueCut = melanopicBlueCut(kelvin: target.kelvin)
         var count: UInt32 = 0
         guard CGGetActiveDisplayList(0, nil, &count) == .success, count > 0 else { return }
         var displays = [CGDirectDisplayID](repeating: 0, count: Int(count))
         guard CGGetActiveDisplayList(count, &displays, &count) == .success else { return }
         for i in 0..<Int(count) {
-            apply(display: displays[i], red: rgb.r, green: rgb.g, blue: rgb.b * blueCut, dim: state.dim)
+            apply(display: displays[i], red: rgb.r, green: rgb.g, blue: rgb.b * blueCut, dim: target.dim)
         }
     }
 
@@ -19,9 +51,10 @@ enum DisplayEngine {
     }
 
     /// Extra cut on the blue primary. Display blue (~450–470 nm) sits on the
-    /// melanopsin peak (~480 nm); CCT alone under-weights that.
+    /// melanopsin peak (~480 nm); CCT alone under-weights that. No cut at or
+    /// above daylight, so the day phase stays true color.
     static func melanopicBlueCut(kelvin: Double) -> Double {
-        let t = min(1, max(0, (kelvin - 1800) / (6800 - 1800)))
+        let t = min(1, max(0, (kelvin - 1800) / (Schedule.dayKelvin - 1800)))
         return 0.58 + 0.42 * t
     }
 
@@ -38,6 +71,81 @@ enum DisplayEngine {
             b[i] = CGGammaValue(min(1, x * blue * dim))
         }
         _ = CGSetDisplayTransferByTable(display, UInt32(n), r, g, b)
+    }
+}
+
+/// Eases the display between distant targets instead of snapping. Scheduled
+/// ticks move a few kelvin at a time and apply directly; turning Ember on,
+/// resuming from a pause, leaving a color app, or waking the screen fade in.
+@MainActor
+final class DisplayFader {
+    static let fadeSeconds: TimeInterval = 1.8
+    static let frameSeconds: TimeInterval = 1.0 / 30.0
+    /// Below this the eye reads the change as continuous; above it we fade.
+    static let snapThreshold = 12.0
+
+    private(set) var shown: DisplayEngine.Target?
+    private var timer: Timer?
+    private var releasing = false
+
+    func show(_ target: DisplayEngine.Target) {
+        guard let from = shown else {
+            fade(from: .neutral, to: target, thenRelease: false)
+            return
+        }
+        if from.distance(to: target) < Self.snapThreshold && !releasing {
+            cancel()
+            DisplayEngine.apply(target)
+            shown = target
+            return
+        }
+        fade(from: from, to: target, thenRelease: false)
+    }
+
+    /// Return the display to the system profile. Animated when Ember was
+    /// coloring the screen; immediate otherwise.
+    func release(animated: Bool) {
+        if releasing { return }
+        guard animated, let from = shown else {
+            cancel()
+            shown = nil
+            DisplayEngine.restore()
+            return
+        }
+        fade(from: from, to: .neutral, thenRelease: true)
+    }
+
+    func cancel() {
+        timer?.invalidate()
+        timer = nil
+        releasing = false
+    }
+
+    private func fade(from: DisplayEngine.Target, to: DisplayEngine.Target, thenRelease: Bool) {
+        cancel()
+        releasing = thenRelease
+        let start = Date()
+        DisplayEngine.apply(from)
+        shown = from
+        let timer = Timer(timeInterval: Self.frameSeconds, repeats: true) { [weak self] timer in
+            Task { @MainActor in
+                guard let self else { timer.invalidate(); return }
+                let t = min(1, Date().timeIntervalSince(start) / Self.fadeSeconds)
+                let step = DisplayEngine.Target.blend(from, to, Schedule.ease(t))
+                DisplayEngine.apply(step)
+                self.shown = step
+                if t >= 1 {
+                    self.cancel()
+                    if thenRelease {
+                        self.shown = nil
+                        DisplayEngine.restore()
+                    }
+                }
+            }
+        }
+        timer.tolerance = Self.frameSeconds / 4
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
     }
 }
 

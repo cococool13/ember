@@ -7,10 +7,7 @@ final class AppModel: ObservableObject {
     @Published var enabled: Bool {
         didSet {
             UserDefaults.standard.set(enabled, forKey: Keys.enabled)
-            if !enabled {
-                pausedUntil = nil
-                DisplayEngine.restore()
-            }
+            if !enabled { pausedUntil = nil }
             tick()
         }
     }
@@ -23,15 +20,16 @@ final class AppModel: ObservableObject {
         didSet { persistClock(bed, key: Keys.bed); tick() }
     }
 
+    @Published var strength: NightStrength {
+        didSet { UserDefaults.standard.set(strength.rawValue, forKey: Keys.strength); tick() }
+    }
+
+    @Published var colorAppBypass: Bool {
+        didSet { UserDefaults.standard.set(colorAppBypass, forKey: Keys.colorAppBypass); tick() }
+    }
+
     @Published var pausedUntil: Date?
-    @Published var state = LightState(
-        kelvin: Schedule.dayKelvin,
-        dim: 1,
-        phase: .day,
-        nextPhase: .evening,
-        minutesUntilNext: 0,
-        dayProgress: 0.5
-    )
+    @Published var state: LightState
     @Published var solar: Solar.Events?
     @Published var fluxQuit = false
     @Published var colorAppName: String?
@@ -43,6 +41,7 @@ final class AppModel: ObservableObject {
     }
 
     let location = LocationService()
+    private let fader = DisplayFader()
     private var timer: Timer?
     private var observers: [NSObjectProtocol] = []
     private var cancellables = Set<AnyCancellable>()
@@ -58,9 +57,15 @@ final class AppModel: ObservableObject {
 
     init() {
         let defaults = UserDefaults.standard
+        let wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? 7 * 60)
+        let bed = ClockTime.from(minutes: defaults.object(forKey: Keys.bed) as? Int ?? 23 * 60)
+        let strength = NightStrength(rawValue: defaults.string(forKey: Keys.strength) ?? "") ?? .standard
         enabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
-        wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? 7 * 60)
-        bed = ClockTime.from(minutes: defaults.object(forKey: Keys.bed) as? Int ?? 23 * 60)
+        self.wake = wake
+        self.bed = bed
+        self.strength = strength
+        colorAppBypass = defaults.object(forKey: Keys.colorAppBypass) as? Bool ?? true
+        state = Schedule.state(now: Date(), wake: wake, bed: bed, sunrise: nil, sunset: nil, strength: strength)
         let testing = Self.isRunningTests
         if !testing, defaults.object(forKey: Keys.didSetLogin) == nil {
             LoginItem.setEnabled(true)
@@ -86,8 +91,8 @@ final class AppModel: ObservableObject {
             self?.location.refresh()
             self?.tick()
         }
-        observe(workspace, NSWorkspace.screensDidSleepNotification) {
-            DisplayEngine.restore()
+        observe(workspace, NSWorkspace.screensDidSleepNotification) { [weak self] in
+            self?.fader.release(animated: false)
         }
         observe(workspace, NSWorkspace.didActivateApplicationNotification) { [weak self] in
             self?.tick()
@@ -97,13 +102,15 @@ final class AppModel: ObservableObject {
         }
         location.objectWillChange
             .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.tick() }
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                self?.tick()
+            }
             .store(in: &cancellables)
     }
 
     func pause(hours: Double) {
         pausedUntil = Date().addingTimeInterval(hours * 3600)
-        DisplayEngine.restore()
         tick()
     }
 
@@ -113,7 +120,7 @@ final class AppModel: ObservableObject {
     }
 
     func quit() {
-        DisplayEngine.restore()
+        fader.release(animated: false)
         NSApp.terminate(nil)
     }
 
@@ -127,7 +134,7 @@ final class AppModel: ObservableObject {
                 openAtLogin = login
             }
         }
-        let nextColor = ColorApps.match(NSWorkspace.shared.frontmostApplication)
+        let nextColor = colorAppBypass ? ColorApps.match(NSWorkspace.shared.frontmostApplication) : nil
         if colorAppName != nextColor { colorAppName = nextColor }
         let nextSolar = Solar.events(
             on: Date(),
@@ -140,20 +147,21 @@ final class AppModel: ObservableObject {
             wake: wake,
             bed: bed,
             sunrise: solar?.sunrise,
-            sunset: solar?.sunset
+            sunset: solar?.sunset,
+            strength: strength
         )
         if state != nextState { state = nextState }
         if Self.isRunningTests { return }
         retuneTimer()
         guard isActive else {
-            DisplayEngine.restore()
+            fader.release(animated: true)
             return
         }
         NightShift.disable()
         if FluxGuard.quitIfRunning() {
             fluxQuit = true
         }
-        DisplayEngine.apply(state)
+        fader.show(DisplayEngine.Target(state))
     }
 
     deinit {
@@ -199,6 +207,8 @@ final class AppModel: ObservableObject {
         static let enabled = "enabled"
         static let wake = "wakeMinutes"
         static let bed = "bedMinutes"
+        static let strength = "nightStrength"
+        static let colorAppBypass = "colorAppBypass"
         static let didSetLogin = "didSetLogin"
     }
 }
