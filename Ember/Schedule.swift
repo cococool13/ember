@@ -33,15 +33,6 @@ enum Phase: String, Equatable, Sendable, CaseIterable {
     case evening
     case night
 
-    var shortLabel: String {
-        switch self {
-        case .morning: return "Morning"
-        case .day: return "Day"
-        case .evening: return "Evening"
-        case .night: return "Night"
-        }
-    }
-
     var title: String {
         switch self {
         case .morning: return "Morning light"

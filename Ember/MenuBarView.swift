@@ -5,11 +5,10 @@ struct MenuBarView: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 16) {
             header
             nowCard
             scheduleSection
-            pauseButton
             settingsSection
             footer
         }
@@ -36,6 +35,9 @@ struct MenuBarView: View {
                 .emberLabel(20)
                 .foregroundStyle(Theme.white)
             Spacer()
+            if model.enabled {
+                pauseButton
+            }
             Button(model.enabled ? "On" : "Off") {
                 model.enabled.toggle()
             }
@@ -44,21 +46,34 @@ struct MenuBarView: View {
         }
     }
 
+    @ViewBuilder
+    private var pauseButton: some View {
+        if model.isTimedPause {
+            Button("Resume") { model.resume() }
+                .buttonStyle(GhostPillStyle(emphasized: true))
+                .accessibilityLabel("Resume Ember now")
+        } else {
+            Button("Pause 1h") { model.pause(hours: 1) }
+                .buttonStyle(GhostPillStyle())
+                .accessibilityLabel("Pause Ember for one hour")
+        }
+    }
+
     // MARK: Now
 
     private var nowCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Now")
-                    .emberEyebrow()
-                Spacer()
-                Text(kelvinReading)
-                    .emberReading()
-                    .foregroundStyle(Theme.smoke)
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(headline)
+                    .emberLabel(26)
+                    .foregroundStyle(Theme.white)
+                Spacer(minLength: 0)
+                if model.isActive {
+                    Text("\(Int(model.state.kelvin.rounded()))K")
+                        .emberReading()
+                        .foregroundStyle(Theme.smoke)
+                }
             }
-            Text(headline)
-                .emberLabel(26)
-                .foregroundStyle(Theme.white)
             Text(summary)
                 .emberBody(14)
             SunTimeline(
@@ -69,15 +84,17 @@ struct MenuBarView: View {
                 sunset: clock(model.solar?.sunset)
             )
             .padding(.top, 4)
-            HStack {
+            HStack(spacing: 12) {
                 Text(nextReading)
                     .emberReading()
                     .foregroundStyle(model.isActive ? Theme.ember : Theme.smoke)
-                Spacer()
+                Spacer(minLength: 0)
                 Text(signalReading)
                     .emberReading()
                     .foregroundStyle(Theme.smoke)
             }
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
         }
         .emberCard()
     }
@@ -98,10 +115,6 @@ struct MenuBarView: View {
         return model.state.phase.summary
     }
 
-    private var kelvinReading: String {
-        model.isActive ? String(format: "%.0fK", model.state.kelvin) : "—"
-    }
-
     private var nextReading: String {
         if !model.enabled { return "Off" }
         if let name = model.colorAppName { return "\(name) in front" }
@@ -109,7 +122,7 @@ struct MenuBarView: View {
             return "Back at \(clock(until)?.label ?? "")"
         }
         let state = model.state
-        return "\(state.nextPhase.title) at \(clock(after: state.minutesUntilNext).label)"
+        return "\(state.nextPhase.title) · \(clock(after: state.minutesUntilNext).label)"
     }
 
     private var signalReading: String {
@@ -123,45 +136,27 @@ struct MenuBarView: View {
             Text("Sleep schedule")
                 .emberEyebrow()
             VStack(spacing: 0) {
-                TimeRow(title: "Wake", caption: "Morning light begins here", time: $model.wake)
+                TimeRow(title: "Wake", caption: "Morning light starts", time: $model.wake)
                 hairline
                 TimeRow(
                     title: "Bed",
-                    caption: "Winding down from \(model.state.plan.eveningStart.label)",
+                    caption: "Wind-down \(model.state.plan.eveningStart.label)",
                     time: $model.bed
                 )
                 hairline
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text("Night light")
-                            .emberLabel(14)
-                            .foregroundStyle(Theme.white)
-                        Spacer()
-                        Text(model.strength.caption)
-                            .font(Theme.body(12))
-                            .foregroundStyle(Theme.smoke)
-                    }
+                HStack(alignment: .center, spacing: 12) {
+                    Text("Night light")
+                        .emberLabel(14)
+                        .foregroundStyle(Theme.white)
+                    Spacer(minLength: 8)
                     SegmentedPills(options: NightStrength.allCases, label: \.label, selection: $model.strength)
+                        .frame(width: 196)
+                        .accessibilityLabel("Night light strength, \(model.strength.caption)")
                 }
                 .padding(.vertical, 12)
             }
             .padding(.horizontal, 16)
             .emberCard(padding: 0)
-        }
-    }
-
-    // MARK: Pause
-
-    @ViewBuilder
-    private var pauseButton: some View {
-        if model.isTimedPause {
-            Button("Resume Ember") { model.resume() }
-                .buttonStyle(GhostPillStyle(emphasized: true, fill: true))
-        } else {
-            Button("Pause for 1 hour") { model.pause(hours: 1) }
-                .buttonStyle(GhostPillStyle(fill: true))
-                .disabled(!model.enabled)
-                .opacity(model.enabled ? 1 : 0.4)
         }
     }
 
@@ -176,15 +171,11 @@ struct MenuBarView: View {
                 hairline
                 ToggleRow(
                     title: "True color apps",
-                    caption: "Photos, Preview, Figma and Photoshop show real color while in front.",
+                    caption: "Photos, Figma, Photoshop step in front",
                     isOn: $model.colorAppBypass
                 )
                 hairline
-                ToggleRow(
-                    title: "Open at login",
-                    caption: "Ember starts with your Mac.",
-                    isOn: $model.openAtLogin
-                )
+                ToggleRow(title: "Open at login", caption: nil, isOn: $model.openAtLogin)
             }
             .padding(.horizontal, 16)
             .emberCard(padding: 0)
@@ -220,13 +211,13 @@ struct MenuBarView: View {
             parts.append("No sunrise or sunset today at this latitude")
         }
         if model.location.denied {
-            parts.append("Location is off, so Ember uses Brunswick, GA.")
+            parts.append("Location off · Brunswick, GA")
         } else if model.location.usingFallback {
-            parts.append("Waiting for your location. Using Brunswick, GA for now.")
+            parts.append("Brunswick, GA until your location arrives")
         } else {
-            parts.append("Timed to your location.")
+            parts.append("Your location")
         }
-        return parts.joined(separator: " ")
+        return parts.joined(separator: "\n")
     }
 
     // MARK: Footer
@@ -245,7 +236,7 @@ struct MenuBarView: View {
     }
 
     private var footerNote: String {
-        model.fluxQuit ? "f.lux quit · Screen only, not medical advice" : "Screen only · Not medical advice"
+        model.fluxQuit ? "f.lux quit · Not medical advice" : "Screen only · Not medical advice"
     }
 
     private var hairline: some View {

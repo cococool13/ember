@@ -78,7 +78,6 @@ extension View {
 
 struct GhostPillStyle: ButtonStyle {
     var emphasized = false
-    var fill = false
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -86,7 +85,6 @@ struct GhostPillStyle: ButtonStyle {
             .foregroundStyle(emphasized ? Theme.ember : Theme.white)
             .padding(.vertical, 10)
             .padding(.horizontal, 18)
-            .frame(maxWidth: fill ? .infinity : nil)
             .contentShape(Capsule())
             .overlay(
                 Capsule()
@@ -115,7 +113,7 @@ struct RoundGlyphStyle: ButtonStyle {
 /// Sunlitt-style utility toggle: label, quiet caption, ghost pill state.
 struct ToggleRow: View {
     var title: String
-    var caption: String
+    var caption: String?
     @Binding var isOn: Bool
 
     var body: some View {
@@ -124,10 +122,12 @@ struct ToggleRow: View {
                 Text(title)
                     .emberLabel(14)
                     .foregroundStyle(Theme.white)
-                Text(caption)
-                    .font(Theme.body(12))
-                    .foregroundStyle(Theme.smoke)
-                    .fixedSize(horizontal: false, vertical: true)
+                if let caption {
+                    Text(caption)
+                        .font(Theme.body(12))
+                        .foregroundStyle(Theme.smoke)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             Spacer(minLength: 8)
             Button(isOn ? "On" : "Off") { isOn.toggle() }
