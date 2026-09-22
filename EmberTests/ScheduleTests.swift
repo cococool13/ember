@@ -267,6 +267,226 @@ final class ScheduleTests: XCTestCase {
         XCTAssertEqual(atEight.phase, .evening)
     }
 
+    // MARK: Smoothness
+
+    /// Sample the whole day at one-minute steps. The fastest ramp by design is
+    /// the 25-minute morning rise (≈31 mired/min at its steepest); nothing
+    /// else, and no phase boundary, may move faster than that.
+    func testWholeDayHasNoHarshJumps() {
+        var previous: LightState?
+        var largestMired = 0.0
+        var largestDim = 0.0
+        for minute in 0..<1440 {
+            let state = Schedule.state(
+                now: date(hour: minute / 60, minute: minute % 60),
+                calendar: calendar,
+                wake: wake,
+                bed: bed,
+                sunrise: date(hour: 7, minute: 20),
+                sunset: date(hour: 17, minute: 30)
+            )
+            if let previous {
+                largestMired = max(largestMired, abs(1e6 / previous.kelvin - 1e6 / state.kelvin))
+                largestDim = max(largestDim, abs(previous.dim - state.dim))
+            }
+            previous = state
+        }
+        XCTAssertLessThan(largestMired, 32, "worst one-minute step in mired")
+        XCTAssertLessThan(largestDim, 0.035, "worst one-minute step in dim")
+    }
+
+    /// One second either side of every phase boundary must look the same.
+    func testPhaseBoundariesAreContinuous() {
+        let sunrise = date(hour: 7, minute: 20)
+        let sunset = date(hour: 17, minute: 30)
+        let plan = Schedule.plan(wake: wake, bed: bed, sunrise: sunrise, sunset: sunset, calendar: calendar)
+        let boundaries: [(ClockTime, Phase, Phase)] = [
+            (wake, .night, .morning),
+            (plan.morningEnd, .morning, .day),
+            (plan.eveningStart, .day, .evening),
+            (bed, .evening, .night)
+        ]
+        for (at, before, after) in boundaries {
+            let a = Schedule.state(
+                now: date(hour: at.hour, minute: at.minute).addingTimeInterval(-1),
+                calendar: calendar, wake: wake, bed: bed, sunrise: sunrise, sunset: sunset
+            )
+            let b = Schedule.state(
+                now: date(hour: at.hour, minute: at.minute).addingTimeInterval(1),
+                calendar: calendar, wake: wake, bed: bed, sunrise: sunrise, sunset: sunset
+            )
+            XCTAssertEqual(a.phase, before, "before \(at.label)")
+            XCTAssertEqual(b.phase, after, "after \(at.label)")
+            XCTAssertEqual(1e6 / a.kelvin, 1e6 / b.kelvin, accuracy: 1, "mired step at \(at.label)")
+            XCTAssertEqual(a.dim, b.dim, accuracy: 0.002, "dim step at \(at.label)")
+        }
+    }
+
+    func testMorningSettlesIntoDayWithoutAStep() {
+        let endOfMorning = Schedule.state(
+            now: date(hour: 7, minute: 24, second: 59),
+            calendar: calendar,
+            wake: wake,
+            bed: bed,
+            sunrise: nil,
+            sunset: nil
+        )
+        let startOfDay = Schedule.state(
+            now: date(hour: 7, minute: 25, second: 1),
+            calendar: calendar,
+            wake: wake,
+            bed: bed,
+            sunrise: nil,
+            sunset: nil
+        )
+        let midMorningSettle = Schedule.state(
+            now: date(hour: 7, minute: 55),
+            calendar: calendar,
+            wake: wake,
+            bed: bed,
+            sunrise: nil,
+            sunset: nil
+        )
+        let settled = Schedule.state(
+            now: date(hour: 8, minute: 30),
+            calendar: calendar,
+            wake: wake,
+            bed: bed,
+            sunrise: nil,
+            sunset: nil
+        )
+        XCTAssertEqual(endOfMorning.phase, .morning)
+        XCTAssertEqual(startOfDay.phase, .day)
+        XCTAssertEqual(endOfMorning.kelvin, Schedule.morningKelvin, accuracy: 5)
+        XCTAssertEqual(startOfDay.kelvin, Schedule.morningKelvin, accuracy: 5)
+        XCTAssertGreaterThan(midMorningSettle.kelvin, Schedule.dayKelvin + 50)
+        XCTAssertLessThan(midMorningSettle.kelvin, Schedule.morningKelvin - 50)
+        XCTAssertEqual(settled.kelvin, Schedule.dayKelvin, accuracy: 1)
+    }
+
+    func testEveningDecreasesMonotonically() {
+        var last = Double.infinity
+        var lastDim = Double.infinity
+        for minute in stride(from: 17 * 60 + 30, to: 23 * 60, by: 1) {
+            let state = Schedule.state(
+                now: date(hour: minute / 60, minute: minute % 60),
+                calendar: calendar,
+                wake: wake,
+                bed: bed,
+                sunrise: date(hour: 7, minute: 20),
+                sunset: date(hour: 17, minute: 30)
+            )
+            XCTAssertEqual(state.phase, .evening)
+            XCTAssertLessThanOrEqual(state.kelvin, last + 1e-6)
+            XCTAssertLessThanOrEqual(state.dim, lastDim + 1e-9)
+            last = state.kelvin
+            lastDim = state.dim
+        }
+    }
+
+    func testMiredBlendIsEvenToTheEye() {
+        let half = Schedule.blendKelvin(6500, 1800, 0.5)
+        XCTAssertEqual(1e6 / half, (1e6 / 6500 + 1e6 / 1800) / 2, accuracy: 0.01)
+        XCTAssertLessThan(half, (6500 + 1800) / 2, "mired midpoint is warmer than the kelvin midpoint")
+        XCTAssertEqual(Schedule.blendKelvin(6500, 1800, 0), 6500, accuracy: 0.001)
+        XCTAssertEqual(Schedule.blendKelvin(6500, 1800, 1), 1800, accuracy: 0.001)
+    }
+
+    func testEaseHasFlatEnds() {
+        XCTAssertEqual(Schedule.ease(0), 0)
+        XCTAssertEqual(Schedule.ease(1), 1)
+        XCTAssertEqual(Schedule.ease(0.5), 0.5, accuracy: 1e-9)
+        XCTAssertLessThan(Schedule.ease(0.05), 0.002)
+        XCTAssertGreaterThan(Schedule.ease(0.95), 0.998)
+        XCTAssertEqual(Schedule.ease(-1), 0)
+        XCTAssertEqual(Schedule.ease(2), 1)
+    }
+
+    // MARK: Plan
+
+    func testPlanMarksMorningSettleAndEvening() {
+        let plan = Schedule.plan(
+            wake: wake,
+            bed: bed,
+            sunrise: date(hour: 7, minute: 10),
+            sunset: date(hour: 19, minute: 30),
+            calendar: calendar
+        )
+        XCTAssertFalse(plan.tooShort)
+        XCTAssertEqual(plan.awakeMinutes, 16 * 60)
+        XCTAssertEqual(plan.morningEnd, ClockTime(hour: 7, minute: 25))
+        XCTAssertEqual(plan.eveningStart, ClockTime(hour: 19, minute: 30))
+        XCTAssertEqual(plan.duskEndMinutes - plan.eveningStartMinutes, 40)
+        XCTAssertEqual(plan.settleEndMinutes - plan.morningEndMinutes, 60)
+        XCTAssertEqual(plan.morningFraction, 25.0 / 960, accuracy: 1e-9)
+        XCTAssertEqual(plan.eveningFraction, 750.0 / 960, accuracy: 1e-9)
+    }
+
+    func testPlanUsesBedMinusThreeHoursWithoutSun() {
+        let plan = Schedule.plan(wake: wake, bed: bed, sunrise: nil, sunset: nil, calendar: calendar)
+        XCTAssertEqual(plan.eveningStart, ClockTime(hour: 20, minute: 0))
+    }
+
+    func testPlanFlagsShortWindow() {
+        let plan = Schedule.plan(
+            wake: ClockTime(hour: 7, minute: 0),
+            bed: ClockTime(hour: 8, minute: 30),
+            sunrise: nil,
+            sunset: nil,
+            calendar: calendar
+        )
+        XCTAssertTrue(plan.tooShort)
+    }
+
+    // MARK: Strength
+
+    func testNightStrengthChangesNightTarget() {
+        func night(_ strength: NightStrength) -> LightState {
+            Schedule.state(
+                now: date(hour: 3, minute: 0),
+                calendar: calendar,
+                wake: wake,
+                bed: bed,
+                sunrise: nil,
+                sunset: nil,
+                strength: strength
+            )
+        }
+        XCTAssertEqual(night(.standard).kelvin, 1800, accuracy: 1)
+        XCTAssertEqual(night(.standard).dim, 0.55, accuracy: 0.001)
+        XCTAssertGreaterThan(night(.gentle).kelvin, night(.standard).kelvin)
+        XCTAssertGreaterThan(night(.gentle).dim, night(.standard).dim)
+        XCTAssertLessThan(night(.deep).kelvin, night(.standard).kelvin)
+        XCTAssertLessThan(night(.deep).dim, night(.standard).dim)
+    }
+
+    func testStrengthDoesNotTouchTheDay() {
+        for strength in NightStrength.allCases {
+            let state = Schedule.state(
+                now: date(hour: 12, minute: 0),
+                calendar: calendar,
+                wake: wake,
+                bed: bed,
+                sunrise: nil,
+                sunset: nil,
+                strength: strength
+            )
+            XCTAssertEqual(state.kelvin, 6500, accuracy: 1)
+            XCTAssertEqual(state.dim, 1, accuracy: 0.001)
+        }
+    }
+
+    // MARK: Readings
+
+    func testSleepSignalReadsFullColorByDayAndLowAtNight() {
+        let day = Schedule.state(now: date(hour: 12, minute: 0), calendar: calendar, wake: wake, bed: bed, sunrise: nil, sunset: nil)
+        let night = Schedule.state(now: date(hour: 3, minute: 0), calendar: calendar, wake: wake, bed: bed, sunrise: nil, sunset: nil)
+        XCTAssertEqual(day.sleepSignal, 1, accuracy: 0.001)
+        XCTAssertEqual(day.signalLabel, "Full color")
+        XCTAssertLessThan(night.sleepSignal, 0.15)
+        XCTAssertTrue(night.signalLabel.hasPrefix("Blue light −"))
+    }
+
     private func date(hour: Int, minute: Int, second: Int = 0) -> Date {
         var c = DateComponents()
         c.year = 2026
