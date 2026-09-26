@@ -11,6 +11,10 @@ struct ClockTime: Equatable, Sendable {
         return ClockTime(hour: wrapped / 60, minute: wrapped % 60)
     }
 
+    static func from(fractionalMinutes: Double) -> ClockTime {
+        from(minutes: Int(fractionalMinutes.rounded()))
+    }
+
     func stepped(by delta: Int) -> ClockTime {
         ClockTime.from(minutes: minutes + delta)
     }
@@ -29,15 +33,6 @@ enum Phase: String, Equatable, Sendable, CaseIterable {
     case evening
     case night
 
-    var shortLabel: String {
-        switch self {
-        case .morning: return "Dawn"
-        case .day: return "Day"
-        case .evening: return "Dusk"
-        case .night: return "Night"
-        }
-    }
-
     var title: String {
         switch self {
         case .morning: return "Morning light"
@@ -49,11 +44,80 @@ enum Phase: String, Equatable, Sendable, CaseIterable {
 
     var summary: String {
         switch self {
-        case .morning: return "Cool, bright light to help you wake up."
-        case .day: return "Full color. The screen stays out of your way."
-        case .evening: return "Blue light drops so melatonin can start."
-        case .night: return "Warm and dim until you sleep."
+        case .morning: return "Cool, bright light tells your body clock the day has started."
+        case .day: return "Full color and full brightness. The screen stays out of your way."
+        case .evening: return "Blue light eases off so melatonin can rise before bed."
+        case .night: return "Warm and dim. Low blue light so sleep comes easier."
         }
+    }
+}
+
+/// How far the screen goes at night. Standard is the Brown 2022 target Ember
+/// shipped with; Gentle keeps text easier to read, Deep is for dark rooms.
+enum NightStrength: String, CaseIterable, Sendable {
+    case gentle
+    case standard
+    case deep
+
+    var label: String {
+        switch self {
+        case .gentle: return "Gentle"
+        case .standard: return "Standard"
+        case .deep: return "Deep"
+        }
+    }
+
+    var caption: String {
+        switch self {
+        case .gentle: return "Warm, still easy to read"
+        case .standard: return "Warm and dim"
+        case .deep: return "Very warm, very dim"
+        }
+    }
+
+    var nightKelvin: Double {
+        switch self {
+        case .gentle: return 2200
+        case .standard: return 1800
+        case .deep: return 1600
+        }
+    }
+
+    var nightDim: Double {
+        switch self {
+        case .gentle: return 0.68
+        case .standard: return 0.55
+        case .deep: return 0.45
+        }
+    }
+}
+
+/// The shape of one waking day, in minutes since wake. The view draws this;
+/// `Schedule.state` samples it.
+struct DayPlan: Equatable, Sendable {
+    var wake: ClockTime
+    var bed: ClockTime
+    var awakeMinutes: Double
+    var morningEndMinutes: Double
+    var settleEndMinutes: Double
+    var eveningStartMinutes: Double
+    var duskEndMinutes: Double
+    var tooShort: Bool
+
+    var morningEnd: ClockTime { clock(at: morningEndMinutes) }
+    var eveningStart: ClockTime { clock(at: eveningStartMinutes) }
+
+    var morningFraction: Double { fraction(morningEndMinutes) }
+    var eveningFraction: Double { fraction(eveningStartMinutes) }
+    var duskFraction: Double { fraction(duskEndMinutes) }
+
+    func fraction(_ minutes: Double) -> Double {
+        guard awakeMinutes > 0 else { return 0 }
+        return min(1, max(0, minutes / awakeMinutes))
+    }
+
+    private func clock(at minutes: Double) -> ClockTime {
+        ClockTime.from(fractionalMinutes: Double(wake.minutes) + minutes)
     }
 }
 
@@ -64,13 +128,17 @@ struct LightState: Equatable, Sendable {
     var nextPhase: Phase
     var minutesUntilNext: Int
     var dayProgress: Double
+    var plan: DayPlan
 
-    var nextCaption: String {
-        let h = minutesUntilNext / 60
-        let m = minutesUntilNext % 60
-        if minutesUntilNext <= 0 { return phase.title }
-        if h > 0 { return "\(nextPhase.shortLabel) in \(h)h \(m)m" }
-        return "\(nextPhase.shortLabel) in \(m)m"
+    /// Share of the daytime melanopic signal the screen still sends, 0...1.
+    var sleepSignal: Double {
+        Schedule.melanopicDER(kelvin: kelvin) * dim / (Schedule.melanopicDER(kelvin: Schedule.dayKelvin) * Schedule.dayDim)
+    }
+
+    /// Plain-language reading of `sleepSignal`.
+    var signalLabel: String {
+        if sleepSignal >= 0.98 { return "Full color" }
+        return "Blue light −\(Int(((1 - sleepSignal) * 100).rounded()))%"
     }
 }
 
@@ -78,41 +146,27 @@ enum Schedule {
     static let morningKelvin = 6800.0
     static let dayKelvin = 6500.0
     static let duskKelvin = 2700.0
-    static let nightKelvin = 1800.0
+    static let nightKelvin = NightStrength.standard.nightKelvin
     static let dayDim = 1.0
     static let duskDim = 0.82
-    static let nightDim = 0.55
+    static let nightDim = NightStrength.standard.nightDim
     static let eveningLeadMinutes = 180
     static let minimumMorningRamp = 25
+    static let morningSettleMinutes = 60
     static let eveningCutMinutes = 40
     static let minimumEveningRamp = 90
 
-    /// Fast melanopic drop in the first 40 minutes of evening, then a slow
-    /// slide to night. Morning reaches cool daylight in 25 minutes.
-    static func state(
-        now: Date,
-        calendar: Calendar = .current,
+    static func plan(
         wake: ClockTime,
         bed: ClockTime,
         sunrise: Date?,
-        sunset: Date?
-    ) -> LightState {
-        let nowM = wrap(minutes(in: now, calendar: calendar))
+        sunset: Date?,
+        calendar: Calendar = .current
+    ) -> DayPlan {
         let wakeM = wrap(Double(wake.minutes))
         let bedM = wrap(Double(bed.minutes))
         let awake = minutesBetween(wakeM, bedM)
-        let elapsed = minutesBetween(wakeM, nowM)
-
-        if awake <= Double(minimumMorningRamp + minimumEveningRamp) || elapsed >= awake {
-            return LightState(
-                kelvin: nightKelvin,
-                dim: nightDim,
-                phase: .night,
-                nextPhase: .morning,
-                minutesUntilNext: remainingMinutes(minutesBetween(nowM, wakeM)),
-                dayProgress: 1
-            )
-        }
+        let tooShort = awake <= Double(minimumMorningRamp + minimumEveningRamp)
 
         let sunriseElapsed = sunrise.map { minutesBetween(wakeM, wrap(minutes(in: $0, calendar: calendar))) }
         let sunsetElapsed = sunset.map { minutesBetween(wakeM, wrap(minutes(in: $0, calendar: calendar))) }
@@ -129,31 +183,91 @@ enum Schedule {
         eveningStart = min(eveningStart, awake - Double(minimumEveningRamp))
         eveningStart = max(eveningStart, morningEnd)
 
-        if elapsed < morningEnd {
-            let t = smoothstep(elapsed / max(morningEnd, 1))
+        let settleEnd = min(morningEnd + Double(morningSettleMinutes), eveningStart)
+        let span = max(awake - eveningStart, 1)
+        let cut = min(Double(eveningCutMinutes), max(span / 3, 1))
+
+        return DayPlan(
+            wake: wake,
+            bed: bed,
+            awakeMinutes: awake,
+            morningEndMinutes: morningEnd,
+            settleEndMinutes: settleEnd,
+            eveningStartMinutes: eveningStart,
+            duskEndMinutes: eveningStart + cut,
+            tooShort: tooShort
+        )
+    }
+
+    /// Morning reaches cool daylight in 25 minutes, then settles to 6500K over
+    /// the next hour. Evening drops the melanopic signal fast in the first 40
+    /// minutes, then slides to the night target by bedtime. Every ramp blends
+    /// in mired (reciprocal kelvin) with a smootherstep ease, so the change
+    /// looks even to the eye instead of hanging at 6500K and snapping at the end.
+    static func state(
+        now: Date,
+        calendar: Calendar = .current,
+        wake: ClockTime,
+        bed: ClockTime,
+        sunrise: Date?,
+        sunset: Date?,
+        strength: NightStrength = .standard
+    ) -> LightState {
+        let plan = plan(wake: wake, bed: bed, sunrise: sunrise, sunset: sunset, calendar: calendar)
+        let nowM = wrap(minutes(in: now, calendar: calendar))
+        let elapsed = minutesBetween(wrap(Double(wake.minutes)), nowM)
+        return state(elapsed: elapsed, plan: plan, strength: strength)
+    }
+
+    /// The light at `elapsed` minutes after wake on `plan`. Anything at or past
+    /// bedtime, up to the next wake, is night.
+    static func state(elapsed: Double, plan: DayPlan, strength: NightStrength = .standard) -> LightState {
+        let elapsed = wrap(elapsed)
+        let awake = plan.awakeMinutes
+        let nightK = strength.nightKelvin
+        let nightD = strength.nightDim
+
+        if plan.tooShort || elapsed >= awake {
             return LightState(
-                kelvin: lerp(nightKelvin, morningKelvin, t),
-                dim: lerp(nightDim, dayDim, t),
+                kelvin: nightK,
+                dim: nightD,
+                phase: .night,
+                nextPhase: .morning,
+                minutesUntilNext: remainingMinutes(wrap(-elapsed)),
+                dayProgress: 1,
+                plan: plan
+            )
+        }
+
+        let morningEnd = plan.morningEndMinutes
+        let eveningStart = plan.eveningStartMinutes
+
+        if elapsed < morningEnd {
+            let t = ease(elapsed / max(morningEnd, 1))
+            return LightState(
+                kelvin: blendKelvin(nightK, morningKelvin, t),
+                dim: lerp(nightD, dayDim, t),
                 phase: .morning,
                 nextPhase: .day,
                 minutesUntilNext: remainingMinutes(morningEnd - elapsed),
-                dayProgress: elapsed / awake
+                dayProgress: elapsed / awake,
+                plan: plan
             )
         }
         if elapsed >= eveningStart {
             let span = max(awake - eveningStart, 1)
             let into = elapsed - eveningStart
-            let cut = min(Double(eveningCutMinutes), max(span / 3, 1))
+            let cut = plan.duskEndMinutes - eveningStart
             let kelvin: Double
             let dim: Double
             if into < cut {
-                let t = smoothstep(into / cut)
-                kelvin = lerp(dayKelvin, duskKelvin, t)
+                let t = ease(into / cut)
+                kelvin = blendKelvin(dayKelvin, duskKelvin, t)
                 dim = lerp(dayDim, duskDim, t)
             } else {
-                let t = smoothstep((into - cut) / max(span - cut, 1))
-                kelvin = lerp(duskKelvin, nightKelvin, t)
-                dim = lerp(duskDim, nightDim, t)
+                let t = ease((into - cut) / max(span - cut, 1))
+                kelvin = blendKelvin(duskKelvin, nightK, t)
+                dim = lerp(duskDim, nightD, t)
             }
             return LightState(
                 kelvin: kelvin,
@@ -161,16 +275,20 @@ enum Schedule {
                 phase: .evening,
                 nextPhase: .night,
                 minutesUntilNext: remainingMinutes(awake - elapsed),
-                dayProgress: elapsed / awake
+                dayProgress: elapsed / awake,
+                plan: plan
             )
         }
+        let settleSpan = plan.settleEndMinutes - morningEnd
+        let settle = settleSpan > 0 ? ease((elapsed - morningEnd) / settleSpan) : 1
         return LightState(
-            kelvin: dayKelvin,
+            kelvin: blendKelvin(morningKelvin, dayKelvin, settle),
             dim: dayDim,
             phase: .day,
             nextPhase: .evening,
             minutesUntilNext: remainingMinutes(eveningStart - elapsed),
-            dayProgress: elapsed / awake
+            dayProgress: elapsed / awake,
+            plan: plan
         )
     }
 
@@ -204,8 +322,17 @@ enum Schedule {
         a + (b - a) * t
     }
 
-    static func smoothstep(_ t: Double) -> Double {
+    /// Correlated color temperature is perceptually even in mired (1e6 / K),
+    /// not in kelvin: 6500→5000K is a small step, 2700→1800K a large one.
+    static func blendKelvin(_ a: Double, _ b: Double, _ t: Double) -> Double {
+        let mired = lerp(1_000_000 / a, 1_000_000 / b, min(1, max(0, t)))
+        return 1_000_000 / mired
+    }
+
+    /// Perlin smootherstep: zero first and second derivative at both ends, so a
+    /// ramp neither starts with a kick nor lands with a bump.
+    static func ease(_ t: Double) -> Double {
         let x = min(1, max(0, t))
-        return x * x * (3 - 2 * x)
+        return x * x * x * (x * (x * 6 - 15) + 10)
     }
 }

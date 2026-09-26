@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0b0b0b">
-    <title>Ember for Mac — daylight on the screen, dark when you sleep</title>
-    <meta name="description" content="Ember sits in the Mac menu bar and changes screen color with the day. Cool light in the morning. Warm and dim at night. Built on CIE S 026, not an orange filter.">
+    <title>Ember for Mac — daylight on the screen, dark when you sleep. $2.99 once.</title>
+    <meta name="description" content="Ember sits in the Mac menu bar and changes screen color with the day. Cool light in the morning. Warm and dim at night. Built on CIE S 026, not an orange filter. $2.99 once, no subscription.">
     <link rel="canonical" href="https://ember.cohencool.workers.dev/">
-    <meta property="og:title" content="Ember for Mac">
+    <meta property="og:title" content="Ember for Mac — $2.99 once">
     <meta property="og:description" content="Daylight on the screen. Dark when you sleep. A menu bar app for circadian light.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://ember.cohencool.workers.dev/">
     <meta property="og:image" content="https://ember.cohencool.workers.dev/assets/icon.png">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Ember for Mac">
+    <meta name="twitter:title" content="Ember for Mac — $2.99 once">
     <meta name="twitter:description" content="Daylight on the screen. Dark when you sleep.">
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -31,8 +31,13 @@
       "operatingSystem": "macOS 14+",
       "description": "Menu bar app that changes Mac screen color with the day for circadian light.",
       "url": "https://ember.cohencool.workers.dev/",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      "offers": { "@type": "Offer", "price": "2.99", "priceCurrency": "USD", "url": "https://whop.com/checkout/ch_vV3fRPAovR4rnHe/" }
     }
+    </script>
+    <script>
+!function(w,d,s,u,n,a,b){if(w[n])return;a=w[n]={q:[],t:+new Date,s:[],o:u,track:function(){a.q.push([+new Date].concat([].slice.call(arguments)))},setScope:function(){a.s=[].slice.call(arguments).filter(function(x){return typeof x==="string"});a.q.push([+new Date,"setScope"].concat(a.s))},scope:function(){var c=[].slice.call(arguments);return{track:function(){a.q.push([+new Date].concat([].slice.call(arguments)).concat([{__scope:c}]))}}}};b=d.createElement(s);b.async=1;b.src=u+"/s.js";d.getElementsByTagName(s)[0].parentNode.insertBefore(b,d.getElementsByTagName(s)[0])}(window,document,"script","https://t.whop.tw","whop");
+whop.setScope("biz_KFKG69GbVbg8Zv");
+whop.track("page");
     </script>
   </head>
   <body>
@@ -43,45 +48,210 @@
 
     <header class="nav">
       <a class="wordmark" href="/">
-          <svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true">
-            <defs>
-              <mask id="nav-crescent">
-                <circle cx="32" cy="32" r="20" fill="#fff"/>
-                <circle cx="24.8" cy="32" r="20" fill="#000"/>
-              </mask>
-            </defs>
-            <circle cx="32" cy="32" r="20" fill="#cc6437" mask="url(#nav-crescent)"/>
-            <circle cx="32" cy="32" r="20" fill="none" stroke="#cc6437" stroke-width="1.4"/>
-          </svg>
-          Ember
-        </a>
-      <a class="pill" href="#get">Get Ember</a>
+        <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true">
+          <defs>
+            <radialGradient id="nav-lit" gradientUnits="userSpaceOnUse" cx="52.2" cy="32" r="35">
+              <stop offset="0" stop-color="#ffe2bc"/>
+              <stop offset="0.55" stop-color="#cc6437"/>
+              <stop offset="1" stop-color="#7a2a12"/>
+            </radialGradient>
+          </defs>
+          <circle cx="32" cy="32" r="22" fill="#171717" stroke="#cc6437" stroke-opacity="0.55" stroke-width="1.8"/>
+          <path d="M32 10A22 22 0 0 1 32 54A9.24 22 0 0 0 32 10Z" transform="rotate(28 32 32)" fill="url(#nav-lit)"/>
+        </svg>
+        Ember
+      </a>
+      <nav class="nav-links" aria-label="Page">
+        <a href="#demo">Preview</a>
+        <a href="#panel">The app</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">Questions</a>
+      </nav>
+      <a class="pill buy" href="https://whop.com/checkout/ch_vV3fRPAovR4rnHe/" rel="noopener">Buy — $2.99</a>
     </header>
 
     <main id="main">
       <section class="hero">
         <img class="hero-photo" src="assets/hero.jpg" alt="" width="1600" height="900">
-        <p class="flank left">Daylight when you need it</p>
-        <p class="flank right">Dark when you do not</p>
-        <div class="hero-core">
-          <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
-            <defs>
-              <mask id="ember-crescent">
-                <circle cx="32" cy="32" r="20" fill="#fff"/>
-                <circle cx="24.8" cy="32" r="20" fill="#000"/>
-              </mask>
-            </defs>
-            <circle cx="32" cy="32" r="20" fill="#cc6437" mask="url(#ember-crescent)"/>
-            <circle cx="32" cy="32" r="20" fill="none" stroke="#cc6437" stroke-width="1.4"/>
-          </svg>
-          <h1>Ember</h1>
-          <p class="lede">The Mac menu bar app that paints the screen with the day. Cool light to wake. Warm and dim to sleep. Not an orange filter.</p>
-          <a class="pill" href="#get">Get Ember</a>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Mac menu bar · macOS 14+ · $2.99 once</p>
+            <h1>Your screen should end the day like the sun does.</h1>
+            <p class="lede">Ember paints the Mac display with the day. Cool light when you wake. True color while you work. Warm and dim for the three hours before bed, so your screen stops telling your body it is noon.</p>
+            <div class="cta-row">
+              <a class="pill buy primary" href="https://whop.com/checkout/ch_vV3fRPAovR4rnHe/" rel="noopener">Buy Ember — $2.99</a>
+              <a class="pill quiet" id="download-hero" href="/downloads/Ember.dmg">Already bought? Download</a>
+            </div>
+            <p class="note">One-time payment on Whop. No subscription. No account. No telemetry.</p>
+            <ul class="proof-list" aria-label="Facts">
+              <li><span class="reading">−87%</span> blue light at night</li>
+              <li><span class="reading">25 min</span> morning ramp to 6800K</li>
+              <li><span class="reading">0</span> accounts, cookies, or servers</li>
+            </ul>
+          </div>
+
+          <div class="demo" id="demo">
+            <div class="stage" id="stage" data-ember="on" data-time="night">
+              <div class="display" aria-hidden="true">
+                <div class="screen">
+                  <div class="menubar">
+                    <span class="mb-apple"></span>
+                    <span class="mb-app">Finder</span>
+                    <span class="mb-item">File</span>
+                    <span class="mb-item">Edit</span>
+                    <span class="mb-item">View</span>
+                    <span class="mb-right">
+                      <svg class="mb-mark" viewBox="0 0 64 64" width="12" height="12">
+                        <defs>
+                          <mask id="mb-crescent">
+                            <circle cx="32" cy="32" r="20" fill="#fff"/>
+                            <circle class="mb-shadow" cx="24.8" cy="32" r="20" fill="#000"/>
+                          </mask>
+                        </defs>
+                        <g transform="rotate(28 32 32)">
+                          <circle cx="32" cy="32" r="20" fill="currentColor" mask="url(#mb-crescent)"/>
+                        </g>
+                        <circle cx="32" cy="32" r="20" fill="none" stroke="currentColor" stroke-width="3"/>
+                      </svg>
+                      <span class="mb-wifi"></span>
+                      <span class="mb-clock" id="mb-clock">11:12 PM</span>
+                    </span>
+                  </div>
+                  <div class="desktop">
+                    <div class="win doc">
+                      <div class="win-bar"><i></i><i></i><i></i><span>Notes — Tomorrow</span></div>
+                      <div class="win-body">
+                        <span class="line w60 h"></span>
+                        <span class="line w90"></span>
+                        <span class="line w80"></span>
+                        <span class="line w70"></span>
+                        <span class="line w85"></span>
+                        <span class="line w40"></span>
+                      </div>
+                    </div>
+                    <div class="win photo">
+                      <div class="win-bar"><i></i><i></i><i></i><span>Photos</span></div>
+                      <div class="scene"></div>
+                      <div class="swatches">
+                        <i style="background:#ffffff"></i>
+                        <i style="background:#3b82f6"></i>
+                        <i style="background:#22c55e"></i>
+                        <i style="background:#ef4444"></i>
+                        <i style="background:#facc15"></i>
+                        <i style="background:#0b0b0b"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="dock">
+                    <i style="background:#2f7cf6"></i><i style="background:#5ac8fa"></i><i style="background:#ffffff"></i><i style="background:#ff9500"></i><i style="background:#34c759"></i><i style="background:#af52de"></i><i style="background:#ff2d55"></i>
+                  </div>
+                  <div class="tint"></div>
+                  <div class="dim"></div>
+                </div>
+              </div>
+              <div class="stand"></div>
+            </div>
+
+            <div class="demo-controls">
+              <div class="seg" role="group" aria-label="Ember">
+                <button type="button" data-set="ember" data-value="off" aria-pressed="false">Ember off</button>
+                <button type="button" data-set="ember" data-value="on" aria-pressed="true">Ember on</button>
+              </div>
+              <div class="seg" role="group" aria-label="Time of day">
+                <button type="button" data-set="time" data-value="day" aria-pressed="false">Daytime</button>
+                <button type="button" data-set="time" data-value="night" aria-pressed="true">Nighttime</button>
+              </div>
+            </div>
+            <p class="demo-reading reading" id="demo-reading" aria-live="polite">EMBER ON · NIGHT LIGHT · 1800K · 55% · BLUE LIGHT −87%</p>
+            <p class="note demo-note">Preview — approximate. Ember rewrites the display gamma table; a web page can only tint pixels.</p>
+          </div>
         </div>
       </section>
 
       <section class="bone">
-        <p>Built on the 2022 indoor light consensus. Melanopic signal high by day. Cut three hours before bed.</p>
+        <ul>
+          <li>Brown et al. 2022 indoor light consensus</li>
+          <li>CIE S 026 melanopic weighting</li>
+          <li>Mired-blended ramps · nothing snaps</li>
+          <li>Quits f.lux · turns Night Shift off</li>
+        </ul>
+      </section>
+
+      <section class="panel-proof" id="panel">
+        <div class="panel-copy">
+          <p class="eyebrow">The app</p>
+          <h2>One click in the menu bar. Nothing to babysit.</h2>
+          <p class="body">Two times. That is the whole setup. Ember reads the sun for your location, draws the day on one track, and shows you what your screen is doing right now in kelvin and in plain words.</p>
+          <ul class="benefits">
+            <li><h3>Follows wake, bed, and the sun</h3><p>Evening starts at sunset or three hours before bed, whichever comes first. Morning ramps in 25 minutes.</p></li>
+            <li><h3>Steps aside for color work</h3><p>Photos, Preview, Figma, and Photoshop get true color while they are in front. Pause 1h when you need it anywhere else.</p></li>
+            <li><h3>Three night strengths</h3><p>Gentle keeps text easy to read. Standard is the Brown 2022 target. Deep is for dark rooms.</p></li>
+            <li><h3>Scrub your day</h3><p>Drag along the day track and your screen shows that hour's light. Let go and it eases back to now. Pause, resume, and night strength also work from Shortcuts and Spotlight.</p></li>
+          </ul>
+        </div>
+
+        <div class="panel" role="img" aria-label="Ember menu bar panel at night: Night light, 1800K, sleep schedule, and settings">
+          <div class="p-head">
+<svg viewBox="0 0 64 64" width="20" height="20" aria-hidden="true">
+            <defs>
+              <radialGradient id="panel-lit" gradientUnits="userSpaceOnUse" cx="52.2" cy="32" r="35">
+                <stop offset="0" stop-color="#ffe2bc"/>
+                <stop offset="0.55" stop-color="#cc6437"/>
+                <stop offset="1" stop-color="#7a2a12"/>
+              </radialGradient>
+            </defs>
+            <circle cx="32" cy="32" r="22" fill="#171717" stroke="#cc6437" stroke-opacity="0.55" stroke-width="1.8"/>
+            <path d="M32 10A22 22 0 0 1 32 54A9.24 22 0 0 0 32 10Z" transform="rotate(28 32 32)" fill="url(#panel-lit)"/>
+            </svg>
+            <span class="p-title">Ember</span>
+            <span class="p-pill">Pause 1h</span>
+            <span class="p-pill on">On</span>
+          </div>
+          <div class="p-card">
+            <div class="p-row top">
+              <span class="p-headline">Night light</span>
+              <span class="reading">1800K</span>
+            </div>
+            <p class="p-body">Warm and dim. Low blue light so sleep comes easier.</p>
+            <div class="p-track">
+              <span class="seg-a"></span><span class="seg-b"></span><span class="seg-c"></span><span class="seg-d"></span>
+              <span class="tick" style="left:2%"></span><span class="tick" style="left:78%"></span>
+              <span class="marker"></span>
+            </div>
+            <div class="p-row reading small"><span>7:00 AM</span><span>11:00 PM</span></div>
+            <div class="p-row reading"><span class="rust">Morning light · 7:00 AM</span><span>Blue light −87%</span></div>
+          </div>
+          <p class="p-eyebrow">Sleep schedule</p>
+          <div class="p-card list">
+            <div class="p-row">
+              <span class="p-label">Wake<small>Morning light starts</small></span>
+              <span class="p-step">–</span><span class="reading">7:00 AM</span><span class="p-step">+</span>
+            </div>
+            <div class="p-row">
+              <span class="p-label">Bed<small>Wind-down 8:00 PM</small></span>
+              <span class="p-step">–</span><span class="reading">11:00 PM</span><span class="p-step">+</span>
+            </div>
+            <div class="p-row">
+              <span class="p-label">Night light</span>
+              <span class="p-segs"><span>Gentle</span><span class="on">Standard</span><span>Deep</span></span>
+            </div>
+          </div>
+          <p class="p-eyebrow">Settings</p>
+          <div class="p-card list">
+            <div class="p-row">
+              <span class="p-label">Sun<small>Sunrise 7:19 AM · Sunset 7:28 PM<br>Your location</small></span>
+            </div>
+            <div class="p-row">
+              <span class="p-label">True color apps<small>Photos, Figma, and more</small></span>
+              <span class="p-pill on">On</span>
+            </div>
+            <div class="p-row">
+              <span class="p-label">Open at login</span>
+              <span class="p-pill on">On</span>
+            </div>
+          </div>
+          <div class="p-row reading foot"><span>Screen only · Not medical advice</span><span>Quit</span></div>
+        </div>
       </section>
 
       <section class="systems" id="day">
@@ -90,28 +260,32 @@
         <div class="cards">
           <article class="card wide">
             <span class="badge">01</span>
-            <h3>Morning</h3>
-            <p>Cool, bright light as soon as you wake. Melanopsin wants a strong day signal here. Ember raises it in about 25 minutes.</p>
+            <h3>Morning light</h3>
+            <p>Cool, bright light as soon as you wake tells your body clock the day has started. Ember rises to it in about 25 minutes, then settles into daylight over the next hour.</p>
+            <span class="reading">1800K → 6800K → 6500K · Full brightness</span>
           </article>
           <article class="card">
             <span class="badge">02</span>
-            <h3>Day</h3>
-            <p>Full color at about 6500K. The screen stays out of the way while you work.</p>
+            <h3>Daylight</h3>
+            <p>True color at 6500K. Nothing is cut. The screen stays out of the way while you work.</p>
+            <span class="reading">6500K · Full color</span>
           </article>
           <article class="card">
             <span class="badge">03</span>
-            <h3>Evening</h3>
-            <p>Starts at sunset or three hours before bed, whichever comes first. Blue light drops fast in the first 40 minutes.</p>
+            <h3>Winding down</h3>
+            <p>Starts at sunset or three hours before bed, whichever comes first. Blue light eases off fast in the first 40 minutes so melatonin can rise, then slides toward night.</p>
+            <span class="reading">6500K → 2700K in 40 min · Blue light −70%</span>
           </article>
           <article class="card">
             <span class="badge">04</span>
-            <h3>Night</h3>
-            <p>Warm and dim until morning. Pause one hour when you need true color.</p>
+            <h3>Night light</h3>
+            <p>Warm and dim until you wake. Choose Gentle, Standard, or Deep. Pause one hour when you need true color.</p>
+            <span class="reading">1800K · 55% · Blue light −87%</span>
           </article>
         </div>
       </section>
 
-      <section class="steps">
+      <section class="steps" id="how">
         <p class="eyebrow">How it works</p>
         <h2>Install it. Forget it.</h2>
         <ol>
@@ -128,24 +302,42 @@
           <li>
             <span class="badge">03</span>
             <h3>Leave it on</h3>
-            <p>Ember turns Night Shift off and quits f.lux so they do not fight. Photos, Figma, and Photoshop get true color automatically.</p>
+            <p>Ember turns Night Shift off and quits f.lux so they do not fight. Every change fades in; nothing snaps.</p>
           </li>
         </ol>
       </section>
 
       <section class="compare">
-        <p class="eyebrow">Not f.lux</p>
+        <p class="eyebrow">Not f.lux. Not Night Shift.</p>
         <h2>Sunset orange is not a day.</h2>
         <div class="compare-grid">
           <div>
-            <h3>f.lux</h3>
-            <p>Waits for sunset, then tints the screen orange. Day is unmodified. Night is a filter.</p>
+            <h3>Night Shift and f.lux</h3>
+            <p>Wait for sunset, then tint the screen orange. Day is unmodified. Night is a filter over the whole picture, and the blue primary that drives melanopsin is barely touched.</p>
           </div>
           <div>
             <h3>Ember</h3>
-            <p>Follows wake, bed, and the sun. Cuts the blue primary that hits melanopsin. Dims at night. Cool light in the morning, not only warmth at dusk.</p>
+            <p>Follows wake, bed, and the sun. Cuts the blue primary that hits melanopsin. Dims at night. Cool light in the morning, not only warmth at dusk. Ramps are blended in mired, the scale the eye uses, so the change is even from start to end.</p>
           </div>
         </div>
+      </section>
+
+      <section class="get" id="get">
+        <img class="app-icon" src="assets/icon.png" width="128" height="128" alt="Ember app icon">
+        <p class="eyebrow">Price</p>
+        <h2>$2.99. Once.</h2>
+        <p class="lede">Pay on Whop, come back here, download. No subscription, no license key, no account.</p>
+        <ul class="includes" aria-label="Included">
+          <li>Full app, every night strength</li>
+          <li>Apple silicon · macOS 14 or newer</li>
+          <li>One payment, no renewal</li>
+          <li>Signed and notarized with a Developer ID</li>
+        </ul>
+        <div class="cta-row center">
+          <a class="pill buy primary" href="https://whop.com/checkout/ch_vV3fRPAovR4rnHe/" rel="noopener">Buy Ember — $2.99</a>
+          <a class="pill quiet" id="download" href="/downloads/Ember.dmg">Already bought? Download</a>
+        </div>
+        <p class="note" id="download-note">Apple silicon · macOS 14+ · Checkout by Whop</p>
       </section>
 
       <section class="faq" id="faq">
@@ -153,8 +345,16 @@
         <h2>Short answers</h2>
         <dl>
           <div>
+            <dt>How do I get the app after paying?</dt>
+            <dd>Whop takes the payment and sends you back to this page. Use Already bought? Download. Keep the receipt; it is your proof of purchase.</dd>
+          </div>
+          <div>
             <dt>Will this fix my sleep?</dt>
             <dd>It helps the screen stop fighting your clock. It cannot replace daylight, a dark room, or a doctor. The panel says so.</dd>
+          </div>
+          <div>
+            <dt>Is the preview above what I will see?</dt>
+            <dd>Close, not exact. Ember changes the display’s gamma table, which reaches every pixel including the menu bar and video. The web preview tints one picture. Real night light is a little smoother and a little deeper.</dd>
           </div>
           <div>
             <dt>Does it collect data?</dt>
@@ -166,7 +366,7 @@
           </div>
           <div>
             <dt>Can I pause it?</dt>
-            <dd>Yes. One hour of true color, then it returns. Use that for photos or video.</dd>
+            <dd>Yes. One hour of true color, then it returns. Photos, Preview, Figma, and Photoshop pause it for you while they are in front.</dd>
           </div>
           <div>
             <dt>Does a screen count as daylight?</dt>
@@ -178,65 +378,16 @@
           </div>
         </dl>
       </section>
-
-      <section class="get" id="get">
-        <p class="eyebrow">Mac</p>
-        <h2>Get Ember</h2>
-        <p class="lede">Menu bar. Starts at login. Stays on.</p>
-        <a class="pill" id="download" href="/downloads/Ember.dmg">Get Ember</a>
-        <p class="note" id="download-note">Apple silicon · macOS 14+</p>
-      </section>
     </main>
 
     <footer>
       <p>Ember</p>
       <nav>
+        <a href="https://whop.com/checkout/ch_vV3fRPAovR4rnHe/" rel="noopener">Buy — $2.99</a>
         <a href="/privacy">Privacy</a>
         <a href="mailto:cohencool@icloud.com">Support</a>
       </nav>
     </footer>
-    <script>
-      (function () {
-        var live = document.getElementById("live");
-        function phase(d) {
-          var m = d.getHours() * 60 + d.getMinutes();
-          var wake = 7 * 60;
-          var bed = 23 * 60;
-          var evening = bed - 180;
-          if (m >= bed || m < wake) return { t: "NIGHT LIGHT", k: 1800 };
-          if (m < wake + 25) {
-            var t = (m - wake) / 25;
-            return { t: "MORNING LIGHT", k: Math.round(1800 + 5000 * t) };
-          }
-          if (m >= evening) {
-            var into = m - evening;
-            var k = into < 40
-              ? 6500 - (3800 * into) / 40
-              : 2700 - (900 * (into - 40)) / 140;
-            return { t: "WINDING DOWN", k: Math.round(k) };
-          }
-          return { t: "DAYLIGHT", k: 6500 };
-        }
-        function tick() {
-          if (!live) return;
-          var p = phase(new Date());
-          live.textContent = "YOUR SCREEN · " + p.t + " · " + p.k + "K";
-        }
-        tick();
-        setInterval(tick, 30000);
-
-        var link = document.getElementById("download");
-        var note = document.getElementById("download-note");
-        if (!link) return;
-        fetch(link.getAttribute("href"), { method: "HEAD" }).then(function (res) {
-          if (res.ok) return;
-          link.setAttribute("href", "#get");
-          note.textContent = "Mac app in preview. Signed download next.";
-        }).catch(function () {
-          link.setAttribute("href", "#get");
-          note.textContent = "Mac app in preview. Signed download next.";
-        });
-      })();
-    </script>
+    <script src="site.js" defer></script>
   </body>
 </html>

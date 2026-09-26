@@ -7,10 +7,7 @@ final class AppModel: ObservableObject {
     @Published var enabled: Bool {
         didSet {
             UserDefaults.standard.set(enabled, forKey: Keys.enabled)
-            if !enabled {
-                pausedUntil = nil
-                DisplayEngine.restore()
-            }
+            if !enabled { pausedUntil = nil }
             tick()
         }
     }
@@ -23,17 +20,23 @@ final class AppModel: ObservableObject {
         didSet { persistClock(bed, key: Keys.bed); tick() }
     }
 
+    @Published var strength: NightStrength {
+        didSet { UserDefaults.standard.set(strength.rawValue, forKey: Keys.strength); tick() }
+    }
+
+    @Published var colorAppBypass: Bool {
+        didSet { UserDefaults.standard.set(colorAppBypass, forKey: Keys.colorAppBypass); tick() }
+    }
+
     @Published var pausedUntil: Date?
-    @Published var state = LightState(
-        kelvin: Schedule.dayKelvin,
-        dim: 1,
-        phase: .day,
-        nextPhase: .evening,
-        minutesUntilNext: 0,
-        dayProgress: 0.5
-    )
+    /// The moment the user is scrubbing to on the day timeline. While set, the
+    /// screen shows this light instead of now.
+    @Published private(set) var preview: LightState?
+    @Published var state: LightState
     @Published var solar: Solar.Events?
     @Published var fluxQuit = false
+    /// Set by Quit: the panel closes while the screen fades back to true color.
+    @Published private(set) var quitting = false
     @Published var colorAppName: String?
     @Published var openAtLogin: Bool {
         didSet {
@@ -43,7 +46,11 @@ final class AppModel: ObservableObject {
     }
 
     let location = LocationService()
+    private let fader = DisplayFader()
     private var timer: Timer?
+    /// The screen just woke. Its next frame is the target itself, not a fade
+    /// up from daylight white.
+    private var screenWoke = false
     private var observers: [NSObjectProtocol] = []
     private var cancellables = Set<AnyCancellable>()
 
@@ -58,9 +65,15 @@ final class AppModel: ObservableObject {
 
     init() {
         let defaults = UserDefaults.standard
+        let wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? 7 * 60)
+        let bed = ClockTime.from(minutes: defaults.object(forKey: Keys.bed) as? Int ?? 23 * 60)
+        let strength = NightStrength(rawValue: defaults.string(forKey: Keys.strength) ?? "") ?? .standard
         enabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
-        wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? 7 * 60)
-        bed = ClockTime.from(minutes: defaults.object(forKey: Keys.bed) as? Int ?? 23 * 60)
+        self.wake = wake
+        self.bed = bed
+        self.strength = strength
+        colorAppBypass = defaults.object(forKey: Keys.colorAppBypass) as? Bool ?? true
+        state = Schedule.state(now: Date(), wake: wake, bed: bed, sunrise: nil, sunset: nil, strength: strength)
         let testing = Self.isRunningTests
         if !testing, defaults.object(forKey: Keys.didSetLogin) == nil {
             LoginItem.setEnabled(true)
@@ -69,8 +82,17 @@ final class AppModel: ObservableObject {
         openAtLogin = testing ? false : LoginItem.isEnabled
         if !testing {
             location.start()
+            Self.current = self
         }
         start()
+    }
+
+    /// The model the app runs on. App Intents act through it.
+    private(set) static weak var current: AppModel?
+
+    static func running() throws -> AppModel {
+        guard let current else { throw EmberIntentError.notRunning }
+        return current
     }
 
     func start() {
@@ -79,15 +101,17 @@ final class AppModel: ObservableObject {
 
         let workspace = NSWorkspace.shared.notificationCenter
         observe(workspace, NSWorkspace.didWakeNotification) { [weak self] in
+            self?.screenWoke = true
             self?.location.refresh()
             self?.tick()
         }
         observe(workspace, NSWorkspace.screensDidWakeNotification) { [weak self] in
+            self?.screenWoke = true
             self?.location.refresh()
             self?.tick()
         }
-        observe(workspace, NSWorkspace.screensDidSleepNotification) {
-            DisplayEngine.restore()
+        observe(workspace, NSWorkspace.screensDidSleepNotification) { [weak self] in
+            self?.fader.release(animated: false)
         }
         observe(workspace, NSWorkspace.didActivateApplicationNotification) { [weak self] in
             self?.tick()
@@ -97,13 +121,15 @@ final class AppModel: ObservableObject {
         }
         location.objectWillChange
             .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.tick() }
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                self?.tick()
+            }
             .store(in: &cancellables)
     }
 
     func pause(hours: Double) {
         pausedUntil = Date().addingTimeInterval(hours * 3600)
-        DisplayEngine.restore()
         tick()
     }
 
@@ -112,9 +138,40 @@ final class AppModel: ObservableObject {
         tick()
     }
 
+    /// Show the light at `progress` (0 wake … 1 bed) of today's plan on the
+    /// screen right away, so the whole curve can be tried in a few seconds.
+    func scrub(to progress: Double) {
+        let plan = state.plan
+        let p = min(1, max(0, progress))
+        let next = Schedule.state(elapsed: p * plan.awakeMinutes, plan: plan, strength: strength)
+        preview = next
+        if Self.isRunningTests { return }
+        fader.snap(DisplayEngine.Target(next))
+    }
+
+    /// Stop scrubbing; the screen eases back to now.
+    func endScrub() {
+        guard preview != nil else { return }
+        preview = nil
+        tick()
+    }
+
+    /// Close the panel and fade the screen back to true color, then exit.
+    /// A warm screen snapping to white is the harshest moment Ember can cause.
     func quit() {
-        DisplayEngine.restore()
-        NSApp.terminate(nil)
+        guard !quitting else { return }
+        quitting = true
+        timer?.invalidate()
+        fader.release(seconds: DisplayFader.quitSeconds) {
+            // Let the panel finish closing, even when there was nothing to fade.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+                NSApp.terminate(nil)
+            }
+        }
+        // Exit even if something cancels the fade; willTerminate restores.
+        DispatchQueue.main.asyncAfter(deadline: .now() + DisplayFader.quitSeconds + 0.5) {
+            NSApp.terminate(nil)
+        }
     }
 
     func tick() {
@@ -127,7 +184,7 @@ final class AppModel: ObservableObject {
                 openAtLogin = login
             }
         }
-        let nextColor = ColorApps.match(NSWorkspace.shared.frontmostApplication)
+        let nextColor = colorAppBypass ? ColorApps.match(NSWorkspace.shared.frontmostApplication) : nil
         if colorAppName != nextColor { colorAppName = nextColor }
         let nextSolar = Solar.events(
             on: Date(),
@@ -140,20 +197,29 @@ final class AppModel: ObservableObject {
             wake: wake,
             bed: bed,
             sunrise: solar?.sunrise,
-            sunset: solar?.sunset
+            sunset: solar?.sunset,
+            strength: strength
         )
         if state != nextState { state = nextState }
         if Self.isRunningTests { return }
+        if quitting { return }
         retuneTimer()
+        if preview != nil { return }
+        let woke = screenWoke
+        screenWoke = false
         guard isActive else {
-            DisplayEngine.restore()
+            fader.release(animated: true)
             return
         }
         NightShift.disable()
         if FluxGuard.quitIfRunning() {
             fluxQuit = true
         }
-        DisplayEngine.apply(state)
+        if woke {
+            fader.snap(DisplayEngine.Target(state))
+        } else {
+            fader.show(DisplayEngine.Target(state))
+        }
     }
 
     deinit {
@@ -199,6 +265,8 @@ final class AppModel: ObservableObject {
         static let enabled = "enabled"
         static let wake = "wakeMinutes"
         static let bed = "bedMinutes"
+        static let strength = "nightStrength"
+        static let colorAppBypass = "colorAppBypass"
         static let didSetLogin = "didSetLogin"
     }
 }
