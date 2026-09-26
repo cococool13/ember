@@ -88,6 +88,19 @@
   });
   render();
 
+  // The panel mock opens once, the way the app's panel does. Hidden only
+  // when JS runs, so it is never lost without it.
+  var panel = document.querySelector(".panel");
+  if (panel && "IntersectionObserver" in window) {
+    panel.classList.add("reveal");
+    var seen = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      panel.classList.add("in");
+      seen.disconnect();
+    }, { threshold: 0.35 });
+    seen.observe(panel);
+  }
+
   // Download links fall back to the price section until the signed DMG is up.
   var links = [document.getElementById("download"), document.getElementById("download-hero")].filter(Boolean);
   var note = document.getElementById("download-note");

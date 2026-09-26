@@ -35,6 +35,8 @@ final class AppModel: ObservableObject {
     @Published var state: LightState
     @Published var solar: Solar.Events?
     @Published var fluxQuit = false
+    /// Set by Quit: the panel closes while the screen fades back to true color.
+    @Published private(set) var quitting = false
     @Published var colorAppName: String?
     @Published var openAtLogin: Bool {
         didSet {
@@ -154,9 +156,22 @@ final class AppModel: ObservableObject {
         tick()
     }
 
+    /// Close the panel and fade the screen back to true color, then exit.
+    /// A warm screen snapping to white is the harshest moment Ember can cause.
     func quit() {
-        fader.release(animated: false)
-        NSApp.terminate(nil)
+        guard !quitting else { return }
+        quitting = true
+        timer?.invalidate()
+        fader.release(seconds: DisplayFader.quitSeconds) {
+            // Let the panel finish closing, even when there was nothing to fade.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+                NSApp.terminate(nil)
+            }
+        }
+        // Exit even if something cancels the fade; willTerminate restores.
+        DispatchQueue.main.asyncAfter(deadline: .now() + DisplayFader.quitSeconds + 0.5) {
+            NSApp.terminate(nil)
+        }
     }
 
     func tick() {
@@ -187,6 +202,7 @@ final class AppModel: ObservableObject {
         )
         if state != nextState { state = nextState }
         if Self.isRunningTests { return }
+        if quitting { return }
         retuneTimer()
         if preview != nil { return }
         let woke = screenWoke

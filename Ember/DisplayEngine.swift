@@ -80,6 +80,9 @@ enum DisplayEngine {
 @MainActor
 final class DisplayFader {
     static let fadeSeconds: TimeInterval = 1.8
+    /// Quitting should not keep the user waiting; this is still slow enough
+    /// that the screen reads as easing out, not snapping.
+    static let quitSeconds: TimeInterval = 0.6
     static let frameSeconds: TimeInterval = 1.0 / 30.0
     /// Below this the eye reads the change as continuous; above it we fade.
     static let snapThreshold = 12.0
@@ -90,7 +93,7 @@ final class DisplayFader {
 
     func show(_ target: DisplayEngine.Target) {
         guard let from = shown else {
-            fade(from: .neutral, to: target, thenRelease: false)
+            fade(from: .neutral, to: target, seconds: Self.fadeSeconds, thenRelease: false)
             return
         }
         if from.distance(to: target) < Self.snapThreshold && !releasing {
@@ -99,7 +102,7 @@ final class DisplayFader {
             shown = target
             return
         }
-        fade(from: from, to: target, thenRelease: false)
+        fade(from: from, to: target, seconds: Self.fadeSeconds, thenRelease: false)
     }
 
     /// Apply `target` now with no fade: scrubbing, or a screen that just woke
@@ -120,7 +123,19 @@ final class DisplayFader {
             DisplayEngine.restore()
             return
         }
-        fade(from: from, to: .neutral, thenRelease: true)
+        fade(from: from, to: .neutral, seconds: Self.fadeSeconds, thenRelease: true)
+    }
+
+    /// Fade back to the system profile over `seconds`, then call `done`.
+    /// Replaces any fade in progress, including a slower release.
+    func release(seconds: TimeInterval, done: @escaping () -> Void) {
+        guard let from = shown else {
+            cancel()
+            DisplayEngine.restore()
+            done()
+            return
+        }
+        fade(from: from, to: .neutral, seconds: seconds, thenRelease: true, done: done)
     }
 
     func cancel() {
@@ -129,7 +144,13 @@ final class DisplayFader {
         releasing = false
     }
 
-    private func fade(from: DisplayEngine.Target, to: DisplayEngine.Target, thenRelease: Bool) {
+    private func fade(
+        from: DisplayEngine.Target,
+        to: DisplayEngine.Target,
+        seconds: TimeInterval,
+        thenRelease: Bool,
+        done: (() -> Void)? = nil
+    ) {
         cancel()
         releasing = thenRelease
         let start = Date()
@@ -138,7 +159,7 @@ final class DisplayFader {
         let timer = Timer(timeInterval: Self.frameSeconds, repeats: true) { [weak self] timer in
             Task { @MainActor in
                 guard let self else { timer.invalidate(); return }
-                let t = min(1, Date().timeIntervalSince(start) / Self.fadeSeconds)
+                let t = min(1, Date().timeIntervalSince(start) / seconds)
                 let step = DisplayEngine.Target.blend(from, to, Schedule.ease(t))
                 DisplayEngine.apply(step)
                 self.shown = step
@@ -148,6 +169,7 @@ final class DisplayFader {
                         self.shown = nil
                         DisplayEngine.restore()
                     }
+                    done?()
                 }
             }
         }

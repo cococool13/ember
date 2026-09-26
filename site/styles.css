@@ -460,6 +460,15 @@ p { margin: 0; }
 
 /* Price */
 .get { text-align: center; }
+.app-icon { display: block; width: 128px; height: 128px; margin: 0 auto 20px; }
+
+/* The panel opens like the app's: from the menu bar icon, 200 ms ease-out. */
+.panel.reveal { opacity: 0; transform: scale(0.95) translateY(-4px); transform-origin: 85% 0; }
+.panel.reveal.in {
+  opacity: 1;
+  transform: none;
+  transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1), transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
 .get h2 { font-size: 56px; margin-bottom: 16px; }
 .get .lede { max-width: 460px; margin: 0 auto 28px; }
 .includes {
@@ -504,4 +513,6 @@ footer a:hover { color: var(--ember); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .tint, .dim, .stage, .mb-shadow { transition: none; }
+  .panel.reveal { transform: none; }
+  .panel.reveal.in { transition: opacity 200ms linear; }
 }

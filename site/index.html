@@ -43,15 +43,16 @@
 
     <header class="nav">
       <a class="wordmark" href="/">
-        <svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true">
           <defs>
-            <mask id="nav-crescent">
-              <circle cx="32" cy="32" r="20" fill="#fff"/>
-              <circle cx="24.8" cy="32" r="20" fill="#000"/>
-            </mask>
+            <radialGradient id="nav-lit" gradientUnits="userSpaceOnUse" cx="52.2" cy="32" r="35">
+              <stop offset="0" stop-color="#ffe2bc"/>
+              <stop offset="0.55" stop-color="#cc6437"/>
+              <stop offset="1" stop-color="#7a2a12"/>
+            </radialGradient>
           </defs>
-          <circle cx="32" cy="32" r="20" fill="#cc6437" mask="url(#nav-crescent)"/>
-          <circle cx="32" cy="32" r="20" fill="none" stroke="#cc6437" stroke-width="1.4"/>
+          <circle cx="32" cy="32" r="22" fill="#171717" stroke="#cc6437" stroke-opacity="0.55" stroke-width="1.8"/>
+          <path d="M32 10A22 22 0 0 1 32 54A9.24 22 0 0 0 32 10Z" transform="rotate(28 32 32)" fill="url(#nav-lit)"/>
         </svg>
         Ember
       </a>
@@ -102,7 +103,9 @@
                             <circle class="mb-shadow" cx="24.8" cy="32" r="20" fill="#000"/>
                           </mask>
                         </defs>
-                        <circle cx="32" cy="32" r="20" fill="currentColor" mask="url(#mb-crescent)"/>
+                        <g transform="rotate(28 32 32)">
+                          <circle cx="32" cy="32" r="20" fill="currentColor" mask="url(#mb-crescent)"/>
+                        </g>
                         <circle cx="32" cy="32" r="20" fill="none" stroke="currentColor" stroke-width="3"/>
                       </svg>
                       <span class="mb-wifi"></span>
@@ -184,8 +187,16 @@
 
         <div class="panel" role="img" aria-label="Ember menu bar panel at night: Night light, 1800K, sleep schedule, and settings">
           <div class="p-head">
-            <svg viewBox="0 0 64 64" width="20" height="20" aria-hidden="true">
-              <circle cx="32" cy="32" r="20" fill="#cc6437"/>
+<svg viewBox="0 0 64 64" width="20" height="20" aria-hidden="true">
+            <defs>
+              <radialGradient id="panel-lit" gradientUnits="userSpaceOnUse" cx="52.2" cy="32" r="35">
+                <stop offset="0" stop-color="#ffe2bc"/>
+                <stop offset="0.55" stop-color="#cc6437"/>
+                <stop offset="1" stop-color="#7a2a12"/>
+              </radialGradient>
+            </defs>
+            <circle cx="32" cy="32" r="22" fill="#171717" stroke="#cc6437" stroke-opacity="0.55" stroke-width="1.8"/>
+            <path d="M32 10A22 22 0 0 1 32 54A9.24 22 0 0 0 32 10Z" transform="rotate(28 32 32)" fill="url(#panel-lit)"/>
             </svg>
             <span class="p-title">Ember</span>
             <span class="p-pill">Pause 1h</span>
@@ -307,6 +318,7 @@
       </section>
 
       <section class="get" id="get">
+        <img class="app-icon" src="assets/icon.png" width="128" height="128" alt="Ember app icon">
         <p class="eyebrow">Price</p>
         <h2>$2.99. Once.</h2>
         <p class="lede">Pay on Whop, come back here, download. No subscription, no license key, no account.</p>

@@ -27,10 +27,8 @@ struct MenuBarView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Image(nsImage: MenuBarMark.image(phase: model.isActive ? model.state.phase : nil))
-                .renderingMode(.template)
-                .foregroundStyle(Theme.ember)
-                .accessibilityHidden(true)
+            EmberMark(lit: model.enabled)
+                .frame(width: 20, height: 20)
             Text("Ember")
                 .emberLabel(20)
                 .foregroundStyle(Theme.white)
