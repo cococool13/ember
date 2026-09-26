@@ -102,6 +102,14 @@ final class DisplayFader {
         fade(from: from, to: target, thenRelease: false)
     }
 
+    /// Apply `target` now with no fade: scrubbing, or a screen that just woke
+    /// in the dark and must not flash daylight white first.
+    func snap(_ target: DisplayEngine.Target) {
+        cancel()
+        DisplayEngine.apply(target)
+        shown = target
+    }
+
     /// Return the display to the system profile. Animated when Ember was
     /// coloring the screen; immediate otherwise.
     func release(animated: Bool) {

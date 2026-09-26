@@ -68,8 +68,8 @@ struct MenuBarView: View {
                     .emberLabel(26)
                     .foregroundStyle(Theme.white)
                 Spacer(minLength: 0)
-                if model.isActive {
-                    Text("\(Int(model.state.kelvin.rounded()))K")
+                if model.isActive || model.preview != nil {
+                    Text(verbatim: "\(Int(shown.kelvin.rounded()))K")
                         .emberReading()
                         .foregroundStyle(Theme.smoke)
                 }
@@ -78,16 +78,18 @@ struct MenuBarView: View {
                 .emberBody(14)
             SunTimeline(
                 plan: model.state.plan,
-                progress: model.state.dayProgress,
-                active: model.isActive,
+                progress: model.preview?.dayProgress ?? model.state.dayProgress,
+                active: model.isActive || model.preview != nil,
                 sunrise: clock(model.solar?.sunrise),
-                sunset: clock(model.solar?.sunset)
+                sunset: clock(model.solar?.sunset),
+                onScrub: { model.scrub(to: $0) },
+                onEnd: { model.endScrub() }
             )
             .padding(.top, 4)
             HStack(spacing: 12) {
                 Text(nextReading)
                     .emberReading()
-                    .foregroundStyle(model.isActive ? Theme.ember : Theme.smoke)
+                    .foregroundStyle(model.isActive || model.preview != nil ? Theme.ember : Theme.smoke)
                 Spacer(minLength: 0)
                 Text(signalReading)
                     .emberReading()
@@ -99,7 +101,11 @@ struct MenuBarView: View {
         .emberCard()
     }
 
+    /// The light the card describes: the scrubbed moment, or now.
+    private var shown: LightState { model.preview ?? model.state }
+
     private var headline: String {
+        if let preview = model.preview { return preview.phase.title }
         if !model.enabled { return "Off" }
         if model.colorAppName != nil { return "True color" }
         if model.isTimedPause { return "Paused" }
@@ -107,6 +113,7 @@ struct MenuBarView: View {
     }
 
     private var summary: String {
+        if let preview = model.preview { return preview.phase.summary }
         if !model.enabled { return "Your screen is unmodified. Turn Ember on to follow your day." }
         if let name = model.colorAppName {
             return "\(name) is in front, so Ember steps aside for color work."
@@ -116,6 +123,9 @@ struct MenuBarView: View {
     }
 
     private var nextReading: String {
+        if let preview = model.preview {
+            return "Preview · \(clock(atElapsed: preview.dayProgress * preview.plan.awakeMinutes, plan: preview.plan).label)"
+        }
         if !model.enabled { return "Off" }
         if let name = model.colorAppName { return "\(name) in front" }
         if let until = model.pausedUntil, model.isTimedPause {
@@ -126,7 +136,8 @@ struct MenuBarView: View {
     }
 
     private var signalReading: String {
-        model.isActive ? model.state.signalLabel : "True color"
+        if let preview = model.preview { return preview.signalLabel }
+        return model.isActive ? model.state.signalLabel : "True color"
     }
 
     // MARK: Schedule
@@ -171,7 +182,7 @@ struct MenuBarView: View {
                 hairline
                 ToggleRow(
                     title: "True color apps",
-                    caption: "Photos, Figma, Photoshop step in front",
+                    caption: "Photos, Figma, and more",
                     isOn: $model.colorAppBypass
                 )
                 hairline
@@ -253,6 +264,10 @@ struct MenuBarView: View {
         return ClockTime(hour: c.hour ?? 0, minute: c.minute ?? 0)
     }
 
+    private func clock(atElapsed minutes: Double, plan: DayPlan) -> ClockTime {
+        ClockTime.from(fractionalMinutes: Double(plan.wake.minutes) + minutes)
+    }
+
     private func clock(after minutes: Int) -> ClockTime {
         let now = Schedule.minutes(in: Date(), calendar: .current)
         return ClockTime.from(fractionalMinutes: now + Double(minutes))
@@ -268,12 +283,19 @@ struct MenuBarView: View {
 /// Lumy-style sun timeline, flattened for a menu panel: the waking day as one
 /// track, with the morning ramp, day, wind-down and night marked in stages of
 /// a single accent. Ticks mark sunrise and sunset when they fall in the day.
+/// Drag along it and the screen shows that moment's light until you let go.
 private struct SunTimeline: View {
     var plan: DayPlan
     var progress: Double
     var active: Bool
     var sunrise: ClockTime?
     var sunset: ClockTime?
+    var onScrub: (Double) -> Void
+    var onEnd: () -> Void
+
+    @State private var scrubbing = false
+    @State private var hovering = false
+    @State private var trackWidth: CGFloat = 1
 
     private let trackHeight: CGFloat = 6
     private let markerSize: CGFloat = 10
@@ -301,9 +323,13 @@ private struct SunTimeline: View {
                         .fill(active ? Theme.ember : Theme.smoke)
                         .frame(width: markerSize, height: markerSize)
                         .overlay(Circle().stroke(Theme.void, lineWidth: 2))
+                        .scaleEffect(scrubbing ? 1.4 : 1)
+                        .animation(.easeOut(duration: 0.15), value: scrubbing)
                         .offset(x: (w - markerSize) * p)
                 }
                 .frame(height: trackHeight + 6)
+                .onAppear { trackWidth = w }
+                .onChange(of: w) { _, new in trackWidth = new }
             }
             .frame(height: trackHeight + 6)
             HStack {
@@ -314,9 +340,33 @@ private struct SunTimeline: View {
             .emberReading(10)
             .foregroundStyle(Theme.smoke)
         }
+        // The track and its time labels are one drag target.
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    scrubbing = true
+                    onScrub(Double((value.location.x - markerSize / 2) / max(trackWidth - markerSize, 1)))
+                }
+                .onEnded { _ in
+                    scrubbing = false
+                    onEnd()
+                }
+        )
+        .onHover { inside in
+            guard inside != hovering else { return }
+            hovering = inside
+            if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+        }
+        .onDisappear {
+            if hovering { NSCursor.pop() }
+            if scrubbing { onEnd() }
+        }
+        .help("Drag to see any time of day on your screen")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Day timeline")
         .accessibilityValue("\(Int((progress * 100).rounded())) percent from wake to bed")
+        .accessibilityHint("Drag to preview the screen at another time of day")
     }
 
     private func segment(from: Double, to: Double, width: CGFloat, color: Color) -> some View {
@@ -354,16 +404,18 @@ private struct TimeRow: View {
                     .foregroundStyle(Theme.smoke)
             }
             Spacer(minLength: 8)
-            Button("–") { time = time.stepped(by: -15) }
-                .buttonStyle(RoundGlyphStyle())
-                .accessibilityLabel("Earlier \(title)")
-            Text(time.label)
-                .emberReading(12)
-                .foregroundStyle(Theme.white)
-                .frame(minWidth: 72, alignment: .center)
-            Button("+") { time = time.stepped(by: 15) }
-                .buttonStyle(RoundGlyphStyle())
-                .accessibilityLabel("Later \(title)")
+            HStack(spacing: 4) {
+                Button("–") { time = time.stepped(by: -15) }
+                    .buttonStyle(RoundGlyphStyle())
+                    .accessibilityLabel("Earlier \(title)")
+                Text(time.label)
+                    .emberReading(12)
+                    .foregroundStyle(Theme.white)
+                    .frame(minWidth: 72, alignment: .center)
+                Button("+") { time = time.stepped(by: 15) }
+                    .buttonStyle(RoundGlyphStyle())
+                    .accessibilityLabel("Later \(title)")
+            }
         }
         .padding(.vertical, 12)
     }
