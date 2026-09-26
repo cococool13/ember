@@ -11,6 +11,7 @@
 		0F94F0D5E0D4DCFD7DCAF7C8 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D084BB873222B06781302E /* LocationService.swift */; };
 		180B7DD41274E9840D02D8A1 /* FluxGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35FFAEBA297BB5AB64F260E5 /* FluxGuard.swift */; };
 		1B9CECEFD2B0E1E2CF18E217 /* DisplayEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19CF753842AF5A8A1B3E91C /* DisplayEngineTests.swift */; };
+		1CA4FDD944AEC33D47F1E5AF /* Intents.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED26FA11AE7FFC52DC8BE916 /* Intents.swift */; };
 		2182B97040CD500FBE0978E3 /* NightShift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2B92CBF94C08F3AE0A4B34 /* NightShift.swift */; };
 		25E9300B753D721374F8656D /* DisplayEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE644841B4F82012455FD0C /* DisplayEngine.swift */; };
 		2BE6DAC1D01379647D97286B /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */; };
@@ -27,6 +28,7 @@
 		E238619C6876BC28D352146F /* StatusItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEEEBA365F0E9DEA369F9B3B /* StatusItem.swift */; };
 		E87E30852B4E3B0863F7884D /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9067BF3BE6B3B48DB3B5FE /* AppModel.swift */; };
 		F65FBFB2878DE126886F5C8F /* ColorAppsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560FB4DBE6731C4343D82111 /* ColorAppsTests.swift */; };
+		FB8BF04338BCC9D9D9601BD9 /* PanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BD66A22F293D40A5CBB5111 /* PanelTests.swift */; };
 		FFA26F6B3E996F759E4E4242 /* LoginItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71437483C0CF628522BDF4C4 /* LoginItem.swift */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +43,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0BD66A22F293D40A5CBB5111 /* PanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelTests.swift; sourceTree = "<group>"; };
 		133B8690463D9CBFBF76DCA9 /* ColorApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorApps.swift; sourceTree = "<group>"; };
 		23CBE3BA5EB37DB0633A5B6E /* Schedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
 		2695ACEB14831776BE171871 /* Solar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Solar.swift; sourceTree = "<group>"; };
@@ -65,6 +68,7 @@
 		D162D9528F3F2B7C28851343 /* RobotoMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RobotoMono-Regular.ttf"; sourceTree = "<group>"; };
 		D1E129474145FB033E3BBB86 /* Ember.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ember.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC635EBE2AC3C4079688D51C /* EmberApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberApp.swift; sourceTree = "<group>"; };
+		ED26FA11AE7FFC52DC8BE916 /* Intents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Intents.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -82,6 +86,7 @@
 			children = (
 				560FB4DBE6731C4343D82111 /* ColorAppsTests.swift */,
 				B19CF753842AF5A8A1B3E91C /* DisplayEngineTests.swift */,
+				0BD66A22F293D40A5CBB5111 /* PanelTests.swift */,
 				3E7063E306BF5B9BA797648B /* ScheduleTests.swift */,
 				6A3041D62A00584181B6223E /* SolarTests.swift */,
 			);
@@ -107,6 +112,7 @@
 				738C57AD4865B9D8A9B2012D /* Ember.entitlements */,
 				DC635EBE2AC3C4079688D51C /* EmberApp.swift */,
 				35FFAEBA297BB5AB64F260E5 /* FluxGuard.swift */,
+				ED26FA11AE7FFC52DC8BE916 /* Intents.swift */,
 				58D084BB873222B06781302E /* LocationService.swift */,
 				71437483C0CF628522BDF4C4 /* LoginItem.swift */,
 				47D46140053FF98D187778E0 /* MenuBarMark.swift */,
@@ -230,6 +236,7 @@
 				25E9300B753D721374F8656D /* DisplayEngine.swift in Sources */,
 				78B9CA4A2393CF8AB9B1E469 /* EmberApp.swift in Sources */,
 				180B7DD41274E9840D02D8A1 /* FluxGuard.swift in Sources */,
+				1CA4FDD944AEC33D47F1E5AF /* Intents.swift in Sources */,
 				0F94F0D5E0D4DCFD7DCAF7C8 /* LocationService.swift in Sources */,
 				FFA26F6B3E996F759E4E4242 /* LoginItem.swift in Sources */,
 				2DC51342D44D81EB216A1AAC /* MenuBarMark.swift in Sources */,
@@ -248,6 +255,7 @@
 			files = (
 				F65FBFB2878DE126886F5C8F /* ColorAppsTests.swift in Sources */,
 				1B9CECEFD2B0E1E2CF18E217 /* DisplayEngineTests.swift in Sources */,
+				FB8BF04338BCC9D9D9601BD9 /* PanelTests.swift in Sources */,
 				8962BC36FC53074A4050F3C6 /* ScheduleTests.swift in Sources */,
 				AF96B136CDA4A331F06690CC /* SolarTests.swift in Sources */,
 			);
@@ -289,7 +297,7 @@
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				EXCLUDED_ARCHS = x86_64;
@@ -306,7 +314,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;
@@ -396,7 +404,7 @@
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				EXCLUDED_ARCHS = x86_64;
@@ -413,7 +421,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;

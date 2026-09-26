@@ -487,6 +487,46 @@ final class ScheduleTests: XCTestCase {
         XCTAssertTrue(night.signalLabel.hasPrefix("Blue light −"))
     }
 
+    func testElapsedSamplerMatchesClockForEveryMinute() {
+        let sunrise = date(hour: 7, minute: 10)
+        let sunset = date(hour: 19, minute: 30)
+        let plan = Schedule.plan(wake: wake, bed: bed, sunrise: sunrise, sunset: sunset, calendar: calendar)
+        for strength in NightStrength.allCases {
+            for minute in stride(from: 0, to: 1440, by: 7) {
+                let byClock = Schedule.state(
+                    now: date(hour: minute / 60, minute: minute % 60),
+                    calendar: calendar,
+                    wake: wake,
+                    bed: bed,
+                    sunrise: sunrise,
+                    sunset: sunset,
+                    strength: strength
+                )
+                let elapsed = Schedule.minutesBetween(Double(wake.minutes), Double(minute))
+                XCTAssertEqual(Schedule.state(elapsed: elapsed, plan: plan, strength: strength), byClock, "minute \(minute)")
+            }
+        }
+    }
+
+    @MainActor
+    func testScrubPreviewsTheCurveAndEndsOnNow() {
+        let model = AppModel()
+        let now = model.state
+        model.scrub(to: 0)
+        XCTAssertEqual(model.preview?.phase, .morning)
+        XCTAssertEqual(model.preview?.dayProgress ?? -1, 0, accuracy: 1e-9)
+        model.scrub(to: 0.5)
+        XCTAssertEqual(model.preview?.phase, .day)
+        model.scrub(to: 1)
+        XCTAssertEqual(model.preview?.phase, .night)
+        XCTAssertEqual(model.preview?.kelvin ?? 0, model.strength.nightKelvin, accuracy: 1)
+        model.scrub(to: 5)
+        XCTAssertEqual(model.preview?.phase, .night, "clamped to bedtime")
+        XCTAssertEqual(model.state, now, "scrubbing never moves the live state")
+        model.endScrub()
+        XCTAssertNil(model.preview)
+    }
+
     private func date(hour: Int, minute: Int, second: Int = 0) -> Date {
         var c = DateComponents()
         c.year = 2026

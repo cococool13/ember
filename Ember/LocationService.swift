@@ -1,3 +1,4 @@
+import AppKit
 import CoreLocation
 import Foundation
 
@@ -10,28 +11,32 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
 
     private let manager = CLLocationManager()
     private var hasFix = false
+    private var fixAt = Date.distantPast
 
     override init() {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyKilometer
+        manager.distanceFilter = 1_000
     }
 
     func start() {
         switch manager.authorizationStatus {
         case .notDetermined:
+            // A menu-bar app has to come forward or the system prompt never appears.
+            NSApp.activate()
             manager.requestWhenInUseAuthorization()
         case .denied, .restricted:
             applyDenied()
         default:
-            manager.requestLocation()
+            beginUpdates()
         }
     }
 
     func refresh() {
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
-            manager.requestLocation()
+            beginUpdates()
         default:
             break
         }
@@ -44,18 +49,13 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
         case .denied, .restricted:
             applyDenied()
         default:
-            denied = false
-            manager.requestLocation()
+            beginUpdates()
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let loc = locations.last else { return }
-        latitude = loc.coordinate.latitude
-        longitude = loc.coordinate.longitude
-        hasFix = true
-        usingFallback = false
-        denied = false
+        apply(loc)
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -64,10 +64,27 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
         }
     }
 
+    private func beginUpdates() {
+        denied = false
+        manager.startUpdatingLocation()
+    }
+
+    private func apply(_ loc: CLLocation) {
+        guard loc.horizontalAccuracy >= 0, loc.timestamp >= fixAt else { return }
+        fixAt = loc.timestamp
+        latitude = loc.coordinate.latitude
+        longitude = loc.coordinate.longitude
+        hasFix = true
+        usingFallback = false
+        denied = false
+    }
+
     private func applyDenied() {
+        manager.stopUpdatingLocation()
         denied = true
         usingFallback = true
         hasFix = false
+        fixAt = .distantPast
         latitude = Solar.fallbackLatitude
         longitude = Solar.fallbackLongitude
     }

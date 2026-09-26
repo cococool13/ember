@@ -215,9 +215,15 @@ enum Schedule {
     ) -> LightState {
         let plan = plan(wake: wake, bed: bed, sunrise: sunrise, sunset: sunset, calendar: calendar)
         let nowM = wrap(minutes(in: now, calendar: calendar))
-        let wakeM = wrap(Double(wake.minutes))
+        let elapsed = minutesBetween(wrap(Double(wake.minutes)), nowM)
+        return state(elapsed: elapsed, plan: plan, strength: strength)
+    }
+
+    /// The light at `elapsed` minutes after wake on `plan`. Anything at or past
+    /// bedtime, up to the next wake, is night.
+    static func state(elapsed: Double, plan: DayPlan, strength: NightStrength = .standard) -> LightState {
+        let elapsed = wrap(elapsed)
         let awake = plan.awakeMinutes
-        let elapsed = minutesBetween(wakeM, nowM)
         let nightK = strength.nightKelvin
         let nightD = strength.nightDim
 
@@ -227,7 +233,7 @@ enum Schedule {
                 dim: nightD,
                 phase: .night,
                 nextPhase: .morning,
-                minutesUntilNext: remainingMinutes(minutesBetween(nowM, wakeM)),
+                minutesUntilNext: remainingMinutes(wrap(-elapsed)),
                 dayProgress: 1,
                 plan: plan
             )

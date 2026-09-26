@@ -29,9 +29,14 @@ final class AppModel: ObservableObject {
     }
 
     @Published var pausedUntil: Date?
+    /// The moment the user is scrubbing to on the day timeline. While set, the
+    /// screen shows this light instead of now.
+    @Published private(set) var preview: LightState?
     @Published var state: LightState
     @Published var solar: Solar.Events?
     @Published var fluxQuit = false
+    /// Set by Quit: the panel closes while the screen fades back to true color.
+    @Published private(set) var quitting = false
     @Published var colorAppName: String?
     @Published var openAtLogin: Bool {
         didSet {
@@ -43,6 +48,9 @@ final class AppModel: ObservableObject {
     let location = LocationService()
     private let fader = DisplayFader()
     private var timer: Timer?
+    /// The screen just woke. Its next frame is the target itself, not a fade
+    /// up from daylight white.
+    private var screenWoke = false
     private var observers: [NSObjectProtocol] = []
     private var cancellables = Set<AnyCancellable>()
 
@@ -74,8 +82,17 @@ final class AppModel: ObservableObject {
         openAtLogin = testing ? false : LoginItem.isEnabled
         if !testing {
             location.start()
+            Self.current = self
         }
         start()
+    }
+
+    /// The model the app runs on. App Intents act through it.
+    private(set) static weak var current: AppModel?
+
+    static func running() throws -> AppModel {
+        guard let current else { throw EmberIntentError.notRunning }
+        return current
     }
 
     func start() {
@@ -84,10 +101,12 @@ final class AppModel: ObservableObject {
 
         let workspace = NSWorkspace.shared.notificationCenter
         observe(workspace, NSWorkspace.didWakeNotification) { [weak self] in
+            self?.screenWoke = true
             self?.location.refresh()
             self?.tick()
         }
         observe(workspace, NSWorkspace.screensDidWakeNotification) { [weak self] in
+            self?.screenWoke = true
             self?.location.refresh()
             self?.tick()
         }
@@ -119,9 +138,40 @@ final class AppModel: ObservableObject {
         tick()
     }
 
+    /// Show the light at `progress` (0 wake … 1 bed) of today's plan on the
+    /// screen right away, so the whole curve can be tried in a few seconds.
+    func scrub(to progress: Double) {
+        let plan = state.plan
+        let p = min(1, max(0, progress))
+        let next = Schedule.state(elapsed: p * plan.awakeMinutes, plan: plan, strength: strength)
+        preview = next
+        if Self.isRunningTests { return }
+        fader.snap(DisplayEngine.Target(next))
+    }
+
+    /// Stop scrubbing; the screen eases back to now.
+    func endScrub() {
+        guard preview != nil else { return }
+        preview = nil
+        tick()
+    }
+
+    /// Close the panel and fade the screen back to true color, then exit.
+    /// A warm screen snapping to white is the harshest moment Ember can cause.
     func quit() {
-        fader.release(animated: false)
-        NSApp.terminate(nil)
+        guard !quitting else { return }
+        quitting = true
+        timer?.invalidate()
+        fader.release(seconds: DisplayFader.quitSeconds) {
+            // Let the panel finish closing, even when there was nothing to fade.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+                NSApp.terminate(nil)
+            }
+        }
+        // Exit even if something cancels the fade; willTerminate restores.
+        DispatchQueue.main.asyncAfter(deadline: .now() + DisplayFader.quitSeconds + 0.5) {
+            NSApp.terminate(nil)
+        }
     }
 
     func tick() {
@@ -152,7 +202,11 @@ final class AppModel: ObservableObject {
         )
         if state != nextState { state = nextState }
         if Self.isRunningTests { return }
+        if quitting { return }
         retuneTimer()
+        if preview != nil { return }
+        let woke = screenWoke
+        screenWoke = false
         guard isActive else {
             fader.release(animated: true)
             return
@@ -161,7 +215,11 @@ final class AppModel: ObservableObject {
         if FluxGuard.quitIfRunning() {
             fluxQuit = true
         }
-        fader.show(DisplayEngine.Target(state))
+        if woke {
+            fader.snap(DisplayEngine.Target(state))
+        } else {
+            fader.show(DisplayEngine.Target(state))
+        }
     }
 
     deinit {
