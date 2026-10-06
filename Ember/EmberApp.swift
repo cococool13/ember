@@ -24,7 +24,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         let model = AppModel()
         self.model = model
-        status = StatusItem(model: model)
+        let status = StatusItem(model: model)
+        self.status = status
+        model.startSetupIfNeeded { status.open() }
     }
 
     /// One Ember. A newer copy replaces an older one, including a different build path.

@@ -35,19 +35,10 @@ enum Phase: String, Equatable, Sendable, CaseIterable {
 
     var title: String {
         switch self {
-        case .morning: return "Morning light"
+        case .morning: return "Morning"
         case .day: return "Daylight"
-        case .evening: return "Winding down"
-        case .night: return "Night light"
-        }
-    }
-
-    var summary: String {
-        switch self {
-        case .morning: return "The display eases back toward daytime color."
-        case .day: return "Full color and full brightness. The screen stays out of your way."
-        case .evening: return "The screen grows warmer and dimmer before bed."
-        case .night: return "Warm and dim until your next wake time."
+        case .evening: return "Evening"
+        case .night: return "Night"
         }
     }
 }
@@ -64,14 +55,6 @@ enum NightStrength: String, CaseIterable, Sendable {
         case .gentle: return "Gentle"
         case .standard: return "Standard"
         case .deep: return "Deep"
-        }
-    }
-
-    var caption: String {
-        switch self {
-        case .gentle: return "Warm, still easy to read"
-        case .standard: return "Warm and dim"
-        case .deep: return "Very warm, very dim"
         }
     }
 

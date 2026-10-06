@@ -30,8 +30,8 @@ targets:
         INFOPLIST_KEY_LSMinimumSystemVersion: "14.0"
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_LSMultipleInstancesProhibited: YES
-        INFOPLIST_KEY_NSLocationUsageDescription: Ember uses your location to time sunrise and sunset for the daily light curve.
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Ember uses your location to time sunrise and sunset for the daily light curve.
+        INFOPLIST_KEY_NSLocationUsageDescription: Sunrise and sunset follow where you are. Location stays on this Mac.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Sunrise and sunset follow where you are. Location stays on this Mac.
         CODE_SIGN_ENTITLEMENTS: Ember/Ember.entitlements
         CODE_SIGN_STYLE: Automatic
         ENABLE_HARDENED_RUNTIME: YES

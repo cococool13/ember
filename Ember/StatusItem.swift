@@ -11,6 +11,12 @@ final class StatusItem: NSObject {
     /// Bumped on every open and close, so a stale close never hides a panel
     /// that was reopened mid-animation.
     private var generation = 0
+    /// The mouse event that started the current close. A second delivery of
+    /// that same click must not open the panel again.
+    private var closingStamp: TimeInterval?
+    /// Set when a click on the icon already dismissed the panel, so the
+    /// button action that follows does not reopen it.
+    private var suppressToggle = false
     private var cancellables = Set<AnyCancellable>()
     private var eventMonitors: [Any] = []
 
@@ -21,6 +27,7 @@ final class StatusItem: NSObject {
         item.button?.imagePosition = .imageOnly
         item.button?.target = self
         item.button?.action = #selector(toggle(_:))
+        item.button?.sendAction(on: [.leftMouseDown, .rightMouseDown])
         refreshChrome()
         model.objectWillChange
             .receive(on: RunLoop.main)
@@ -53,21 +60,35 @@ final class StatusItem: NSObject {
     }
 
     @objc func toggle(_ sender: Any?) {
-        if panel != nil && presence.shown {
-            close()
+        if suppressToggle {
+            suppressToggle = false
             return
         }
-        open()
+        let sameEvent = NSApp.currentEvent?.timestamp == closingStamp
+        switch StatusToggle.decide(
+            panelOpen: panel != nil,
+            leaving: presence.stage == .leaving,
+            sameEvent: sameEvent
+        ) {
+        case .open, .reverse:
+            open()
+        case .close:
+            close()
+        case .ignore:
+            break
+        }
     }
 
-    func open() {
+    @discardableResult
+    func open() -> Bool {
+        model.refreshWhileVisible()
         generation += 1
         if let panel {
             // Reopened while closing: reverse from where it is.
             show(panel)
-            return
+            return true
         }
-        guard let button = item.button, let buttonWindow = button.window else { return }
+        guard let button = item.button, let buttonWindow = button.window else { return false }
         let host = NSHostingController(rootView: PanelRoot(presence: presence).environmentObject(model))
         host.view.wantsLayer = true
         host.view.layer?.backgroundColor = NSColor.clear.cgColor
@@ -113,6 +134,7 @@ final class StatusItem: NSObject {
         panel.orderFrontRegardless()
         self.panel = panel
         show(panel)
+        return true
     }
 
     private func show(_ panel: NSPanel) {
@@ -135,7 +157,8 @@ final class StatusItem: NSObject {
     }
 
     private func close() {
-        guard let panel, presence.shown else { return }
+        guard let panel, presence.stage != .leaving else { return }
+        closingStamp = NSApp.currentEvent?.timestamp
         generation += 1
         model.endScrub()
         clearMonitors()
@@ -167,17 +190,44 @@ final class StatusItem: NSObject {
                 return event
             }
             if event.window == self.panel { return event }
-            if event.window == self.item.button?.window { return event }
+            if self.clickHitsStatusItem(event) {
+                self.noteStatusItemClick()
+                return event
+            }
             self.close()
             return event
         } {
             eventMonitors.append(local)
         }
-        if let global = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            self?.close()
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            guard let self else { return }
+            if self.clickHitsStatusItem(event) {
+                self.noteStatusItemClick()
+                return
+            }
+            self.close()
         } {
             eventMonitors.append(global)
         }
+    }
+
+    /// A click on the menu bar icon while the panel is open dismisses it.
+    /// The button action for that same click must not open it again.
+    private func noteStatusItemClick() {
+        if presence.stage != .leaving {
+            close()
+        }
+        suppressToggle = true
+        DispatchQueue.main.async { [weak self] in
+            self?.suppressToggle = false
+        }
+    }
+
+    private func clickHitsStatusItem(_ event: NSEvent) -> Bool {
+        if event.window === item.button?.window { return true }
+        guard let button = item.button, let window = button.window else { return false }
+        let rect = window.convertToScreen(button.convert(button.bounds, to: nil))
+        return rect.insetBy(dx: -4, dy: -6).contains(NSEvent.mouseLocation)
     }
 
     private func clearMonitors() {
@@ -185,6 +235,23 @@ final class StatusItem: NSObject {
             NSEvent.removeMonitor(monitor)
         }
         eventMonitors.removeAll()
+    }
+}
+
+/// What a click on the menu bar icon should do. Menu-bar apps dismiss on the
+/// second click. The click that starts the close is often delivered twice
+/// (outside-click monitor, then the button action); that second delivery
+/// must not reopen. A later click during the close animation still reverses.
+enum StatusToggle: Equatable {
+    case open
+    case close
+    case reverse
+    case ignore
+
+    static func decide(panelOpen: Bool, leaving: Bool, sameEvent: Bool) -> StatusToggle {
+        guard panelOpen else { return .open }
+        if leaving { return sameEvent ? .ignore : .reverse }
+        return .close
     }
 }
 

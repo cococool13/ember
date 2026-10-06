@@ -4,6 +4,28 @@ import XCTest
 @testable import Ember
 
 final class PanelTests: XCTestCase {
+    func testSunLineFollowsPermission() {
+        XCTAssertEqual(SunLine.resolve(access: .unknown, times: "7:00 AM – 8:00 PM"), .offer)
+        XCTAssertEqual(SunLine.resolve(access: .asking, times: nil), .offer)
+        XCTAssertEqual(SunLine.resolve(access: .locating, times: "7:00 AM – 8:00 PM").caption, "Finding sun times")
+        XCTAssertEqual(SunLine.resolve(access: .allowed, times: "7:00 AM – 8:00 PM").caption, "7:00 AM – 8:00 PM")
+        XCTAssertEqual(SunLine.resolve(access: .allowed, times: nil), .locating)
+        XCTAssertEqual(
+            SunLine.resolve(access: .denied, times: "7:00 AM – 8:00 PM").caption,
+            "7:00 AM – 8:00 PM · Brunswick, GA"
+        )
+        XCTAssertEqual(SunLine.resolve(access: .denied, times: nil).caption, "No sun times today · Brunswick, GA")
+    }
+
+    func testMenuBarClickDismisses() {
+        XCTAssertEqual(StatusToggle.decide(panelOpen: false, leaving: false, sameEvent: false), .open)
+        XCTAssertEqual(StatusToggle.decide(panelOpen: true, leaving: false, sameEvent: false), .close)
+        // The click that closes is delivered again as the button action.
+        XCTAssertEqual(StatusToggle.decide(panelOpen: true, leaving: true, sameEvent: true), .ignore)
+        // A later click during the close animation reopens.
+        XCTAssertEqual(StatusToggle.decide(panelOpen: true, leaving: true, sameEvent: false), .reverse)
+    }
+
     /// The panel has to fit under the menu bar on a 13-inch display.
     @MainActor
     func testPanelFitsUnder760Points() {
@@ -78,11 +100,21 @@ final class PanelTests: XCTestCase {
         let size = host.fittingSize
         host.frame = NSRect(origin: .zero, size: size)
         host.layoutSubtreeIfNeeded()
-        if let dir = ProcessInfo.processInfo.environment["EMBER_PANEL_PNG"],
-           let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
-            host.cacheDisplay(in: host.bounds, to: rep)
-            try? rep.representation(using: .png, properties: [:])?
-                .write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(name).png"))
+        if let dir = ProcessInfo.processInfo.environment["EMBER_PANEL_PNG"] {
+            let window = NSWindow(
+                contentRect: host.frame,
+                styleMask: [.borderless],
+                backing: .buffered,
+                defer: false
+            )
+            window.contentView = host
+            window.displayIfNeeded()
+            if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
+                host.cacheDisplay(in: host.bounds, to: rep)
+                try? rep.representation(using: .png, properties: [:])?
+                    .write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(name).png"))
+            }
+            window.orderOut(nil)
         }
         return size
     }

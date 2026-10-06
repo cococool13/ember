@@ -14,6 +14,11 @@ enum Theme {
     /// Hairlines and dividers only. Too dark for text.
     static let steel = Color(red: 72 / 255, green: 72 / 255, blue: 72 / 255)
     static let white = Color.white
+    /// Website mini-button border (`#626662`) and muted pill label.
+    static let pillBorder = Color(red: 98 / 255, green: 102 / 255, blue: 98 / 255)
+    static let pillMuted = Color(red: 174 / 255, green: 181 / 255, blue: 173 / 255)
+    static let switchOff = Color(red: 91 / 255, green: 95 / 255, blue: 92 / 255)
+    static let knob = Color(red: 248 / 255, green: 248 / 255, blue: 246 / 255)
 
     static let cardRadius: CGFloat = 12
     static let panelRadius: CGFloat = 14
@@ -43,28 +48,12 @@ extension View {
             .fontWeight(.regular)
     }
 
-    /// Small uppercase section label above a group.
-    func emberEyebrow() -> some View {
-        self
-            .font(Theme.display(12))
-            .textCase(.uppercase)
-            .tracking(0.3)
-            .foregroundStyle(Theme.smoke)
-    }
-
     /// Roboto Mono reading. Times, kelvin, percentages.
     func emberReading(_ size: CGFloat = 11) -> some View {
         self
             .font(Theme.mono(size))
             .tracking(-0.22)
             .textCase(.uppercase)
-    }
-
-    func emberBody(_ size: CGFloat = 15) -> some View {
-        self
-            .font(Theme.body(size))
-            .foregroundStyle(Theme.ash)
-            .fixedSize(horizontal: false, vertical: true)
     }
 
     func emberCard(padding: CGFloat = 16) -> some View {
@@ -76,41 +65,87 @@ extension View {
     }
 }
 
-struct GhostPillStyle: ButtonStyle {
+/// Website mini-button: tight capsule, hairline, rust only when it is the active state.
+struct MiniPillStyle: ButtonStyle {
     var emphasized = false
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .emberLabel(14)
-            .foregroundStyle(emphasized ? Theme.ember : Theme.white)
-            .padding(.vertical, 10)
-            .padding(.horizontal, 18)
+        MiniPillBody(emphasized: emphasized, isPressed: configuration.isPressed) {
+            configuration.label
+        }
+    }
+}
+
+private struct MiniPillBody<Label: View>: View {
+    var emphasized: Bool
+    var isPressed: Bool
+    @ViewBuilder var label: () -> Label
+    @State private var hover = false
+
+    var body: some View {
+        label()
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(emphasized ? Theme.ember : Theme.ash)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 10)
+            .frame(minHeight: 26)
             .contentShape(Capsule())
+            .background(Capsule().fill(Color.white.opacity(hover && !isPressed ? 0.06 : 0)))
             .overlay(
-                Capsule()
-                    .stroke(
-                        (emphasized ? Theme.ember : Theme.ash).opacity(configuration.isPressed ? 0.5 : 1),
-                        lineWidth: Theme.hairline
-                    )
+                Capsule().stroke(
+                    (emphasized ? Theme.ember : Theme.pillBorder).opacity(isPressed ? 0.5 : 1),
+                    lineWidth: Theme.hairline
+                )
+            )
+            .opacity(isPressed ? 0.7 : 1)
+            .onHover { hover = $0 }
+    }
+}
+
+/// Small round hairline stepper, same border as the website mini-button.
+struct RoundGlyphStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(Theme.ash)
+            .frame(width: 22, height: 22)
+            .contentShape(Circle())
+            .overlay(
+                Circle().stroke(Theme.pillBorder.opacity(configuration.isPressed ? 0.5 : 1), lineWidth: Theme.hairline)
             )
             .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
 
-/// Small round hairline button for steppers.
-struct RoundGlyphStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .emberLabel(16)
-            .foregroundStyle(Theme.white)
-            .frame(width: 28, height: 28)
-            .contentShape(Circle())
-            .overlay(Circle().stroke(Theme.ash.opacity(configuration.isPressed ? 0.5 : 0.8), lineWidth: Theme.hairline))
-            .opacity(configuration.isPressed ? 0.7 : 1)
+/// Website switch: 30×18 track, rust when on, white knob.
+struct EmberSwitch: View {
+    @Binding var isOn: Bool
+    var label: String
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button {
+            isOn.toggle()
+        } label: {
+            ZStack(alignment: isOn ? .trailing : .leading) {
+                Capsule()
+                    .fill(isOn ? Theme.ember : Theme.switchOff)
+                    .frame(width: 30, height: 18)
+                Circle()
+                    .fill(Theme.knob)
+                    .frame(width: 12, height: 12)
+                    .padding(3)
+            }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: isOn)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityValue(isOn ? "On" : "Off")
+        .accessibilityAddTraits(.isToggle)
     }
 }
 
-/// Sunlitt-style utility toggle: label, quiet caption, ghost pill state.
+/// Label on the left, website switch on the right.
 struct ToggleRow: View {
     var title: String
     var caption: String?
@@ -130,15 +165,13 @@ struct ToggleRow: View {
                 }
             }
             Spacer(minLength: 8)
-            Button(isOn ? "On" : "Off") { isOn.toggle() }
-                .buttonStyle(GhostPillStyle(emphasized: isOn))
-                .accessibilityLabel("\(title) \(isOn ? "on" : "off")")
+            EmberSwitch(isOn: $isOn, label: title)
         }
         .padding(.vertical, 12)
     }
 }
 
-/// Ghost pills in a row; the chosen one carries the rust hairline.
+/// Equal pills. The chosen one takes the rust hairline, like the website night control.
 struct SegmentedPills<Option: Hashable>: View {
     var options: [Option]
     var label: (Option) -> String
@@ -150,13 +183,19 @@ struct SegmentedPills<Option: Hashable>: View {
                 let selected = option == selection
                 Button(label(option)) { selection = option }
                     .buttonStyle(.plain)
-                    .emberLabel(12)
-                    .foregroundStyle(selected ? Theme.ember : Theme.ash)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(selected ? Theme.ember : Theme.pillMuted)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .padding(.horizontal, 6)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 7)
+                    .frame(minHeight: 26)
                     .contentShape(Capsule())
                     .overlay(
-                        Capsule().stroke(selected ? Theme.ember : Theme.steel, lineWidth: Theme.hairline)
+                        Capsule().stroke(
+                            selected ? Theme.ember : Color.white.opacity(0.13),
+                            lineWidth: Theme.hairline
+                        )
                     )
                     .accessibilityAddTraits(selected ? .isSelected : [])
             }

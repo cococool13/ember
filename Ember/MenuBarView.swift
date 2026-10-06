@@ -36,11 +36,7 @@ struct MenuBarView: View {
             if model.enabled {
                 pauseButton
             }
-            Button(model.enabled ? "On" : "Off") {
-                model.enabled.toggle()
-            }
-            .buttonStyle(GhostPillStyle(emphasized: model.enabled))
-            .accessibilityLabel(model.enabled ? "Ember on" : "Ember off")
+            EmberSwitch(isOn: $model.enabled, label: "Ember")
         }
     }
 
@@ -48,11 +44,11 @@ struct MenuBarView: View {
     private var pauseButton: some View {
         if model.isTimedPause {
             Button("Resume") { model.resume() }
-                .buttonStyle(GhostPillStyle(emphasized: true))
+                .buttonStyle(MiniPillStyle(emphasized: true))
                 .accessibilityLabel("Resume Ember now")
         } else {
             Button("Pause 1h") { model.pause(hours: 1) }
-                .buttonStyle(GhostPillStyle())
+                .buttonStyle(MiniPillStyle())
                 .accessibilityLabel("Pause Ember for one hour")
         }
     }
@@ -72,8 +68,6 @@ struct MenuBarView: View {
                         .foregroundStyle(Theme.smoke)
                 }
             }
-            Text(summary)
-                .emberBody(14)
             SunTimeline(
                 plan: model.state.plan,
                 progress: model.preview?.dayProgress ?? model.state.dayProgress,
@@ -85,17 +79,13 @@ struct MenuBarView: View {
             )
             .disabled(!model.isActive)
             .padding(.top, 4)
-            HStack(spacing: 12) {
+            if let nextReading {
                 Text(nextReading)
                     .emberReading()
-                    .foregroundStyle(model.isActive || model.preview != nil ? Theme.ember : Theme.smoke)
-                Spacer(minLength: 0)
-                Text(signalReading)
-                    .emberReading()
-                    .foregroundStyle(Theme.smoke)
+                    .foregroundStyle(Theme.ember)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
-            .lineLimit(1)
-            .minimumScaleFactor(0.85)
         }
         .emberCard()
     }
@@ -111,90 +101,60 @@ struct MenuBarView: View {
         return model.state.phase.title
     }
 
-    private var summary: String {
-        if let preview = model.preview { return preview.phase.summary }
-        if !model.enabled { return "Your screen is unmodified. Turn Ember on to follow your day." }
-        if let name = model.colorAppName {
-            return "\(name) is in front, so Ember steps aside for color work."
-        }
-        if model.isTimedPause { return "Your screen is unmodified until Ember resumes." }
-        return model.state.phase.summary
-    }
-
-    private var nextReading: String {
+    private var nextReading: String? {
         if let preview = model.preview {
             return "Preview · \(clock(atElapsed: preview.dayProgress * preview.plan.awakeMinutes, plan: preview.plan).label)"
         }
-        if !model.enabled { return "Off" }
-        if let name = model.colorAppName { return "\(name) in front" }
+        if !model.enabled { return nil }
+        if let name = model.colorAppName { return name }
         if let until = model.pausedUntil, model.isTimedPause {
-            return "Back at \(clock(until)?.label ?? "")"
+            let back = clock(until)?.label ?? ""
+            return back.isEmpty ? nil : "Back at \(back)"
         }
         let state = model.state
         return "\(state.nextPhase.title) · \(clock(after: state.minutesUntilNext).label)"
     }
 
-    private var signalReading: String {
-        if let preview = model.preview { return preview.signalLabel }
-        return model.isActive ? model.state.signalLabel : "True color"
-    }
-
     // MARK: Schedule
 
     private var scheduleSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Sleep schedule")
-                .emberEyebrow()
-            VStack(spacing: 0) {
-                TimeRow(title: "Wake", caption: "Morning light starts", time: $model.wake)
-                hairline
-                TimeRow(
-                    title: "Bed",
-                    caption: "Wind-down \(model.state.plan.eveningStart.label)",
-                    time: $model.bed
-                )
-                hairline
-                HStack(alignment: .center, spacing: 12) {
-                    Text("Night light")
-                        .emberLabel(14)
-                        .foregroundStyle(Theme.white)
-                    Spacer(minLength: 8)
-                    VStack(alignment: .trailing, spacing: 6) {
-                        SegmentedPills(options: NightStrength.allCases, label: \.label, selection: $model.strength)
-                        Text(model.strength.caption)
-                            .font(Theme.body(11))
-                            .foregroundStyle(Theme.smoke)
-                    }
-                    .frame(width: 196)
-                    .accessibilityLabel("Night light strength, \(model.strength.caption)")
-                }
-                .padding(.vertical, 12)
+        VStack(spacing: 0) {
+            TimeRow(title: "Wake", time: $model.wake)
+            hairline
+            TimeRow(title: "Bed", time: $model.bed)
+            hairline
+            HStack(alignment: .center, spacing: 12) {
+                Text("Night light")
+                    .emberLabel(14)
+                    .foregroundStyle(Theme.white)
+                Spacer(minLength: 8)
+                SegmentedPills(options: NightStrength.allCases, label: \.label, selection: $model.strength)
+                    .frame(maxWidth: 210)
             }
-            .padding(.horizontal, 16)
-            .emberCard(padding: 0)
+            .padding(.vertical, 10)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Night light")
         }
+        .padding(.horizontal, 16)
+        .emberCard(padding: 0)
     }
 
     // MARK: Settings
 
     private var settingsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Settings")
-                .emberEyebrow()
-            VStack(spacing: 0) {
-                sunRow
-                hairline
-                ToggleRow(
-                    title: "True color apps",
-                    caption: "Photos, Figma, and more",
-                    isOn: $model.colorAppBypass
-                )
-                hairline
-                loginRow
-            }
-            .padding(.horizontal, 16)
-            .emberCard(padding: 0)
+        VStack(spacing: 0) {
+            sunRow
+            hairline
+            ToggleRow(
+                title: "True color apps",
+                caption: "Photos, Figma, Photoshop",
+                isOn: $model.colorAppBypass
+            )
+            hairline
+            loginRow
         }
+        .padding(.horizontal, 16)
+        .emberCard(padding: 0)
     }
 
     private var loginRow: some View {
@@ -207,16 +167,18 @@ struct MenuBarView: View {
                     Button(model.loginNeedsApproval ? "Allow in Login Items" : "Check Login Items") {
                         LoginItem.openSettings()
                     }
-                    .buttonStyle(.plain)
-                    .font(Theme.body(12))
-                    .foregroundStyle(Theme.ember)
-                    .help(model.loginError ?? "macOS needs your approval to open Ember at login")
+                    .buttonStyle(MiniPillStyle(emphasized: true))
+                    .help(model.loginError ?? "macOS needs your approval in Login Items")
                 }
             }
             Spacer(minLength: 8)
-            Button(model.openAtLogin ? "On" : "Off") { model.setOpenAtLogin(!model.openAtLogin) }
-                .buttonStyle(GhostPillStyle(emphasized: model.openAtLogin))
-                .accessibilityLabel("Open at login \(model.openAtLogin ? "on" : "off")")
+            EmberSwitch(
+                isOn: Binding(
+                    get: { model.openAtLogin },
+                    set: { model.setOpenAtLogin($0) }
+                ),
+                label: "Open at login"
+            )
         }
         .padding(.vertical, 12)
     }
@@ -233,49 +195,41 @@ struct MenuBarView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
-            if model.location.denied {
+            if sunLine == .offer {
+                Button("Use location") { model.location.request() }
+                    .buttonStyle(MiniPillStyle(emphasized: true))
+                    .accessibilityLabel("Allow location for sunrise and sunset")
+            } else if case .fallback = sunLine {
                 Button("Allow") { openLocationSettings() }
-                    .buttonStyle(GhostPillStyle())
+                    .buttonStyle(MiniPillStyle(emphasized: true))
                     .accessibilityLabel("Allow location access")
             }
         }
         .padding(.vertical, 12)
     }
 
-    private var sunCaption: String {
-        var parts: [String] = []
+    private var sunLine: SunLine {
+        let times: String?
         if let solar = model.solar, let rise = clock(solar.sunrise), let set = clock(solar.sunset) {
-            parts.append("Sunrise \(rise.label) · Sunset \(set.label)")
+            times = "\(rise.label) – \(set.label)"
         } else {
-            parts.append("No sunrise or sunset today at this latitude")
+            times = nil
         }
-        if model.location.denied {
-            parts.append("Location off · Brunswick, GA")
-        } else if model.location.usingFallback {
-            parts.append("Brunswick, GA until your location arrives")
-        } else {
-            parts.append("Your location")
-        }
-        return parts.joined(separator: "\n")
+        return SunLine.resolve(access: model.location.access, times: times)
     }
+
+    private var sunCaption: String { sunLine.caption }
 
     // MARK: Footer
 
     private var footer: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(footerNote)
-                .emberReading()
-                .foregroundStyle(Theme.smoke)
+        HStack {
             Spacer()
             Button("Quit") { model.quit() }
-                .emberReading()
+                .font(Theme.body(12))
                 .foregroundStyle(Theme.smoke)
                 .buttonStyle(.plain)
         }
-    }
-
-    private var footerNote: String {
-        model.fluxQuit ? "f.lux quit · Not medical advice" : "Screen only · Not medical advice"
     }
 
     private var hairline: some View {
@@ -302,8 +256,13 @@ struct MenuBarView: View {
     }
 
     private func openLocationSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
-            NSWorkspace.shared.open(url)
+        let panes = [
+            "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_LocationServices",
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices"
+        ]
+        for pane in panes {
+            guard let url = URL(string: pane) else { continue }
+            if NSWorkspace.shared.open(url) { return }
         }
     }
 }
@@ -418,33 +377,35 @@ private struct SunTimeline: View {
 
 private struct TimeRow: View {
     var title: String
-    var caption: String
     @Binding var time: ClockTime
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .emberLabel(14)
-                    .foregroundStyle(Theme.white)
-                Text(caption)
-                    .font(Theme.body(12))
-                    .foregroundStyle(Theme.smoke)
-            }
+            Text(title)
+                .emberLabel(14)
+                .foregroundStyle(Theme.white)
             Spacer(minLength: 8)
             HStack(spacing: 4) {
-                Button("–") { time = time.stepped(by: -15) }
-                    .buttonStyle(RoundGlyphStyle())
-                    .accessibilityLabel("Earlier \(title)")
+                Button {
+                    time = time.stepped(by: -15)
+                } label: {
+                    Image(systemName: "minus")
+                }
+                .buttonStyle(RoundGlyphStyle())
+                .accessibilityLabel("Earlier \(title)")
                 Text(time.label)
                     .emberReading(12)
                     .foregroundStyle(Theme.white)
                     .frame(minWidth: 72, alignment: .center)
-                Button("+") { time = time.stepped(by: 15) }
-                    .buttonStyle(RoundGlyphStyle())
-                    .accessibilityLabel("Later \(title)")
+                Button {
+                    time = time.stepped(by: 15)
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .buttonStyle(RoundGlyphStyle())
+                .accessibilityLabel("Later \(title)")
             }
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
     }
 }

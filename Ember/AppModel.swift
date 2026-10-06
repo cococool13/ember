@@ -44,7 +44,7 @@ final class AppModel: ObservableObject {
 
     private let defaults: UserDefaults
 
-    let location = LocationService()
+    let location: LocationService
     private let fader = DisplayFader()
     private var timer: Timer?
     /// The screen just woke. Its next frame is the target itself, not a fade
@@ -64,6 +64,7 @@ final class AppModel: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        location = LocationService(defaults: defaults)
         let wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? 7 * 60)
         let bed = ClockTime.from(minutes: defaults.object(forKey: Keys.bed) as? Int ?? 23 * 60)
         let strength = NightStrength(rawValue: defaults.string(forKey: Keys.strength) ?? "") ?? .standard
@@ -85,10 +86,50 @@ final class AppModel: ObservableObject {
         openAtLogin = testing ? false : LoginItem.isRequested
         loginNeedsApproval = !testing && LoginItem.needsApproval
         if !testing {
-            location.start()
             Self.current = self
         }
         start()
+    }
+
+    /// First launch opens the panel, then asks for location while that panel
+    /// is on screen. Later launches only refresh a place Ember may already use.
+    func startSetupIfNeeded(openPanel: @escaping () -> Bool) {
+        guard !Self.isRunningTests else { return }
+        if defaults.bool(forKey: Keys.didShowSetup) {
+            location.resumeIfAuthorized()
+            return
+        }
+        let needsLocation = location.access == .unknown || location.access == .asking
+        if !needsLocation && !loginNeedsApproval {
+            defaults.set(true, forKey: Keys.didShowSetup)
+            location.resumeIfAuthorized()
+            return
+        }
+        NSApp.activate()
+        presentSetup(openPanel, tries: 0)
+    }
+
+    /// The status item can lack a window for a moment after launch.
+    private func presentSetup(_ openPanel: @escaping () -> Bool, tries: Int) {
+        guard openPanel() else {
+            guard tries < 10 else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+                self?.presentSetup(openPanel, tries: tries + 1)
+            }
+            return
+        }
+        defaults.set(true, forKey: Keys.didShowSetup)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
+            guard let self, self.location.access == .unknown || self.location.access == .asking else { return }
+            self.location.request()
+        }
+    }
+
+    /// The panel is open: pick up a login-item approval or a Settings change.
+    func refreshWhileVisible() {
+        guard !Self.isRunningTests else { return }
+        refreshLoginStatus()
+        location.resumeIfAuthorized()
     }
 
     /// The model the app runs on. App Intents act through it.
@@ -127,6 +168,10 @@ final class AppModel: ObservableObject {
         }
         observe(NotificationCenter.default, NSApplication.didChangeScreenParametersNotification) { [weak self] in
             self?.tick()
+        }
+        observe(NotificationCenter.default, NSApplication.didBecomeActiveNotification) { [weak self] in
+            self?.refreshLoginStatus()
+            self?.location.resumeIfAuthorized()
         }
         location.objectWillChange
             .receive(on: RunLoop.main)
@@ -293,5 +338,6 @@ final class AppModel: ObservableObject {
         static let strength = "nightStrength"
         static let colorAppBypass = "colorAppBypass"
         static let didSetLogin = "didSetLogin"
+        static let didShowSetup = "didShowSetup"
     }
 }
