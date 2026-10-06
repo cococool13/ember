@@ -501,7 +501,13 @@ final class ScheduleTests: XCTestCase {
 
     @MainActor
     func testScrubPreviewsTheCurveAndEndsOnNow() {
-        let model = AppModel()
+        let suite = "EmberScrubTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(true, forKey: "didShowSetup")
+        defaults.set(true, forKey: "enabled")
+        defaults.set(false, forKey: "colorAppBypass")
+        let model = AppModel(defaults: defaults)
         let now = model.state
         model.scrub(to: 0)
         XCTAssertEqual(model.preview?.phase, .morning)

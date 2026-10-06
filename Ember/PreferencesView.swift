@@ -44,6 +44,7 @@ struct PreferencesView: View {
         case .unknown, .asking: return "Use your location for local sun times."
         case .locating: return "Finding your local sun times…"
         case .denied: return "Using Brunswick, GA."
+        case .unavailable: return "Location unavailable. Using Brunswick, GA."
         case .allowed:
             guard let solar = model.solar else { return "No sunrise or sunset today." }
             return "\(solar.sunrise.formatted(date: .omitted, time: .shortened)) – \(solar.sunset.formatted(date: .omitted, time: .shortened))"
@@ -74,6 +75,11 @@ struct LocationButton: View {
             Button("Use location") { model.location.request() }.buttonStyle(MiniPillStyle())
         case .denied:
             Button("Settings…") { LocationService.openSettings() }.buttonStyle(MiniPillStyle())
+        case .unavailable:
+            HStack(spacing: 8) {
+                Button("Retry") { model.location.request() }.buttonStyle(MiniPillStyle())
+                Button("Settings…") { LocationService.openSettings() }.buttonStyle(MiniPillStyle())
+            }
         case .asking, .locating:
             ProgressView().controlSize(.small).accessibilityLabel("Finding location")
         case .allowed:

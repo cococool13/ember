@@ -4,9 +4,9 @@ Mac menu bar app that changes screen color with the day. Cool light in the morni
 
 **Download:** https://ember.cohencool.workers.dev
 
-Ember 0.4.0 is signed and notarized for Apple silicon and Intel Macs running macOS 14 or later.
+Ember 0.4.1 is signed and notarized for Apple silicon and Intel Macs running macOS 14 or later.
 
-Open the DMG, drag Ember into Applications, and open it there. First-launch setup offers a recommended profile: wake at 7 AM, bed at 11 PM, Standard night light, and true color apps on. Choose Use recommended to start, or Customize to set your own schedule. Location and Open at login are optional. Adjust anytime from the menu bar; choose Gentle if Standard makes reading uncomfortable. Pause restores true color for an hour. Photos and other supported color apps restore true color while frontmost.
+Open the DMG, drag Ember into Applications, and open it there. First-launch setup offers a recommended profile: wake at 7 AM, bed at 11 PM, Standard night light, and true color apps on. Choose Use recommended to start, or Customize to set your own schedule. Location permission is requested when setup opens; you can decline. Open at login is optional. Adjust anytime from the menu bar; choose Gentle if Standard makes reading uncomfortable. Pause restores true color for an hour. Photos and other supported color apps restore true color while frontmost.
 
 Ember changes display color and software dimming. It does not measure light reaching your eyes or guarantee better sleep. See [the evidence review](docs/circadian-evidence.md).
 

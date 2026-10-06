@@ -28,7 +28,7 @@ enum SunLine: Equatable {
             return .offer
         case .locating:
             return .locating
-        case .denied:
+        case .denied, .unavailable:
             return .fallback(times ?? "No sun times today")
         case .allowed:
             if let times { return .place(times) }
@@ -43,6 +43,7 @@ enum LocationAccess: Equatable {
     case locating
     case allowed
     case denied
+    case unavailable
 }
 
 /// One saved place for sunrise and sunset. A menu-bar app asks while its panel
@@ -53,7 +54,13 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
     @Published private(set) var longitude: Double = Solar.fallbackLongitude
     @Published private(set) var access: LocationAccess = .unknown
 
-    private let manager = CLLocationManager()
+    private let manager: CLLocationManager
+    private let requestTimeout: TimeInterval
+    private let applicationIsActive: () -> Bool
+    private var activationObserver: NSObjectProtocol?
+    private var timeout: DispatchWorkItem?
+    private var pendingLocationRequest = false
+    private var fetching = false
     private let defaults: UserDefaults
     private var hasFix = false
     private var fixAt = Date.distantPast
@@ -63,11 +70,19 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
     /// Fetching then would ask for a fix before the panel is ready.
     private var started = false
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, manager: CLLocationManager = CLLocationManager(), requestTimeout: TimeInterval = 20, applicationIsActive: @escaping () -> Bool = { NSApp.isActive }) {
         self.defaults = defaults
+        self.manager = manager
+        self.requestTimeout = requestTimeout
+        self.applicationIsActive = applicationIsActive
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyKilometer
+        activationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.requestLocationIfActive() }
+        }
         if let lat = defaults.object(forKey: Keys.latitude) as? Double,
            let lon = defaults.object(forKey: Keys.longitude) as? Double {
             latitude = lat
@@ -90,14 +105,17 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
         NSWorkspace.shared.open(url)
     }
 
-    /// Ask only from the open panel, so the system dialog has something behind it.
+    /// Activation is asynchronous: requesting before it completes is ignored by macOS.
     func request() {
-        NSApp.activate()
         started = true
+        NSApp.activate()
         switch manager.authorizationStatus {
         case .notDetermined:
+            guard access != .asking else { return }
             access = .asking
-            manager.requestWhenInUseAuthorization()
+            pendingLocationRequest = true
+            armTimeout()
+            requestLocationIfActive()
         case .denied, .restricted:
             applyDenied()
         default:
@@ -144,15 +162,16 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
         case .notDetermined:
-            access = .unknown
+            if access != .asking { access = .unknown }
         case .denied, .restricted:
             applyDenied()
         default:
+            pendingLocationRequest = false
             guard started else {
                 access = hasFix ? .allowed : .locating
                 return
             }
-            fetch()
+            if fetching { access = hasFix ? .allowed : .locating } else { fetch() }
         }
     }
 
@@ -166,26 +185,60 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
             applyDenied()
             return
         }
-        guard !hasFix else { return }
+        guard fetching else { return }
+        guard !hasFix else { finishRequest(); return }
         failures += 1
         if failures < 2 {
             manager.requestLocation()
             return
         }
-        access = .unknown
+        finishRequest()
+        access = .unavailable
+    }
+
+    private func requestLocationIfActive() {
+        guard pendingLocationRequest, applicationIsActive() else { return }
+        pendingLocationRequest = false
+        fetching = true
+        failures = 0
+        // Native macOS prompts when a location service starts, unlike iOS.
+        manager.requestLocation()
+    }
+
+    private func armTimeout() {
+        timeout?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.finishRequest()
+            self.access = self.hasFix ? .allowed : .unavailable
+        }
+        timeout = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + requestTimeout, execute: work)
+    }
+
+    private func finishRequest() {
+        timeout?.cancel()
+        timeout = nil
+        pendingLocationRequest = false
+        fetching = false
+        manager.stopUpdatingLocation()
     }
 
     private func fetch() {
-        lastFetch = Date()
-        defaults.set(lastFetch, forKey: Keys.fetchedAt)
+        guard !fetching else { return }
+        fetching = true
         failures = 0
         access = hasFix ? .allowed : .locating
+        armTimeout()
         manager.requestLocation()
     }
 
     private func apply(_ loc: CLLocation) {
         guard loc.horizontalAccuracy >= 0, loc.timestamp >= fixAt else { return }
+        finishRequest()
         fixAt = loc.timestamp
+        lastFetch = Date()
+        defaults.set(lastFetch, forKey: Keys.fetchedAt)
         latitude = loc.coordinate.latitude
         longitude = loc.coordinate.longitude
         hasFix = true
@@ -195,7 +248,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
     }
 
     private func applyDenied() {
-        manager.stopUpdatingLocation()
+        finishRequest()
         hasFix = false
         fixAt = .distantPast
         latitude = Solar.fallbackLatitude
@@ -204,6 +257,11 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
         defaults.removeObject(forKey: Keys.latitude)
         defaults.removeObject(forKey: Keys.longitude)
         defaults.removeObject(forKey: Keys.fetchedAt)
+    }
+
+    deinit {
+        timeout?.cancel()
+        if let activationObserver { NotificationCenter.default.removeObserver(activationObserver) }
     }
 
     private enum Keys {

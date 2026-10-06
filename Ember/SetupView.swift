@@ -135,6 +135,7 @@ struct SetupView: View {
         case .denied: return "Location is off. Allow it in System Settings."
         case .asking, .locating: return "Waiting for your location…"
         case .unknown: return "Use your location for sunrise and sunset."
+        case .unavailable: return "Location unavailable. Retry or check Location Services."
         }
     }
 }
@@ -179,6 +180,7 @@ final class SetupController: NSObject, NSWindowDelegate {
         self.window = window
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
+        if !AppModel.isRunningTests { model.location.request() }
     }
 
     private func finish() {

@@ -64,6 +64,18 @@ sign_nested() {
 sign_nested
 codesign --verify --deep --strict --verbose=2 "$app"
 
+# A notarized Hardened Runtime app still needs resource access before it can prompt.
+python3 - "$app" <<'PYTHON'
+import plistlib
+import subprocess
+import sys
+result = subprocess.run(["codesign", "--display", "--entitlements", "-", "--xml", sys.argv[1]],
+                        check=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+if plistlib.loads(result.stdout).get("com.apple.security.personal-information.location") is not True:
+    raise SystemExit("Signed app is missing the required location entitlement.")
+print("Signed app grants location resource access.")
+PYTHON
+
 mkdir -p dist
 dmg="$PWD/dist/Ember-$version.dmg"
 stage=$(mktemp -d)
