@@ -6,7 +6,7 @@ import Foundation
 final class AppModel: ObservableObject {
     @Published var enabled: Bool {
         didSet {
-            UserDefaults.standard.set(enabled, forKey: Keys.enabled)
+            defaults.set(enabled, forKey: Keys.enabled)
             if !enabled { pausedUntil = nil }
             tick()
         }
@@ -21,11 +21,11 @@ final class AppModel: ObservableObject {
     }
 
     @Published var strength: NightStrength {
-        didSet { UserDefaults.standard.set(strength.rawValue, forKey: Keys.strength); tick() }
+        didSet { defaults.set(strength.rawValue, forKey: Keys.strength); tick() }
     }
 
     @Published var colorAppBypass: Bool {
-        didSet { UserDefaults.standard.set(colorAppBypass, forKey: Keys.colorAppBypass); tick() }
+        didSet { defaults.set(colorAppBypass, forKey: Keys.colorAppBypass); tick() }
     }
 
     @Published var pausedUntil: Date?
@@ -38,12 +38,11 @@ final class AppModel: ObservableObject {
     /// Set by Quit: the panel closes while the screen fades back to true color.
     @Published private(set) var quitting = false
     @Published var colorAppName: String?
-    @Published var openAtLogin: Bool {
-        didSet {
-            guard oldValue != openAtLogin, !Self.isRunningTests else { return }
-            LoginItem.setEnabled(openAtLogin)
-        }
-    }
+    @Published private(set) var openAtLogin: Bool
+    @Published private(set) var loginNeedsApproval = false
+    @Published private(set) var loginError: String?
+
+    private let defaults: UserDefaults
 
     let location = LocationService()
     private let fader = DisplayFader()
@@ -63,8 +62,8 @@ final class AppModel: ObservableObject {
 
     var isActive: Bool { enabled && !isPaused }
 
-    init() {
-        let defaults = UserDefaults.standard
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         let wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? 7 * 60)
         let bed = ClockTime.from(minutes: defaults.object(forKey: Keys.bed) as? Int ?? 23 * 60)
         let strength = NightStrength(rawValue: defaults.string(forKey: Keys.strength) ?? "") ?? .standard
@@ -76,10 +75,15 @@ final class AppModel: ObservableObject {
         state = Schedule.state(now: Date(), wake: wake, bed: bed, sunrise: nil, sunset: nil, strength: strength)
         let testing = Self.isRunningTests
         if !testing, defaults.object(forKey: Keys.didSetLogin) == nil {
-            LoginItem.setEnabled(true)
-            defaults.set(true, forKey: Keys.didSetLogin)
+            do {
+                try LoginItem.setEnabled(true)
+                defaults.set(true, forKey: Keys.didSetLogin)
+            } catch {
+                loginError = "Could not change this. Check Login Items."
+            }
         }
-        openAtLogin = testing ? false : LoginItem.isEnabled
+        openAtLogin = testing ? false : LoginItem.isRequested
+        loginNeedsApproval = !testing && LoginItem.needsApproval
         if !testing {
             location.start()
             Self.current = self
@@ -134,8 +138,25 @@ final class AppModel: ObservableObject {
     }
 
     func pause(hours: Double) {
+        preview = nil
         pausedUntil = Date().addingTimeInterval(hours * 3600)
         tick()
+    }
+
+    func setOpenAtLogin(_ on: Bool) {
+        guard !Self.isRunningTests else { return }
+        loginError = nil
+        do {
+            try LoginItem.setEnabled(on)
+        } catch {
+            loginError = "Could not change this. Check Login Items."
+        }
+        refreshLoginStatus()
+    }
+
+    private func refreshLoginStatus() {
+        openAtLogin = LoginItem.isRequested
+        loginNeedsApproval = LoginItem.needsApproval
     }
 
     func resume() {
@@ -146,6 +167,7 @@ final class AppModel: ObservableObject {
     /// Show the light at `progress` (0 wake … 1 bed) of today's plan on the
     /// screen right away, so the whole curve can be tried in a few seconds.
     func scrub(to progress: Double) {
+        guard isActive, !quitting else { return }
         let plan = state.plan
         let p = min(1, max(0, progress))
         let next = Schedule.state(elapsed: p * plan.awakeMinutes, plan: plan, strength: strength)
@@ -184,10 +206,7 @@ final class AppModel: ObservableObject {
             self.pausedUntil = nil
         }
         if !Self.isRunningTests {
-            let login = LoginItem.isEnabled
-            if openAtLogin != login {
-                openAtLogin = login
-            }
+            refreshLoginStatus()
         }
         let nextColor = colorAppBypass ? ColorApps.match(NSWorkspace.shared.frontmostApplication) : nil
         if colorAppName != nextColor { colorAppName = nextColor }
@@ -206,6 +225,7 @@ final class AppModel: ObservableObject {
             strength: strength
         )
         if state != nextState { state = nextState }
+        if !isActive { preview = nil }
         if Self.isRunningTests { return }
         if quitting { return }
         retuneTimer()
@@ -263,7 +283,7 @@ final class AppModel: ObservableObject {
     }
 
     private func persistClock(_ time: ClockTime, key: String) {
-        UserDefaults.standard.set(time.minutes, forKey: key)
+        defaults.set(time.minutes, forKey: key)
     }
 
     private enum Keys {

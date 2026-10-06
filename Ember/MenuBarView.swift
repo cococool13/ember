@@ -5,14 +5,14 @@ struct MenuBarView: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             header
             nowCard
             scheduleSection
             settingsSection
             footer
         }
-        .padding(20)
+        .padding(16)
         .frame(width: Theme.panelWidth)
         .background(Theme.void)
         .clipShape(RoundedRectangle(cornerRadius: Theme.panelRadius, style: .continuous))
@@ -83,6 +83,7 @@ struct MenuBarView: View {
                 onScrub: { model.scrub(to: $0) },
                 onEnd: { model.endScrub() }
             )
+            .disabled(!model.isActive)
             .padding(.top, 4)
             HStack(spacing: 12) {
                 Text(nextReading)
@@ -116,7 +117,7 @@ struct MenuBarView: View {
         if let name = model.colorAppName {
             return "\(name) is in front, so Ember steps aside for color work."
         }
-        if model.isTimedPause { return "True color for an hour. Ember eases back in after that." }
+        if model.isTimedPause { return "Your screen is unmodified until Ember resumes." }
         return model.state.phase.summary
     }
 
@@ -158,9 +159,14 @@ struct MenuBarView: View {
                         .emberLabel(14)
                         .foregroundStyle(Theme.white)
                     Spacer(minLength: 8)
-                    SegmentedPills(options: NightStrength.allCases, label: \.label, selection: $model.strength)
-                        .frame(width: 196)
-                        .accessibilityLabel("Night light strength, \(model.strength.caption)")
+                    VStack(alignment: .trailing, spacing: 6) {
+                        SegmentedPills(options: NightStrength.allCases, label: \.label, selection: $model.strength)
+                        Text(model.strength.caption)
+                            .font(Theme.body(11))
+                            .foregroundStyle(Theme.smoke)
+                    }
+                    .frame(width: 196)
+                    .accessibilityLabel("Night light strength, \(model.strength.caption)")
                 }
                 .padding(.vertical, 12)
             }
@@ -184,11 +190,35 @@ struct MenuBarView: View {
                     isOn: $model.colorAppBypass
                 )
                 hairline
-                ToggleRow(title: "Open at login", caption: nil, isOn: $model.openAtLogin)
+                loginRow
             }
             .padding(.horizontal, 16)
             .emberCard(padding: 0)
         }
+    }
+
+    private var loginRow: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Open at login")
+                    .emberLabel(14)
+                    .foregroundStyle(Theme.white)
+                if model.loginNeedsApproval || model.loginError != nil {
+                    Button(model.loginNeedsApproval ? "Allow in Login Items" : "Check Login Items") {
+                        LoginItem.openSettings()
+                    }
+                    .buttonStyle(.plain)
+                    .font(Theme.body(12))
+                    .foregroundStyle(Theme.ember)
+                    .help(model.loginError ?? "macOS needs your approval to open Ember at login")
+                }
+            }
+            Spacer(minLength: 8)
+            Button(model.openAtLogin ? "On" : "Off") { model.setOpenAtLogin(!model.openAtLogin) }
+                .buttonStyle(GhostPillStyle(emphasized: model.openAtLogin))
+                .accessibilityLabel("Open at login \(model.openAtLogin ? "on" : "off")")
+        }
+        .padding(.vertical, 12)
     }
 
     private var sunRow: some View {

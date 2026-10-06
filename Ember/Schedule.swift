@@ -44,16 +44,16 @@ enum Phase: String, Equatable, Sendable, CaseIterable {
 
     var summary: String {
         switch self {
-        case .morning: return "Cool, bright light tells your body clock the day has started."
+        case .morning: return "The display eases back toward daytime color."
         case .day: return "Full color and full brightness. The screen stays out of your way."
-        case .evening: return "Blue light eases off so melatonin can rise before bed."
-        case .night: return "Warm and dim. Low blue light so sleep comes easier."
+        case .evening: return "The screen grows warmer and dimmer before bed."
+        case .night: return "Warm and dim until your next wake time."
         }
     }
 }
 
-/// How far the screen goes at night. Standard is the Brown 2022 target Ember
-/// shipped with; Gentle keeps text easier to read, Deep is for dark rooms.
+/// Display comfort presets, not measured light-exposure targets. Gentle keeps
+/// text easier to read; Deep is for dark rooms.
 enum NightStrength: String, CaseIterable, Sendable {
     case gentle
     case standard
@@ -130,15 +130,11 @@ struct LightState: Equatable, Sendable {
     var dayProgress: Double
     var plan: DayPlan
 
-    /// Share of the daytime melanopic signal the screen still sends, 0...1.
-    var sleepSignal: Double {
-        Schedule.melanopicDER(kelvin: kelvin) * dim / (Schedule.melanopicDER(kelvin: Schedule.dayKelvin) * Schedule.dayDim)
-    }
-
-    /// Plain-language reading of `sleepSignal`.
+    /// Describes the display adjustment without claiming measured light exposure.
     var signalLabel: String {
-        if sleepSignal >= 0.98 { return "Full color" }
-        return "Blue light −\(Int(((1 - sleepSignal) * 100).rounded()))%"
+        if abs(kelvin - Schedule.dayKelvin) < 1 && dim >= 0.995 { return "Full color" }
+        if kelvin > Schedule.dayKelvin { return "Cooler light" }
+        return dim < 0.995 ? "Warm and dim" : "Warm light"
     }
 }
 
@@ -200,8 +196,8 @@ enum Schedule {
     }
 
     /// Morning reaches cool daylight in 25 minutes, then settles to 6500K over
-    /// the next hour. Evening drops the melanopic signal fast in the first 40
-    /// minutes, then slides to the night target by bedtime. Every ramp blends
+    /// the next hour. Evening warms and dims in the first 40
+    /// minutes, then slides to the night preset by bedtime. Every ramp blends
     /// in mired (reciprocal kelvin) with a smootherstep ease, so the change
     /// looks even to the eye instead of hanging at 6500K and snapping at the end.
     static func state(
@@ -292,11 +288,6 @@ enum Schedule {
         )
     }
 
-    static func melanopicDER(kelvin: Double) -> Double {
-        let k = min(max(kelvin, 1000), 8000)
-        return min(1.0, max(0.16, 0.000145 * k - 0.05))
-    }
-
     static func minutes(in date: Date, calendar: Calendar) -> Double {
         let c = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: date)
         return Double((c.hour ?? 0) * 60 + (c.minute ?? 0))
@@ -322,8 +313,7 @@ enum Schedule {
         a + (b - a) * t
     }
 
-    /// Correlated color temperature is perceptually even in mired (1e6 / K),
-    /// not in kelvin: 6500→5000K is a small step, 2700→1800K a large one.
+    /// Blend reciprocal temperature (mired, 1e6 / K) for gradual tint transitions.
     static func blendKelvin(_ a: Double, _ b: Double, _ t: Double) -> Double {
         let mired = lerp(1_000_000 / a, 1_000_000 / b, min(1, max(0, t)))
         return 1_000_000 / mired

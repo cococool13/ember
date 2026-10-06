@@ -132,13 +132,6 @@ final class ScheduleTests: XCTestCase {
         XCTAssertEqual(justAfter.nextPhase, .night)
     }
 
-    func testMelanopicDERIncreasesWithKelvin() {
-        XCTAssertGreaterThan(Schedule.melanopicDER(kelvin: 6500), Schedule.melanopicDER(kelvin: 1900))
-        XCTAssertGreaterThan(Schedule.melanopicDER(kelvin: 4000), Schedule.melanopicDER(kelvin: 2700))
-        XCTAssertEqual(Schedule.melanopicDER(kelvin: 0), 0.16, accuracy: 0.001)
-        XCTAssertEqual(Schedule.melanopicDER(kelvin: 10_000), 1.0, accuracy: 0.001)
-    }
-
     func testEarlyWinterSunsetStartsEvening() {
         let state = Schedule.state(
             now: date(hour: 14, minute: 30),
@@ -478,13 +471,11 @@ final class ScheduleTests: XCTestCase {
 
     // MARK: Readings
 
-    func testSleepSignalReadsFullColorByDayAndLowAtNight() {
+    func testDisplayReadingDescribesDayAndNight() {
         let day = Schedule.state(now: date(hour: 12, minute: 0), calendar: calendar, wake: wake, bed: bed, sunrise: nil, sunset: nil)
         let night = Schedule.state(now: date(hour: 3, minute: 0), calendar: calendar, wake: wake, bed: bed, sunrise: nil, sunset: nil)
-        XCTAssertEqual(day.sleepSignal, 1, accuracy: 0.001)
         XCTAssertEqual(day.signalLabel, "Full color")
-        XCTAssertLessThan(night.sleepSignal, 0.15)
-        XCTAssertTrue(night.signalLabel.hasPrefix("Blue light −"))
+        XCTAssertEqual(night.signalLabel, "Warm and dim")
     }
 
     func testElapsedSamplerMatchesClockForEveryMinute() {

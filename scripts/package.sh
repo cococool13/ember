@@ -6,8 +6,18 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 skip_notarize=0
-if [[ "${1:-}" == "--skip-notarize" ]]; then
-  skip_notarize=1
+case "${1:-}" in
+  --skip-notarize) skip_notarize=1 ;;
+  "") ;;
+  *) echo "Usage: scripts/package.sh [--skip-notarize]" >&2; exit 1 ;;
+esac
+
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+notary_profile="${NOTARYTOOL_PROFILE:-AC_PASSWORD}"
+if (( ! skip_notarize )) && ! xcrun notarytool history --keychain-profile "$notary_profile" >/dev/null 2>&1; then
+  echo "Notarization profile unavailable: $notary_profile" >&2
+  echo "Set NOTARYTOOL_PROFILE to an existing Keychain profile, or use --skip-notarize for a local signed build." >&2
+  exit 2
 fi
 
 identity=$(security find-identity -v -p codesigning 2>/dev/null \
@@ -18,19 +28,24 @@ identity=$(security find-identity -v -p codesigning 2>/dev/null \
 }
 team=$(printf '%s' "$identity" | sed -n 's/.*(\([A-Z0-9]*\))$/\1/p')
 
-export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 xcodegen generate
 xcodebuild -project Ember.xcodeproj -scheme Ember -configuration Release \
-  -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath "$PWD/build" ONLY_ACTIVE_ARCH=YES \
+  -destination 'generic/platform=macOS' \
+  -derivedDataPath "$PWD/build/release" ONLY_ACTIVE_ARCH=NO \
   CODE_SIGN_IDENTITY="$identity" \
   CODE_SIGN_STYLE=Manual \
   DEVELOPMENT_TEAM="$team" \
   OTHER_CODE_SIGN_FLAGS='--timestamp --options=runtime' \
   build
 
-app="$PWD/build/Build/Products/Release/Ember.app"
+app="$PWD/build/release/Build/Products/Release/Ember.app"
 [[ -d "$app" ]] || { echo "Release app missing at $app" >&2; exit 1; }
+architectures="$(lipo -archs "$app/Contents/MacOS/Ember")"
+[[ " $architectures " == *" arm64 "* && " $architectures " == *" x86_64 "* ]] || {
+  echo "Expected a universal app; found architectures: $architectures" >&2
+  exit 1
+}
+version=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")
 
 sign_nested() {
   local file
@@ -50,8 +65,7 @@ sign_nested
 codesign --verify --deep --strict --verbose=2 "$app"
 
 mkdir -p dist
-dmg="$PWD/dist/Ember.dmg"
-rm -f "$dmg"
+dmg="$PWD/dist/Ember-$version.dmg"
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 ditto "$app" "$stage/Ember.app"
@@ -64,55 +78,14 @@ if (( skip_notarize )); then
   exit 0
 fi
 
-notary_args=()
-load_notary() {
-  if [[ -n "${NOTARYTOOL_PROFILE:-}" ]]; then
-    notary_args=(--keychain-profile "$NOTARYTOOL_PROFILE")
-    return 0
-  fi
-  if xcrun notarytool history --keychain-profile AC_PASSWORD >/dev/null 2>&1; then
-    notary_args=(--keychain-profile AC_PASSWORD)
-    return 0
-  fi
-  local envf="$HOME/.appstoreconnect/env"
-  if [[ -f "$envf" ]]; then
-    set -a
-    # shellcheck disable=SC1090
-    source "$envf"
-    set +a
-  fi
-  local key_id="${ASC_KEY_ID:-${APP_STORE_CONNECT_KEY_ID:-${APPLE_KEY_ID:-${KEY_ID:-}}}}"
-  local issuer="${ASC_ISSUER_ID:-${APP_STORE_CONNECT_ISSUER_ID:-${APPLE_ISSUER_ID:-${ISSUER_ID:-}}}}"
-  local key_file="${ASC_KEY_PATH:-${APP_STORE_CONNECT_KEY_PATH:-${APPLE_API_KEY_PATH:-}}}"
-  if [[ -z "$key_file" && -n "$key_id" && -f "$HOME/.appstoreconnect/AuthKey_${key_id}.p8" ]]; then
-    key_file="$HOME/.appstoreconnect/AuthKey_${key_id}.p8"
-  fi
-  if [[ -z "$key_file" ]]; then
-    local files
-    files=($HOME/.appstoreconnect/AuthKey_*.p8(N))
-    if [[ ${#files} -gt 0 ]]; then
-      key_file=$files[1]
-      [[ -z "$key_id" ]] && key_id=${${key_file:t}#AuthKey_}
-      key_id=${key_id%.p8}
-    fi
-  fi
-  if [[ -n "$key_file" && -n "$key_id" && -n "$issuer" ]]; then
-    notary_args=(--key "$key_file" --key-id "$key_id" --issuer "$issuer")
-    return 0
-  fi
-  return 1
-}
-
-if load_notary; then
-  xcrun notarytool submit "$dmg" --wait "${notary_args[@]}"
-  xcrun stapler staple "$dmg"
-  xcrun stapler staple "$app"
-  spctl --assess --verbose=2 --type install "$dmg"
-  mkdir -p site/downloads
-  cp "$dmg" site/downloads/Ember.dmg
-  echo "Notarized: $dmg"
-  echo "Copied to site/downloads/Ember.dmg for wrangler deploy."
-else
-  echo "No notarization credentials. Signed DMG is at $dmg; Gatekeeper will still warn strangers." >&2
-  exit 2
-fi
+xcrun notarytool submit "$dmg" --wait --keychain-profile "$notary_profile"
+xcrun stapler staple "$dmg"
+xcrun stapler staple "$app"
+xcrun stapler validate "$dmg"
+spctl --assess --verbose=2 --type execute "$app"
+spctl --assess --verbose=2 --type install "$dmg"
+mkdir -p site/downloads
+cp "$dmg" site/downloads/Ember.dmg
+cp "$dmg" dist/Ember.dmg
+echo "Notarized: $dmg"
+echo "Copied to site/downloads/Ember.dmg for wrangler deploy."

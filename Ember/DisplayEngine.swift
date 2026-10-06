@@ -72,9 +72,9 @@ enum DisplayEngine {
         usingSystemProfile = true
     }
 
-    /// Extra cut on the blue primary. Display blue (~450–470 nm) sits on the
-    /// melanopsin peak (~480 nm); CCT alone under-weights that. No cut at or
-    /// above daylight, so the day phase stays true color.
+    /// Heuristic attenuation of the display's blue primary below daylight.
+    /// This gain does not measure melanopic exposure; display spectra vary.
+    /// No cut at or above daylight, so the day phase stays true color.
     static func melanopicBlueCut(kelvin: Double) -> Double {
         let t = min(1, max(0, (kelvin - 1800) / (Schedule.dayKelvin - 1800)))
         return 0.58 + 0.42 * t

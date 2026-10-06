@@ -7,16 +7,37 @@ final class PanelTests: XCTestCase {
     /// The panel has to fit under the menu bar on a 13-inch display.
     @MainActor
     func testPanelFitsUnder760Points() {
-        let height = render(AppModel(), name: "panel-now").height
+        let height = render(makeModel(), name: "panel-now").height
         XCTAssertGreaterThan(height, 400)
         XCTAssertLessThan(height, 760)
     }
 
     @MainActor
     func testScrubbedPanelRenders() {
-        let model = AppModel()
-        model.scrub(to: 0.93)
+        let model = makeModel()
+        model.scrub(to: 1)
         XCTAssertLessThan(render(model, name: "panel-scrub").height, 760)
+    }
+
+    @MainActor
+    func testOffAndPausedPanelsFit() {
+        let model = makeModel()
+        model.enabled = false
+        XCTAssertLessThan(render(model, name: "panel-off").height, 760)
+        model.enabled = true
+        model.pause(hours: 1)
+        XCTAssertLessThan(render(model, name: "panel-paused").height, 760)
+    }
+
+    @MainActor
+    private func makeModel() -> AppModel {
+        let suite = "EmberPanelTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.set(true, forKey: "enabled")
+        defaults.set(false, forKey: "colorAppBypass")
+        let model = AppModel(defaults: defaults)
+        defaults.removePersistentDomain(forName: suite)
+        return model
     }
 
     /// The menu bar mark in every phase, and the panel mark, at 4x.

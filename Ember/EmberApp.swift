@@ -46,7 +46,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        status?.open()
+        return false
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
+        // A copy rejected before model startup never owned the display tint.
+        guard model != nil else { return }
         DisplayEngine.restore()
     }
 }

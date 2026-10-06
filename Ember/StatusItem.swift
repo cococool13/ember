@@ -60,7 +60,7 @@ final class StatusItem: NSObject {
         open()
     }
 
-    private func open() {
+    func open() {
         generation += 1
         if let panel {
             // Reopened while closing: reverse from where it is.
@@ -77,7 +77,7 @@ final class StatusItem: NSObject {
         let size = NSSize(width: width, height: height)
         host.view.frame = NSRect(origin: .zero, size: size)
 
-        let panel = NSPanel(
+        let panel = EmberPanel(
             contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.nonactivatingPanel, .fullSizeContentView, .borderless],
             backing: .buffered,
@@ -116,6 +116,7 @@ final class StatusItem: NSObject {
     }
 
     private func show(_ panel: NSPanel) {
+        panel.makeKeyAndOrderFront(nil)
         listenForDismiss()
         let motion = PanelMotion.open
         withAnimation(motion.swiftUI) { presence.stage = .shown }
@@ -136,6 +137,7 @@ final class StatusItem: NSObject {
     private func close() {
         guard let panel, presence.shown else { return }
         generation += 1
+        model.endScrub()
         clearMonitors()
         let motion = PanelMotion.close
         withAnimation(motion.swiftUI) { presence.stage = .leaving }
@@ -234,4 +236,11 @@ private struct PanelRoot: View {
     private var offset: CGFloat {
         presence.stage == .entering ? -4 : 0
     }
+}
+
+/// A borderless nonactivating panel still needs key status for Tab and Escape.
+/// It does not become the main window or replace the frontmost color-work app.
+private final class EmberPanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
 }

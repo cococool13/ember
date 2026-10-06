@@ -17,6 +17,7 @@
 		2BE6DAC1D01379647D97286B /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */; };
 		2DC51342D44D81EB216A1AAC /* MenuBarMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D46140053FF98D187778E0 /* MenuBarMark.swift */; };
 		3D3B37AAC6D1B8DC2540A645 /* RobotoMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D162D9528F3F2B7C28851343 /* RobotoMono-Regular.ttf */; };
+		570FA4B23EC19843FF5EDDEB /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0906923197AB189DCD84B0A0 /* AppModelTests.swift */; };
 		67859A316F0412DBA2D2E6E3 /* Solar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2695ACEB14831776BE171871 /* Solar.swift */; };
 		78B9CA4A2393CF8AB9B1E469 /* EmberApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC635EBE2AC3C4079688D51C /* EmberApp.swift */; };
 		7D78F2E708DC62068AC25272 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CCAECECB01C03E7C4363DCA5 /* Assets.xcassets */; };
@@ -43,6 +44,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0906923197AB189DCD84B0A0 /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
 		0BD66A22F293D40A5CBB5111 /* PanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelTests.swift; sourceTree = "<group>"; };
 		133B8690463D9CBFBF76DCA9 /* ColorApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorApps.swift; sourceTree = "<group>"; };
 		23CBE3BA5EB37DB0633A5B6E /* Schedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
@@ -84,6 +86,7 @@
 		3999E6B19D269E59FFEB712F /* EmberTests */ = {
 			isa = PBXGroup;
 			children = (
+				0906923197AB189DCD84B0A0 /* AppModelTests.swift */,
 				560FB4DBE6731C4343D82111 /* ColorAppsTests.swift */,
 				B19CF753842AF5A8A1B3E91C /* DisplayEngineTests.swift */,
 				0BD66A22F293D40A5CBB5111 /* PanelTests.swift */,
@@ -253,6 +256,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				570FA4B23EC19843FF5EDDEB /* AppModelTests.swift in Sources */,
 				F65FBFB2878DE126886F5C8F /* ColorAppsTests.swift in Sources */,
 				1B9CECEFD2B0E1E2CF18E217 /* DisplayEngineTests.swift in Sources */,
 				FB8BF04338BCC9D9D9601BD9 /* PanelTests.swift in Sources */,
@@ -292,15 +296,14 @@
 		9CC77524DDFFA3800C9DD95D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = arm64;
+				ARCHS = "arm64 x86_64";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				EXCLUDED_ARCHS = x86_64;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Ember;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -314,7 +317,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;
@@ -399,15 +402,14 @@
 		E48F6C284003A0B61D23D156 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = arm64;
+				ARCHS = "arm64 x86_64";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				EXCLUDED_ARCHS = x86_64;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Ember;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -421,7 +423,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;
