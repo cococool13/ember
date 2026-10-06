@@ -34,20 +34,42 @@ enum DisplayEngine {
         apply(Target(state))
     }
 
+    /// Daylight. Channel gains are relative to 6500K, so this is an identity tint.
+    static func isNeutral(_ target: Target) -> Bool {
+        let gains = Temperature.gains(kelvin: target.kelvin)
+        let blue = gains.b * melanopicBlueCut(kelvin: target.kelvin)
+        let slack = 0.004
+        return abs(target.dim - 1) < slack
+            && abs(gains.r - 1) < slack
+            && abs(gains.g - 1) < slack
+            && abs(blue - 1) < slack
+    }
+
     static func apply(_ target: Target) {
-        let rgb = Temperature.rgb(kelvin: target.kelvin)
+        if isNeutral(target) {
+            // Writing an identity table would still replace the display profile.
+            if !usingSystemProfile { restore() }
+            return
+        }
+        let gains = Temperature.gains(kelvin: target.kelvin)
         let blueCut = melanopicBlueCut(kelvin: target.kelvin)
+        let red = gains.r * target.dim
+        let green = gains.g * target.dim
+        let blue = gains.b * blueCut * target.dim
         var count: UInt32 = 0
         guard CGGetActiveDisplayList(0, nil, &count) == .success, count > 0 else { return }
         var displays = [CGDirectDisplayID](repeating: 0, count: Int(count))
         guard CGGetActiveDisplayList(count, &displays, &count) == .success else { return }
         for i in 0..<Int(count) {
-            apply(display: displays[i], red: rgb.r, green: rgb.g, blue: rgb.b * blueCut, dim: target.dim)
+            apply(display: displays[i], red: red, green: green, blue: blue)
         }
+        usingSystemProfile = false
     }
 
     static func restore() {
         CGDisplayRestoreColorSyncSettings()
+        baselines.removeAll()
+        usingSystemProfile = true
     }
 
     /// Extra cut on the blue primary. Display blue (~450–470 nm) sits on the
@@ -58,19 +80,74 @@ enum DisplayEngine {
         return 0.58 + 0.42 * t
     }
 
-    private static func apply(display: CGDirectDisplayID, red: Double, green: Double, blue: Double, dim: Double) {
-        let n = 256
-        var r = [CGGammaValue](repeating: 0, count: n)
-        var g = [CGGammaValue](repeating: 0, count: n)
-        var b = [CGGammaValue](repeating: 0, count: n)
-        let last = max(n - 1, 1)
-        for i in 0..<n {
-            let x = Double(i) / Double(last)
-            r[i] = CGGammaValue(min(1, x * red * dim))
-            g[i] = CGGammaValue(min(1, x * green * dim))
-            b[i] = CGGammaValue(min(1, x * blue * dim))
+    /// The display profile's gamma, captured before Ember writes. Tints multiply
+    /// this table. A flat ramp would throw the calibration away.
+    private struct GammaTable {
+        var red: [CGGammaValue]
+        var green: [CGGammaValue]
+        var blue: [CGGammaValue]
+    }
+
+    private static var baselines: [CGDirectDisplayID: GammaTable] = [:]
+    private static var usingSystemProfile = true
+
+    /// Multiply a gamma table by one channel gain. Shape stays; only the scale moves.
+    static func scaledTable(_ table: [CGGammaValue], by gain: Double) -> [CGGammaValue] {
+        let gain = min(1, max(0, gain))
+        return table.map { CGGammaValue(min(1, max(0, Double($0) * gain))) }
+    }
+
+    private static func apply(display: CGDirectDisplayID, red: Double, green: Double, blue: Double) {
+        let base = baseline(for: display)
+        let r = scaledTable(base.red, by: red)
+        let g = scaledTable(base.green, by: green)
+        let b = scaledTable(base.blue, by: blue)
+        guard !r.isEmpty, r.count == g.count, g.count == b.count else { return }
+        _ = CGSetDisplayTransferByTable(display, UInt32(r.count), r, g, b)
+    }
+
+    private static func baseline(for display: CGDirectDisplayID) -> GammaTable {
+        if let saved = baselines[display] { return saved }
+        let table = readTable(display) ?? identityTable(count: 256)
+        baselines[display] = table
+        return table
+    }
+
+    private static func identityTable(count: Int) -> GammaTable {
+        let n = max(count, 2)
+        let last = Double(n - 1)
+        let values = (0..<n).map { CGGammaValue(Double($0) / last) }
+        return GammaTable(red: values, green: values, blue: values)
+    }
+
+    private static func readTable(_ display: CGDirectDisplayID) -> GammaTable? {
+        let capacity = Int(CGDisplayGammaTableCapacity(display))
+        let n = capacity > 1 ? capacity : 256
+        var red = [CGGammaValue](repeating: 0, count: n)
+        var green = [CGGammaValue](repeating: 0, count: n)
+        var blue = [CGGammaValue](repeating: 0, count: n)
+        var samples: UInt32 = 0
+        let err = red.withUnsafeMutableBufferPointer { redBuf in
+            green.withUnsafeMutableBufferPointer { greenBuf in
+                blue.withUnsafeMutableBufferPointer { blueBuf in
+                    CGGetDisplayTransferByTable(
+                        display,
+                        UInt32(n),
+                        redBuf.baseAddress,
+                        greenBuf.baseAddress,
+                        blueBuf.baseAddress,
+                        &samples
+                    )
+                }
+            }
         }
-        _ = CGSetDisplayTransferByTable(display, UInt32(n), r, g, b)
+        guard err == .success, samples > 1 else { return nil }
+        let count = Int(samples)
+        return GammaTable(
+            red: Array(red.prefix(count)),
+            green: Array(green.prefix(count)),
+            blue: Array(blue.prefix(count))
+        )
     }
 }
 
@@ -92,6 +169,9 @@ final class DisplayFader {
     private var releasing = false
 
     func show(_ target: DisplayEngine.Target) {
+        if DisplayEngine.isNeutral(target), shown == nil || shown.map(DisplayEngine.isNeutral) == true {
+            return
+        }
         guard let from = shown else {
             fade(from: .neutral, to: target, seconds: Self.fadeSeconds, thenRelease: false)
             return
@@ -99,7 +179,7 @@ final class DisplayFader {
         if from.distance(to: target) < Self.snapThreshold && !releasing {
             cancel()
             DisplayEngine.apply(target)
-            shown = target
+            shown = DisplayEngine.isNeutral(target) ? nil : target
             return
         }
         fade(from: from, to: target, seconds: Self.fadeSeconds, thenRelease: false)
@@ -110,7 +190,7 @@ final class DisplayFader {
     func snap(_ target: DisplayEngine.Target) {
         cancel()
         DisplayEngine.apply(target)
-        shown = target
+        shown = DisplayEngine.isNeutral(target) ? nil : target
     }
 
     /// Return the display to the system profile. Animated when Ember was
@@ -204,6 +284,19 @@ enum Temperature {
             b = clamp(0.543206789 * log(k - 10) - 1.196254089)
         }
         return (r, g, b)
+    }
+
+    /// Channel gains relative to daylight. `Schedule.dayKelvin` is (1, 1, 1),
+    /// so the day phase can leave a calibrated display alone.
+    static func gains(kelvin: Double) -> (r: Double, g: Double, b: Double) {
+        let white = rgb(kelvin: Schedule.dayKelvin)
+        let sample = rgb(kelvin: kelvin)
+        return (channel(sample.r, over: white.r), channel(sample.g, over: white.g), channel(sample.b, over: white.b))
+    }
+
+    private static func channel(_ sample: Double, over white: Double) -> Double {
+        guard white > 0.001 else { return 0 }
+        return clamp(sample / white)
     }
 
     private static func clamp(_ x: Double) -> Double {

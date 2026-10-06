@@ -96,6 +96,11 @@ final class AppModel: ObservableObject {
     }
 
     func start() {
+        // A force-quit predecessor skips willTerminate and can leave its gamma
+        // table up. Restore before the first read, or that tint becomes the baseline.
+        if !Self.isRunningTests {
+            DisplayEngine.restore()
+        }
         tick()
         if Self.isRunningTests { return }
 

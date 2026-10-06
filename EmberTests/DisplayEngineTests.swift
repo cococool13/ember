@@ -24,6 +24,41 @@ final class DisplayEngineTests: XCTestCase {
 
     func testDayIsTrueColor() {
         XCTAssertEqual(DisplayEngine.melanopicBlueCut(kelvin: Schedule.dayKelvin), 1, accuracy: 0.001)
+        let gains = Temperature.gains(kelvin: Schedule.dayKelvin)
+        XCTAssertEqual(gains.r, 1, accuracy: 1e-9)
+        XCTAssertEqual(gains.g, 1, accuracy: 1e-9)
+        XCTAssertEqual(gains.b, 1, accuracy: 1e-9)
+        XCTAssertTrue(DisplayEngine.isNeutral(.neutral))
+        XCTAssertTrue(DisplayEngine.isNeutral(DisplayEngine.Target(kelvin: 6500, dim: 1)))
+        XCTAssertFalse(DisplayEngine.isNeutral(DisplayEngine.Target(kelvin: 6800, dim: 1)))
+        XCTAssertFalse(DisplayEngine.isNeutral(DisplayEngine.Target(kelvin: 6500, dim: 0.55)))
+    }
+
+    func testGainsAreRelativeToDaylight() {
+        let night = Temperature.gains(kelvin: 1800)
+        XCTAssertEqual(night.r, 1, accuracy: 0.02)
+        XCTAssertEqual(night.b, 0, accuracy: 0.001)
+        XCTAssertGreaterThan(night.r, night.g)
+        let morning = Temperature.gains(kelvin: 6800)
+        XCTAssertLessThan(morning.r, 1)
+        XCTAssertEqual(morning.b, 1, accuracy: 0.001)
+    }
+
+    func testScaledTableKeepsTheCalibrationShape() {
+        let curve: [CGGammaValue] = [0, 0.25, 0.5, 0.8, 1]
+        let half = DisplayEngine.scaledTable(curve, by: 0.5)
+        assertTable(half, [0, 0.125, 0.25, 0.4, 0.5])
+        let full = DisplayEngine.scaledTable(curve, by: 1)
+        assertTable(full, curve.map(Double.init))
+        let capped = DisplayEngine.scaledTable(curve, by: 4)
+        assertTable(capped, full.map(Double.init))
+    }
+
+    private func assertTable(_ table: [CGGammaValue], _ expected: [Double], file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertEqual(table.count, expected.count, file: file, line: line)
+        for (got, want) in zip(table, expected) {
+            XCTAssertEqual(Double(got), want, accuracy: 1e-5, file: file, line: line)
+        }
     }
 
     func testFadeBlendMovesEvenlyInMired() {
