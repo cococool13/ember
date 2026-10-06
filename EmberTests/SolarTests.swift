@@ -60,6 +60,46 @@ final class SolarTests: XCTestCase {
         XCTAssertNil(Solar.events(on: utcNoon(month: 12, day: 21), latitude: 70, longitude: 0, timeZone: TimeZone(secondsFromGMT: 0)!))
     }
 
+    func testDayCacheFollowsMidnightLocationTimeZoneAndPolarDays() {
+        var cache = Solar.DayCache()
+        let utc = TimeZone(secondsFromGMT: 0)!
+        let spring = utcNoon(month: 3, day: 8)
+        let cases: [(Date, Double, Double, TimeZone)] = [
+            (spring, 31.1499, -81.4915, utc),
+            (spring.addingTimeInterval(4), 31.1499, -81.4915, utc),
+            (spring.addingTimeInterval(86400), 31.1499, -81.4915, utc),
+            (spring, 40.7128, -74.0060, utc),
+            (spring, 40.7128, -74.0060, TimeZone(identifier: "America/New_York")!),
+            (utcNoon(month: 6, day: 21), 70, 0, utc),
+            (utcNoon(month: 6, day: 21).addingTimeInterval(20), 70, 0, utc),
+            (utcNoon(month: 3, day: 20), 70, 0, utc)
+        ]
+        for (date, latitude, longitude, zone) in cases {
+            XCTAssertEqual(cache.events(on: date, latitude: latitude, longitude: longitude, timeZone: zone),
+                           Solar.events(on: date, latitude: latitude, longitude: longitude, timeZone: zone))
+        }
+    }
+
+    func testSunTimeCalculationBenchmark() {
+        let date = utcNoon(month: 3, day: 20)
+        let zone = TimeZone(identifier: "America/New_York")!
+        let iterations = 10_000
+        var checksum = 0.0
+        let start = Date()
+        for _ in 0..<iterations {
+            checksum += Solar.events(on: date, latitude: 31.1499, longitude: -81.4915, timeZone: zone)!.sunrise.timeIntervalSince1970
+        }
+        let uncached = Date().timeIntervalSince(start)
+        var cache = Solar.DayCache()
+        let cachedStart = Date()
+        for _ in 0..<iterations {
+            checksum -= cache.events(on: date, latitude: 31.1499, longitude: -81.4915, timeZone: zone)!.sunrise.timeIntervalSince1970
+        }
+        let cached = Date().timeIntervalSince(cachedStart)
+        XCTAssertEqual(checksum, 0, accuracy: 1)
+        print("SOLAR_BENCHMARK iterations=\(iterations) uncached=\(uncached)s cached=\(cached)s")
+    }
+
     private func utcNoon(month: Int, day: Int) -> Date {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!

@@ -55,11 +55,21 @@ final class PanelTests: XCTestCase {
     private func makeModel() -> AppModel {
         let suite = "EmberPanelTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
+        defaults.set(true, forKey: "didShowSetup")
         defaults.set(true, forKey: "enabled")
         defaults.set(false, forKey: "colorAppBypass")
         let model = AppModel(defaults: defaults)
         defaults.removePersistentDomain(forName: suite)
         return model
+    }
+
+    @MainActor
+    func testSettingsAndSetupRender() {
+        let model = makeModel()
+        XCTAssertEqual(renderView(MenuBarView(showingSettings: true).environmentObject(model), name: "panel-settings", width: Theme.panelWidth).height, Theme.panelHeight)
+        for step in 0...2 {
+            XCTAssertEqual(renderView(SetupView(finish: {}, step: step).environmentObject(model), name: "setup-\(step)", width: 480).height, 520)
+        }
     }
 
     /// The menu bar mark in every phase, and the panel mark, at 4x.
@@ -95,8 +105,14 @@ final class PanelTests: XCTestCase {
     @MainActor
     private func render(_ model: AppModel, name: String) -> NSSize {
         Fonts.register()
-        let host = NSHostingView(rootView: MenuBarView().environmentObject(model))
-        host.frame = NSRect(x: 0, y: 0, width: Theme.panelWidth, height: 10)
+        return renderView(MenuBarView().environmentObject(model), name: name, width: Theme.panelWidth)
+    }
+
+    @MainActor
+    private func renderView<V: View>(_ view: V, name: String, width: CGFloat) -> NSSize {
+        Fonts.register()
+        let host = NSHostingView(rootView: view)
+        host.frame = NSRect(x: 0, y: 0, width: width, height: 10)
         let size = host.fittingSize
         host.frame = NSRect(origin: .zero, size: size)
         host.layoutSubtreeIfNeeded()

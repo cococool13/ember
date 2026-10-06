@@ -85,6 +85,11 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
         }
     }
 
+    static func openSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_LocationServices") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     /// Ask only from the open panel, so the system dialog has something behind it.
     func request() {
         NSApp.activate()

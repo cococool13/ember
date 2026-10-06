@@ -5,3 +5,6 @@ wrangler.jsonc
 .DS_Store
 qa
 _headers
+
+# Only publish the canonical, verified installer.
+downloads/Ember-*.dmg

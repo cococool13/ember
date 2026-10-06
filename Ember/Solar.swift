@@ -10,6 +10,31 @@ enum Solar {
         var sunset: Date
     }
 
+    /// Sun times are constant for a civil day and location, including a polar nil result.
+    struct DayCache {
+        private struct Key: Equatable {
+            var day: Date
+            var latitude: Double
+            var longitude: Double
+            var timeZone: TimeZone
+        }
+        private var key: Key?
+        private var value: Events?
+
+        mutating func events(on date: Date, latitude: Double, longitude: Double,
+                             timeZone: TimeZone = .current) -> Events? {
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = timeZone
+            let nextKey = Key(day: calendar.startOfDay(for: date), latitude: latitude,
+                              longitude: longitude, timeZone: timeZone)
+            if key != nextKey {
+                value = Solar.events(on: date, latitude: latitude, longitude: longitude, timeZone: timeZone)
+                key = nextKey
+            }
+            return value
+        }
+    }
+
     static func events(
         on date: Date,
         latitude: Double,

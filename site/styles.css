@@ -320,3 +320,8 @@ summary::-webkit-details-marker { display: none; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+.download-help { padding-block: 72px; scroll-margin-top: 90px; }
+.download-help[hidden] { display: none; }
+.download-help:focus { outline: none; }
+.download-help a { text-underline-offset: 4px; }

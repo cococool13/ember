@@ -24,6 +24,7 @@ enum Theme {
     static let panelRadius: CGFloat = 14
     static let hairline: CGFloat = 1
     static let panelWidth: CGFloat = 360
+    static let panelHeight: CGFloat = 500
 
     static func display(_ size: CGFloat) -> Font {
         .custom("Barlow Condensed", size: size, relativeTo: .body)
@@ -155,7 +156,7 @@ struct ToggleRow: View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .emberLabel(14)
+                    .font(Theme.body(13))
                     .foregroundStyle(Theme.white)
                 if let caption {
                     Text(caption)
@@ -184,12 +185,13 @@ struct SegmentedPills<Option: Hashable>: View {
                 Button(label(option)) { selection = option }
                     .buttonStyle(.plain)
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(selected ? Theme.ember : Theme.pillMuted)
+                    .foregroundStyle(selected ? Theme.white : Theme.pillMuted)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .padding(.horizontal, 6)
                     .frame(maxWidth: .infinity)
-                    .frame(minHeight: 26)
+                    .frame(minHeight: 30)
+                    .background(Capsule().fill(selected ? Theme.graphite : .clear))
                     .contentShape(Capsule())
                     .overlay(
                         Capsule().stroke(
@@ -200,5 +202,17 @@ struct SegmentedPills<Option: Hashable>: View {
                     .accessibilityAddTraits(selected ? .isSelected : [])
             }
         }
+    }
+}
+
+/// Quiet toolbar hit targets, with the Mac focus ring supplied by Button.
+struct IconButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 14, weight: .regular))
+            .foregroundStyle(Theme.ash)
+            .frame(width: 30, height: 30)
+            .background(RoundedRectangle(cornerRadius: 7).fill(configuration.isPressed ? Theme.graphite : .clear))
+            .contentShape(Rectangle())
     }
 }

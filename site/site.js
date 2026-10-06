@@ -213,6 +213,16 @@
   var links = Array.from(document.querySelectorAll(".download-link"));
   var note = document.getElementById("download-note");
   if (!links.length) return;
+  var installHelp = document.getElementById("download-help");
+  links.forEach(function (link) {
+    link.addEventListener("click", function (event) {
+      if (link.getAttribute("aria-disabled") === "true") { event.preventDefault(); return; }
+      if (!installHelp) return;
+      installHelp.hidden = false;
+      installHelp.focus({ preventScroll: true });
+      installHelp.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+    });
+  });
   function unavailable() {
     links.forEach(function (link) { link.removeAttribute("href"); link.setAttribute("aria-disabled", "true"); link.textContent = "Download unavailable"; });
     if (note) note.textContent = "The download is temporarily unavailable. Please check back or contact support before purchasing.";

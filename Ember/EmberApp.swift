@@ -15,6 +15,7 @@ struct EmberApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var model: AppModel?
     @MainActor private var status: StatusItem?
+    @MainActor private var setup: SetupController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         if !AppModel.isRunningTests {
@@ -26,7 +27,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.model = model
         let status = StatusItem(model: model)
         self.status = status
-        model.startSetupIfNeeded { status.open() }
+        let setup = SetupController(model: model) { status.open() }
+        self.setup = setup
+        model.showSetup = { [weak setup] in setup?.show() }
+        model.startSetupIfNeeded()
     }
 
     /// One Ember. A newer copy replaces an older one, including a different build path.
@@ -49,13 +53,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        status?.open()
+        if model?.needsOnboarding == true { setup?.show() } else { status?.open() }
         return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         // A copy rejected before model startup never owned the display tint.
-        guard model != nil else { return }
+        guard model != nil, !AppModel.isRunningTests else { return }
         DisplayEngine.restore()
     }
 }

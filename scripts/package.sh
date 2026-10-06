@@ -69,8 +69,25 @@ dmg="$PWD/dist/Ember-$version.dmg"
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 ditto "$app" "$stage/Ember.app"
-ln -s /Applications "$stage/Applications"
-hdiutil create -volname Ember -srcfolder "$stage" -ov -format UDZO -imagekey zlib-level=9 "$dmg"
+# create-dmg handles Finder layout and Retina background metadata.
+# Keep the maintained tool local to the project and pinned for repeatable builds.
+create_dmg="$PWD/build/tools/create-dmg/create-dmg"
+if [[ ! -x "$create_dmg" ]]; then
+  mkdir -p build/tools
+  git clone --depth 1 --branch v1.3.0 https://github.com/create-dmg/create-dmg.git build/tools/create-dmg
+fi
+python3 scripts/make-dmg-background.py
+mkdir "$stage/source"
+mv "$stage/Ember.app" "$stage/source/Ember.app"
+"$create_dmg" --volname Ember \
+  --background "$PWD/build/dmg-background.tiff" \
+  --window-pos 200 120 --window-size 640 428 \
+  --icon-size 96 --text-size 13 \
+  --icon Ember.app 170 205 --hide-extension Ember.app \
+  --app-drop-link 470 205 \
+  --no-internet-enable \
+  "$stage/Ember.dmg" "$stage/source"
+mv "$stage/Ember.dmg" "$dmg"
 codesign --force --sign "$identity" --timestamp "$dmg"
 
 if (( skip_notarize )); then

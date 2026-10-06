@@ -42,11 +42,16 @@ final class AppModel: ObservableObject {
     @Published private(set) var loginNeedsApproval = false
     @Published private(set) var loginError: String?
 
+    @Published private(set) var needsOnboarding: Bool
+    var showSetup: (() -> Void)?
+
     private let defaults: UserDefaults
 
     let location: LocationService
     private let fader = DisplayFader()
     private var timer: Timer?
+    private var solarCache = Solar.DayCache()
+    private var applyingProfile = false
     /// The screen just woke. Its next frame is the target itself, not a fade
     /// up from daylight white.
     private var screenWoke = false
@@ -60,14 +65,15 @@ final class AppModel: ObservableObject {
 
     var isPaused: Bool { isTimedPause || colorAppName != nil }
 
-    var isActive: Bool { enabled && !isPaused }
+    var isActive: Bool { enabled && !isPaused && !needsOnboarding }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        needsOnboarding = !defaults.bool(forKey: Keys.didShowSetup)
         location = LocationService(defaults: defaults)
-        let wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? 7 * 60)
-        let bed = ClockTime.from(minutes: defaults.object(forKey: Keys.bed) as? Int ?? 23 * 60)
-        let strength = NightStrength(rawValue: defaults.string(forKey: Keys.strength) ?? "") ?? .standard
+        let wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? RecommendedProfile.wake.minutes)
+        let bed = ClockTime.from(minutes: defaults.object(forKey: Keys.bed) as? Int ?? RecommendedProfile.bed.minutes)
+        let strength = NightStrength(rawValue: defaults.string(forKey: Keys.strength) ?? "") ?? RecommendedProfile.strength
         enabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
         self.wake = wake
         self.bed = bed
@@ -75,14 +81,6 @@ final class AppModel: ObservableObject {
         colorAppBypass = defaults.object(forKey: Keys.colorAppBypass) as? Bool ?? true
         state = Schedule.state(now: Date(), wake: wake, bed: bed, sunrise: nil, sunset: nil, strength: strength)
         let testing = Self.isRunningTests
-        if !testing, defaults.object(forKey: Keys.didSetLogin) == nil {
-            do {
-                try LoginItem.setEnabled(true)
-                defaults.set(true, forKey: Keys.didSetLogin)
-            } catch {
-                loginError = "Could not change this. Check Login Items."
-            }
-        }
         openAtLogin = testing ? false : LoginItem.isRequested
         loginNeedsApproval = !testing && LoginItem.needsApproval
         if !testing {
@@ -91,38 +89,33 @@ final class AppModel: ObservableObject {
         start()
     }
 
-    /// First launch opens the panel, then asks for location while that panel
-    /// is on screen. Later launches only refresh a place Ember may already use.
-    func startSetupIfNeeded(openPanel: @escaping () -> Bool) {
+    /// Ask for permissions only after the user chooses them in setup.
+    func startSetupIfNeeded() {
         guard !Self.isRunningTests else { return }
-        if defaults.bool(forKey: Keys.didShowSetup) {
+        if needsOnboarding {
+            showSetup?()
+        } else {
             location.resumeIfAuthorized()
-            return
         }
-        let needsLocation = location.access == .unknown || location.access == .asking
-        if !needsLocation && !loginNeedsApproval {
-            defaults.set(true, forKey: Keys.didShowSetup)
-            location.resumeIfAuthorized()
-            return
-        }
-        NSApp.activate()
-        presentSetup(openPanel, tries: 0)
     }
 
-    /// The status item can lack a window for a moment after launch.
-    private func presentSetup(_ openPanel: @escaping () -> Bool, tries: Int) {
-        guard openPanel() else {
-            guard tries < 10 else { return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-                self?.presentSetup(openPanel, tries: tries + 1)
-            }
-            return
-        }
+    /// Apply the starting profile together, without intermediate display updates.
+    func applyRecommendedProfile() {
+        applyingProfile = true
+        wake = RecommendedProfile.wake
+        bed = RecommendedProfile.bed
+        strength = RecommendedProfile.strength
+        colorAppBypass = true
+        enabled = true
+        pausedUntil = nil
+        applyingProfile = false
+        tick()
+    }
+
+    func completeSetup() {
         defaults.set(true, forKey: Keys.didShowSetup)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
-            guard let self, self.location.access == .unknown || self.location.access == .asking else { return }
-            self.location.request()
-        }
+        needsOnboarding = false
+        tick()
     }
 
     /// The panel is open: pick up a login-item approval or a Settings change.
@@ -191,6 +184,10 @@ final class AppModel: ObservableObject {
     func setOpenAtLogin(_ on: Bool) {
         guard !Self.isRunningTests else { return }
         loginError = nil
+        if on && !Installation.isInApplications() {
+            loginError = "Move Ember to Applications, then open that copy."
+            return
+        }
         do {
             try LoginItem.setEnabled(on)
         } catch {
@@ -200,8 +197,10 @@ final class AppModel: ObservableObject {
     }
 
     private func refreshLoginStatus() {
-        openAtLogin = LoginItem.isRequested
-        loginNeedsApproval = LoginItem.needsApproval
+        let requested = LoginItem.isRequested
+        let needsApproval = LoginItem.needsApproval
+        if openAtLogin != requested { openAtLogin = requested }
+        if loginNeedsApproval != needsApproval { loginNeedsApproval = needsApproval }
     }
 
     func resume() {
@@ -247,22 +246,21 @@ final class AppModel: ObservableObject {
     }
 
     func tick() {
-        if let pausedUntil, pausedUntil <= Date() {
+        guard !applyingProfile else { return }
+        let now = Date()
+        if let pausedUntil, pausedUntil <= now {
             self.pausedUntil = nil
-        }
-        if !Self.isRunningTests {
-            refreshLoginStatus()
         }
         let nextColor = colorAppBypass ? ColorApps.match(NSWorkspace.shared.frontmostApplication) : nil
         if colorAppName != nextColor { colorAppName = nextColor }
-        let nextSolar = Solar.events(
-            on: Date(),
+        let nextSolar = solarCache.events(
+            on: now,
             latitude: location.latitude,
             longitude: location.longitude
         )
         if solar != nextSolar { solar = nextSolar }
         let nextState = Schedule.state(
-            now: Date(),
+            now: now,
             wake: wake,
             bed: bed,
             sunrise: solar?.sunrise,
@@ -270,7 +268,7 @@ final class AppModel: ObservableObject {
             strength: strength
         )
         if state != nextState { state = nextState }
-        if !isActive { preview = nil }
+        if !isActive, preview != nil { preview = nil }
         if Self.isRunningTests { return }
         if quitting { return }
         retuneTimer()
@@ -300,13 +298,13 @@ final class AppModel: ObservableObject {
         }
     }
 
-    static var isRunningTests: Bool {
+    static let isRunningTests: Bool = {
         let env = ProcessInfo.processInfo.environment
         if env["XCTestConfigurationFilePath"] != nil { return true }
         if env["XCTestSessionIdentifier"] != nil { return true }
         if env["XCTestBundlePath"] != nil { return true }
         return ProcessInfo.processInfo.arguments.contains { $0.contains("xctest") }
-    }
+    }()
 
     private func retuneTimer() {
         let interval: TimeInterval = (state.phase == .morning || state.phase == .evening) ? 4 : 20
@@ -337,7 +335,13 @@ final class AppModel: ObservableObject {
         static let bed = "bedMinutes"
         static let strength = "nightStrength"
         static let colorAppBypass = "colorAppBypass"
-        static let didSetLogin = "didSetLogin"
         static let didShowSetup = "didShowSetup"
     }
+}
+
+/// A starting point; sleep times remain editable in the panel.
+enum RecommendedProfile {
+    static let wake = ClockTime(hour: 7, minute: 0)
+    static let bed = ClockTime(hour: 23, minute: 0)
+    static let strength = NightStrength.standard
 }

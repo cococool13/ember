@@ -7,6 +7,8 @@ final class StatusItem: NSObject {
     private let model: AppModel
     private let item: NSStatusItem
     private var panel: NSPanel?
+    private var installedMark = false
+    private var markPhase: Phase?
     private let presence = PanelPresence()
     /// Bumped on every open and close, so a stale close never hides a panel
     /// that was reopened mid-animation.
@@ -47,16 +49,22 @@ final class StatusItem: NSObject {
 
     private func refreshChrome() {
         let phase = model.isActive ? model.state.phase : nil
-        item.button?.image = MenuBarMark.image(phase: phase)
-        if !model.enabled {
-            item.button?.toolTip = "Ember is off"
-        } else if let name = model.colorAppName {
-            item.button?.toolTip = "True color · \(name)"
-        } else if model.isTimedPause {
-            item.button?.toolTip = "Ember paused"
-        } else {
-            item.button?.toolTip = "\(model.state.phase.title) · \(model.state.signalLabel)"
+        if !installedMark || phase != markPhase {
+            item.button?.image = MenuBarMark.image(phase: phase)
+            markPhase = phase
+            installedMark = true
         }
+        let tooltip: String
+        if !model.enabled {
+            tooltip = "Ember is off"
+        } else if let name = model.colorAppName {
+            tooltip = "True color · \(name)"
+        } else if model.isTimedPause {
+            tooltip = "Ember paused"
+        } else {
+            tooltip = "\(model.state.phase.title) · \(model.state.signalLabel)"
+        }
+        if item.button?.toolTip != tooltip { item.button?.toolTip = tooltip }
     }
 
     @objc func toggle(_ sender: Any?) {
