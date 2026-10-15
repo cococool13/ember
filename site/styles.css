@@ -37,12 +37,55 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .small { font-size: 13px; line-height: 1.6; }
 .subtle { color: var(--quiet); }
 .eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 24px; color: var(--accent); }
-.button { display: inline-flex; justify-content: center; align-items: center; gap: 24px; min-height: 48px; padding: 12px 21px; border: 1px solid var(--line); border-radius: 3px; font-size: 13px; font-weight: 500; line-height: 1.5; background: var(--raised); color: var(--text); transition: background 180ms; }
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  min-height: 44px;
+  padding: 11px 22px;
+  border: 1px solid transparent;
+  border-radius: 980px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  background: var(--raised);
+  color: var(--text);
+  box-shadow: none;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+}
 .button:hover { background: #383335; }
-.button.primary { background: #e9b18e; color: #23150f; border-color: #e9b18e; }
-.button.primary:hover { background: #f2c6a9; border-color: #f2c6a9; }
-.button.secondary { background: var(--bg); border-color: #6b5c55; }
-.button[aria-disabled="true"] { opacity: .65; cursor: default; }
+.button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.button.primary {
+  background: #e4a882;
+  color: #1a100c;
+  border-color: transparent;
+}
+.button.primary:hover { background: #eeb892; }
+.button.primary:active { background: #d99870; }
+.button.secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: rgba(232, 214, 201, 0.28);
+}
+.button.secondary:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(232, 214, 201, 0.45);
+}
+.button[aria-disabled="true"] { opacity: .55; cursor: default; }
+.nav-cta {
+  min-height: 36px;
+  padding: 8px 16px;
+  font-size: 13px;
+  background: transparent;
+  border-color: rgba(232, 214, 201, 0.28);
+  color: var(--text);
+}
+.nav-cta:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(232, 214, 201, 0.45);
+}
 .text-link { display: inline-block; padding-block: 8px; font-size: 13px; color: var(--accent); }
 .text-link span { padding-left: 12px; }
 .nav { height: 80px; padding: 16px max(48px, calc((100% - 1320px) / 2)); display: flex; align-items: center; justify-content: space-between; gap: 24px; position: sticky; top: 0; z-index: 30; background: var(--bg); }
@@ -50,7 +93,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .wordmark img { object-fit: contain; }
 .nav-links { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); }
 .nav-links > a, .resources > summary { padding: 11px 13px; min-height: 44px; }
-.nav-cta { min-height: 42px; background: transparent; }
 .resources { position: relative; }
 summary { cursor: pointer; list-style: none; }
 summary::-webkit-details-marker { display: none; }
@@ -256,7 +298,7 @@ summary::-webkit-details-marker { display: none; }
 .get h2 { font-size: clamp(48px, 6.2vw, 88px); }
 .app-icon { margin: 0 auto 24px; width: 64px; height: 64px; }
 .get .lede { margin-top: 22px; font-size: 16px; }
-.cta-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 32px 0 20px; }
+.cta-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 32px 0 20px; }
 .get .small { color: #c6bbb3; }
 .get .small + .small { margin-top: 9px; }
 .footer { padding: 24px 0 40px; display: flex; justify-content: space-between; align-items: center; gap: 30px; font-size: 12px; color: var(--quiet); }
@@ -292,7 +334,7 @@ summary::-webkit-details-marker { display: none; }
   h2 { font-size: 43px; }
   .nav { height: 72px; padding: 12px 24px; }
   .nav-links { display: none; }
-  .nav-cta { margin-left: auto; min-height: 40px; font-size: 12px; padding: 9px 12px; gap: 12px; }
+  .nav-cta { margin-left: auto; min-height: 34px; font-size: 12px; padding: 7px 14px; }
   .wordmark { font-size: 16px; }
   .wordmark img { width: 28px; height: 28px; }
   .mobile-menu { display: block; position: relative; font-size: 13px; }
