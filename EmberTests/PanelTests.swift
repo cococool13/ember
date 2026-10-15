@@ -30,7 +30,7 @@ final class PanelTests: XCTestCase {
     @MainActor
     func testPanelFitsUnder760Points() {
         let height = render(makeModel(), name: "panel-now").height
-        XCTAssertGreaterThan(height, 400)
+        XCTAssertGreaterThan(height, 300)
         XCTAssertLessThan(height, 760)
     }
 
@@ -66,10 +66,31 @@ final class PanelTests: XCTestCase {
     @MainActor
     func testSettingsAndSetupRender() {
         let model = makeModel()
-        XCTAssertEqual(renderView(MenuBarView(showingSettings: true).environmentObject(model), name: "panel-settings", width: Theme.panelWidth).height, Theme.panelHeight)
+        XCTAssertEqual(renderView(SettingsWindowView().environmentObject(model).frame(width: 568, height: 640), name: "panel-settings", width: 568).width, 568)
+        XCTAssertEqual(renderView(MainWindowView().environmentObject(model).frame(width: 660, height: 556), name: "main-window", width: 660).width, 660)
         for step in 0...2 {
             XCTAssertEqual(renderView(SetupView(finish: {}, step: step).environmentObject(model), name: "setup-\(step)", width: 480).height, 520)
         }
+    }
+
+    @MainActor
+    func testPanelReopenLatencyAndScrubCleanup() {
+        let model = makeModel()
+        let status = StatusItem(model: model)
+        XCTAssertTrue(status.open())
+        let cold = status.lastOpenLatencyMilliseconds
+        status.closeImmediately()
+        var samples: [Double] = []
+        for _ in 0..<20 {
+            model.scrub(to: 0.8)
+            XCTAssertTrue(status.open())
+            samples.append(status.lastOpenLatencyMilliseconds)
+            status.closeImmediately()
+            XCTAssertNil(model.preview, "Dismissing must restore the current light")
+        }
+        let sorted = samples.sorted()
+        print("EMBER_OPEN_LATENCY submission ms: cold=\(cold), warm median=\(sorted[10]), p95=\(sorted[18]), max=\(sorted[19])")
+        XCTAssertLessThan(sorted[18], 100, "Warm opening should submit the panel in under 100 ms")
     }
 
     /// The menu bar mark in every phase, and the panel mark, at 4x.
@@ -123,6 +144,7 @@ final class PanelTests: XCTestCase {
                 backing: .buffered,
                 defer: false
             )
+            window.appearance = NSAppearance(named: .darkAqua)
             window.contentView = host
             window.displayIfNeeded()
             if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {

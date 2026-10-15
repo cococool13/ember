@@ -7,6 +7,7 @@ final class StatusItem: NSObject {
     private let model: AppModel
     private let item: NSStatusItem
     private var panel: NSPanel?
+    private(set) var lastOpenLatencyMilliseconds = 0.0
     private var installedMark = false
     private var markPhase: Phase?
     private let presence = PanelPresence()
@@ -31,6 +32,7 @@ final class StatusItem: NSObject {
         item.button?.action = #selector(toggle(_:))
         item.button?.sendAction(on: [.leftMouseDown, .rightMouseDown])
         refreshChrome()
+        DispatchQueue.main.async { [weak self] in self?.preparePanel() }
         model.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.refreshChrome() }
@@ -45,6 +47,7 @@ final class StatusItem: NSObject {
         for monitor in eventMonitors {
             NSEvent.removeMonitor(monitor)
         }
+        NSStatusBar.system.removeStatusItem(item)
     }
 
     private func refreshChrome() {
@@ -65,16 +68,24 @@ final class StatusItem: NSObject {
             tooltip = "\(model.state.phase.title) · \(model.state.signalLabel)"
         }
         if item.button?.toolTip != tooltip { item.button?.toolTip = tooltip }
+        item.button?.setAccessibilityLabel("Ember")
+        item.button?.setAccessibilityValue(tooltip)
     }
 
     @objc func toggle(_ sender: Any?) {
+        if NSApp.currentEvent?.type == .rightMouseDown || NSApp.currentEvent?.modifierFlags.contains(.option) == true {
+            suppressToggle = false
+            closeImmediately()
+            showPowerMenu()
+            return
+        }
         if suppressToggle {
             suppressToggle = false
             return
         }
         let sameEvent = NSApp.currentEvent?.timestamp == closingStamp
         switch StatusToggle.decide(
-            panelOpen: panel != nil,
+            panelOpen: panel?.isVisible == true,
             leaving: presence.stage == .leaving,
             sameEvent: sameEvent
         ) {
@@ -89,20 +100,32 @@ final class StatusItem: NSObject {
 
     @discardableResult
     func open() -> Bool {
+        let started = ProcessInfo.processInfo.systemUptime
         model.refreshWhileVisible()
         generation += 1
-        if let panel {
-            // Reopened while closing: reverse from where it is.
-            show(panel)
-            return true
+        preparePanel()
+        guard let panel else { return false }
+        if !panel.isVisible {
+            position(panel)
+            presence.stage = .entering
+            panel.alphaValue = 0
         }
-        guard let button = item.button, let buttonWindow = button.window else { return false }
+        show(panel)
+        panel.displayIfNeeded()
+        lastOpenLatencyMilliseconds = (ProcessInfo.processInfo.systemUptime - started) * 1_000
+        return true
+    }
+
+    /// Keep the hosting tree alive so opening never reconstructs the controls.
+    private func preparePanel() {
+        guard panel == nil else { return }
+        guard item.button?.window != nil else { return }
         let host = NSHostingController(rootView: PanelRoot(presence: presence).environmentObject(model))
         host.view.wantsLayer = true
         host.view.layer?.backgroundColor = NSColor.clear.cgColor
         let width = Theme.panelWidth
         host.view.frame = NSRect(x: 0, y: 0, width: width, height: 10)
-        let height = max(host.view.fittingSize.height, 420)
+        let height = host.view.fittingSize.height
         let size = NSSize(width: width, height: height)
         host.view.frame = NSRect(origin: .zero, size: size)
 
@@ -125,24 +148,21 @@ final class StatusItem: NSObject {
         panel.contentViewController = host
         panel.setContentSize(size)
 
+        self.panel = panel
+    }
+
+    private func position(_ panel: NSPanel) {
+        guard let button = item.button, let buttonWindow = button.window else { return }
+        let size = panel.frame.size
         let buttonRect = button.convert(button.bounds, to: nil)
         let screenRect = buttonWindow.convertToScreen(buttonRect)
-        var origin = NSPoint(x: screenRect.midX - size.width / 2, y: screenRect.minY - size.height - 6)
-        if let screen = buttonWindow.screen ?? NSScreen.main {
-            origin.x = min(max(origin.x, screen.visibleFrame.minX + 8), screen.visibleFrame.maxX - size.width - 8)
-            if origin.y < screen.visibleFrame.minY {
-                origin.y = screenRect.maxY + 6
-            }
-        }
+        let visible = (buttonWindow.screen ?? NSScreen.main)?.visibleFrame ?? screenRect
+        let origin = NSPoint(
+            x: min(max(screenRect.midX - size.width / 2, visible.minX + 8), visible.maxX - size.width - 8),
+            y: max(visible.minY + 8, screenRect.minY - size.height - 6)
+        )
         panel.setFrameOrigin(origin)
-        // Grow from the menu bar icon, not the panel's center.
         presence.anchor = UnitPoint(x: min(1, max(0, (screenRect.midX - origin.x) / size.width)), y: 0)
-        presence.stage = .entering
-        panel.alphaValue = 0
-        panel.orderFrontRegardless()
-        self.panel = panel
-        show(panel)
-        return true
     }
 
     private func show(_ panel: NSPanel) {
@@ -165,7 +185,7 @@ final class StatusItem: NSObject {
     }
 
     private func close() {
-        guard let panel, presence.stage != .leaving else { return }
+        guard let panel, panel.isVisible, presence.stage != .leaving else { return }
         closingStamp = NSApp.currentEvent?.timestamp
         generation += 1
         model.endScrub()
@@ -181,10 +201,48 @@ final class StatusItem: NSObject {
             Task { @MainActor in
                 guard let self, self.generation == generation else { return }
                 self.panel?.orderOut(nil)
-                self.panel = nil
+                self.panel?.alphaValue = 0
             }
         }
     }
+
+    func closeImmediately() {
+        generation += 1
+        model.endScrub()
+        clearMonitors()
+        presence.stage = .leaving
+        panel?.orderOut(nil)
+        panel?.alphaValue = 0
+    }
+
+    private func showPowerMenu() {
+        guard let button = item.button else { return }
+        let menu = NSMenu(title: "Ember")
+        func add(_ title: String, _ action: Selector, key: String = "") -> NSMenuItem {
+            let entry = NSMenuItem(title: title, action: action, keyEquivalent: key)
+            entry.target = self
+            menu.addItem(entry)
+            return entry
+        }
+        add(model.enabled ? "Turn Ember Off" : "Turn Ember On", #selector(toggleEnabled))
+        if model.enabled {
+            add(model.isTimedPause ? "Resume Schedule" : "Pause for One Hour", #selector(togglePause), key: "p")
+        }
+        menu.addItem(.separator())
+        add("Open Ember", #selector(openMain), key: "o")
+        add("Settings…", #selector(openPreferences), key: ",")
+        menu.addItem(.separator())
+        add("Quit Ember", #selector(quitEmber), key: "q")
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.minY - 4), in: button)
+    }
+
+    @objc private func toggleEnabled() { model.enabled.toggle() }
+    @objc private func togglePause() {
+        if model.isTimedPause { model.resume() } else { model.pause(hours: 1) }
+    }
+    @objc private func openMain() { model.showMainWindow?() }
+    @objc private func openPreferences() { model.showPreferences?() }
+    @objc private func quitEmber() { model.quit() }
 
     private func listenForDismiss() {
         clearMonitors()
@@ -274,17 +332,16 @@ final class PanelPresence: ObservableObject {
     var shown: Bool { stage == .shown }
 }
 
-/// Opens in 200 ms and closes in 140 ms on one strong ease-out. Close is
-/// quicker and moves less, so dismissing never feels like waiting.
+/// The surface is submitted immediately; opacity settles within 90 ms.
 private struct PanelMotion {
     var seconds: Double
 
-    static let open = PanelMotion(seconds: 0.2)
-    static let close = PanelMotion(seconds: 0.14)
+    static let open = PanelMotion(seconds: 0.09)
+    static let close = PanelMotion(seconds: 0.09)
     static let easeOut = CAMediaTimingFunction(controlPoints: 0.23, 1, 0.32, 1)
 
     var swiftUI: Animation {
-        .timingCurve(0.23, 1, 0.32, 1, duration: seconds)
+        .spring(response: 0.22, dampingFraction: 0.9)
     }
 }
 

@@ -24,7 +24,7 @@ enum Theme {
     static let panelRadius: CGFloat = 14
     static let hairline: CGFloat = 1
     static let panelWidth: CGFloat = 360
-    static let panelHeight: CGFloat = 500
+    static let panelHeight: CGFloat = 408
 
     static func display(_ size: CGFloat) -> Font {
         .custom("Barlow Condensed", size: size, relativeTo: .body)
@@ -215,4 +215,30 @@ struct IconButtonStyle: ButtonStyle {
             .background(RoundedRectangle(cornerRadius: 7).fill(configuration.isPressed ? Theme.graphite : .clear))
             .contentShape(Rectangle())
     }
+}
+
+/// A real AppKit material, with a solid surface when transparency is reduced.
+struct PanelMaterial: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        if reduceTransparency {
+            Theme.void
+        } else {
+            VisualEffectSurface()
+                .overlay(Theme.void.opacity(0.65))
+        }
+    }
+}
+
+private struct VisualEffectSurface: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .popover
+        view.blendingMode = .behindWindow
+        view.state = .active
+        return view
+    }
+
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
 }
