@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=7">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -63,10 +63,15 @@ whop.track("page");
 
     <main id="main" tabindex="-1">
       <section class="hero" aria-labelledby="hero-title">
-        <picture class="landscape hero-landscape" aria-hidden="true">
-          <source media="(max-width: 640px)" srcset="assets/cinematic/hero-dusk-1200.jpg">
-          <img src="assets/cinematic/hero-dusk.jpg" width="2400" height="1350" alt="" fetchpriority="high" decoding="async">
-        </picture>
+        <div class="landscape hero-landscape" aria-hidden="true">
+          <video class="hero-video" poster="assets/cinematic/dusk-poster.jpg" autoplay muted loop playsinline preload="metadata" disablepictureinpicture>
+            <source src="assets/cinematic/dusk-hero.mp4" type="video/mp4">
+          </video>
+          <picture class="hero-still">
+            <source media="(max-width: 640px)" srcset="assets/cinematic/dusk-1200.jpg">
+            <img src="assets/cinematic/dusk.jpg" width="2400" height="1350" alt="" fetchpriority="high" decoding="async">
+          </picture>
+        </div>
         <div class="hero-copy content-width">
           <p class="eyebrow">Ember for Mac</p>
           <h1 id="hero-title">Let your screen<br>wind down.</h1>
@@ -123,7 +128,7 @@ whop.track("page");
       </section>
 
       <section class="night-scene" aria-labelledby="night-title">
-        <div class="landscape night-landscape" aria-hidden="true"><img src="assets/cinematic/night.jpg" width="2400" height="1350" alt="" loading="lazy" decoding="async"></div>
+        <div class="landscape night-landscape" aria-hidden="true"><img src="assets/cinematic/night.jpg" width="2400" height="1350" alt="" loading="eager" decoding="async" fetchpriority="low"></div>
         <div class="night-copy content-width"><p class="eyebrow">Night</p><h2 id="night-title">Let the light settle.</h2><p>Warm and dim until wake.</p></div>
       </section>
 
@@ -150,7 +155,7 @@ whop.track("page");
         <p class="small">$2.99 · One-time purchase · No subscription</p><p class="small subtle" id="download-note" aria-live="polite">Version 0.4.1 · Apple silicon &amp; Intel · macOS 14+ · Signed and notarized</p>
         <p class="small subtle">Ember changes display color; it does not guarantee better sleep.</p>
         </div>
-        <div class="landscape dawn-landscape" aria-hidden="true"><img src="assets/cinematic/dawn.jpg" width="2400" height="1350" alt="" loading="lazy" decoding="async"></div>
+        <div class="landscape dawn-landscape" aria-hidden="true"><img src="assets/cinematic/dawn.jpg" width="2400" height="1350" alt="" loading="eager" decoding="async" fetchpriority="low"></div>
       </section>
       <section class="download-help content-width" id="download-help" aria-labelledby="download-help-title" tabindex="-1" hidden>
         <div class="section-intro"><h2 id="download-help-title">Install Ember.</h2></div>
@@ -163,6 +168,6 @@ whop.track("page");
       </section>
     </main>
     <footer class="footer content-width"><a class="wordmark" href="/"><img src="assets/icon.png" width="28" height="28" alt="">Ember</a><nav aria-label="Footer navigation"><a href="#get">Pricing</a><a href="#how">Installation</a><a href="mailto:hi@cohencool.com">Support</a><a href="/privacy">Privacy</a></nav><p>Made by <a href="https://cohencool.com/">Cohen</a>.</p></footer>
-    <script src="site.js?v=6" defer></script>
+    <script src="site.js?v=7" defer></script>
   </body>
 </html>

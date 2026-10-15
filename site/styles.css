@@ -60,16 +60,24 @@ summary::-webkit-details-marker { display: none; }
 .resource-menu a:hover { background: #333; }
 .mobile-menu { display: none; }
 .hero { position: relative; isolation: isolate; min-height: 880px; min-height: max(800px, calc(100svh - 80px)); padding: 70px 0 160px; }
-.landscape { position: absolute; z-index: -1; inset: 0; overflow: hidden; pointer-events: none; }
-.landscape img { width: 100%; height: 100%; object-fit: cover; }
+.landscape { position: absolute; z-index: 0; inset: 0; overflow: hidden; pointer-events: none; }
+.hero-copy, .night-copy, .get-copy { position: relative; z-index: 1; }
+.landscape img, .landscape video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hero-landscape { top: 300px; mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 78%, transparent); }
-.hero-landscape img { object-position: center 64%; transform: scale(1.025); }
+.hero-landscape img, .hero-landscape video { object-position: center 64%; }
+.hero-video { position: absolute; inset: 0; transform: scale(1.025); }
+.hero-still { position: absolute; inset: 0; }
+.hero-still img { transform: scale(1.025); }
+/* Video covers the still when it can play; still is the Reduce Motion / failed-video fallback. */
+.hero:not(.use-still) .hero-still { opacity: 0; pointer-events: none; }
+.hero.use-still .hero-video { display: none; }
+.hero.use-still .hero-still { opacity: 1; }
 .hero-copy { position: relative; }
 .hero h1 { max-width: 850px; }
 .hero .lede { max-width: 490px; font-size: 15px; line-height: 1.7; margin: 28px 0; color: #d0c5bd; }
 .hero .small { margin-top: 14px; color: #d0c5bd; }
 .hero .small + .small { margin-top: 4px; }
-.hero-next, .scene-caption { position: absolute; bottom: 48px; font-size: 11px; color: var(--muted); }
+.hero-next, .scene-caption { position: absolute; z-index: 1; bottom: 48px; font-size: 11px; color: var(--muted); }
 .hero-next { left: max(48px, calc((100% - 1160px) / 2)); padding-block: 10px; }
 .hero-next span { padding-left: 25px; color: var(--accent); }
 .scene-caption { right: max(48px, calc((100% - 1160px) / 2)); letter-spacing: .04em; }
@@ -167,7 +175,8 @@ summary::-webkit-details-marker { display: none; }
 
 /* The night landscape is a pause between the demo and the practical details. */
 .night-scene { position: relative; isolation: isolate; min-height: 820px; margin-top: 80px; padding-top: 110px; }
-.night-landscape { mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 76%, transparent); }
+.night-landscape { mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent); }
+.night-landscape img { object-position: center 55%; }
 .night-copy { padding-left: 38%; }
 .night-copy p:last-child { max-width: 390px; margin-top: 24px; font-size: 15px; }
 .features, .day-gallery, .panel-proof, .install, .science, .faq { padding-block: 110px; }
@@ -241,7 +250,7 @@ summary::-webkit-details-marker { display: none; }
 .faq-list details[open] summary::after { content: "−"; }
 .faq-list details p { padding: 0 20px 24px 0; font-size: 14px; line-height: 1.7; }
 .get { position: relative; isolation: isolate; padding: 140px 0 0; margin-top: 40px; text-align: center; }
-.dawn-landscape { position: relative; inset: auto; height: clamp(260px, 48vw, 680px); margin-top: -25px; mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 85%, transparent); }
+.dawn-landscape { position: relative; z-index: 0; inset: auto; height: clamp(320px, 52vw, 720px); margin-top: 8px; mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 88%, transparent); }
 .dawn-landscape img { object-position: center; }
 .get-copy { position: relative; }
 .get h2 { font-size: clamp(48px, 6.2vw, 88px); }
@@ -293,7 +302,7 @@ summary::-webkit-details-marker { display: none; }
   .hero .eyebrow { font-size: 10px; margin-bottom: 28px; }
   .hero .lede { font-size: 14px; max-width: 305px; margin: 26px 0; }
   .hero .small { font-size: 12px; }
-  .hero-landscape img { object-position: 65% center; }
+  .hero-landscape img, .hero-landscape video { object-position: 65% center; }
   .hero-landscape { top: 400px; }
   .hero-next { left: 24px; bottom: 28px; }
   .scene-caption { display: none; }
@@ -381,8 +390,8 @@ summary::-webkit-details-marker { display: none; }
 }
 /* One slow camera move. Offscreen and hidden-document scenes pause in site.js. */
 @media (prefers-reduced-motion: no-preference) {
-  .hero-landscape img { animation: last-light-drift 24s cubic-bezier(.25,.1,.25,1) infinite alternate; animation-play-state: paused; }
-  .hero.is-in-view .hero-landscape img { animation-play-state: running; }
+  .hero-landscape .hero-video, .hero.use-still .hero-still img { animation: last-light-drift 24s cubic-bezier(.25,.1,.25,1) infinite alternate; animation-play-state: paused; }
+  .hero.is-in-view .hero-landscape .hero-video, .hero.is-in-view.use-still .hero-still img { animation-play-state: running; }
   @keyframes last-light-drift { from { transform: scale(1.025) translate3d(0,0,0); } to { transform: scale(1.09) translate3d(-.8%,.6%,0); } }
   @supports (animation-timeline: view()) {
     .night-landscape img { animation: night-drift both; animation-timeline: view(); animation-range: entry 0% exit 100%; }
@@ -392,5 +401,5 @@ summary::-webkit-details-marker { display: none; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
-  .hero-landscape img { transform: none; }
+  .hero-landscape img, .hero-landscape video, .hero-video, .hero-still img { transform: none; }
 }
