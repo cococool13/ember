@@ -1,6 +1,20 @@
 (function () {
   "use strict";
 
+  // The landscape rests when it leaves the screen or the tab is hidden.
+  var hero = document.querySelector(".hero");
+  if (hero && "IntersectionObserver" in window) {
+    var heroVisible = false;
+    function updateScene() {
+      hero.classList.toggle("is-in-view", heroVisible && !document.hidden);
+    }
+    new IntersectionObserver(function (entries) {
+      heroVisible = entries[0].isIntersecting;
+      updateScene();
+    }).observe(hero);
+    document.addEventListener("visibilitychange", updateScene);
+  }
+
   var stage = document.getElementById("stage");
   var panel = document.getElementById("preview-panel");
   var panelToggle = document.getElementById("panel-toggle");

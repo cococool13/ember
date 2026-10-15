@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#111111">
+    <meta name="theme-color" content="#09090B">
     <title>Ember for Mac — a softer screen after sunset</title>
     <meta name="description" content="A Mac menu bar app that follows your wake time, bedtime, and the sun. True color by day. Warm and dim at night. macOS 14+, Apple silicon and Intel. $2.99 once.">
     <link rel="canonical" href="https://ember.cohencool.workers.dev/">
@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles.css?v=6">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -64,24 +64,34 @@ whop.track("page");
 
     <main id="main" tabindex="-1">
       <section class="hero" aria-labelledby="hero-title">
-        <h1 id="hero-title">Let your screen<br>wind down.</h1>
-        <p class="lede">True color by day. Warm and dim at night.<br class="desktop-break"> A quiet menu bar app that follows your schedule.</p>
-        <a class="button primary" href="#get"><span aria-hidden="true">↓</span> Get Ember for Mac</a>
-        <p class="small">$2.99 · One-time purchase</p>
-        <p class="small subtle">Apple silicon &amp; Intel · macOS 14 or later</p>
+        <picture class="landscape hero-landscape" aria-hidden="true">
+          <source media="(max-width: 640px)" srcset="assets/cinematic/hero-dusk-1200.jpg">
+          <img src="assets/cinematic/hero-dusk.jpg" width="2400" height="1350" alt="" fetchpriority="high" decoding="async">
+        </picture>
+        <div class="hero-copy content-width">
+          <p class="eyebrow">Ember for Mac · The last light</p>
+          <h1 id="hero-title">Let your screen<br>wind down.</h1>
+          <p class="lede">True color by day. Warm and dim at night.<br class="desktop-break"> A quiet menu bar app that follows your schedule.</p>
+          <a class="button primary" href="#get">Get Ember for Mac <span aria-hidden="true">↗</span></a>
+          <p class="small">$2.99 · One-time purchase</p>
+          <p class="small subtle">Apple silicon &amp; Intel · macOS 14 or later</p>
+        </div>
+        <a class="hero-next" href="#product">Stay for the evening <span aria-hidden="true">↓</span></a>
+        <span class="scene-caption" aria-hidden="true">Dusk / A softer screen after sunset</span>
       </section>
 
       <section class="interactive-preview" id="product" aria-labelledby="preview-title">
+        <div class="preview-intro content-width"><p class="eyebrow">As the light changes</p><h2>A different hour.<br>A different light.</h2><p>From the first task to the last tab, your screen follows the day. Try it for yourself.</p></div>
         <div class="mac-desktop" id="stage" data-phase="day" data-enabled="true">
           <div class="desktop-surface">
-            <img class="wallpaper" src="assets/desktop-wallpaper.webp" width="1672" height="941" alt="" fetchpriority="high">
+            <img class="wallpaper" src="assets/desktop-wallpaper.webp" width="1672" height="941" alt="" loading="lazy">
             <div class="mac-menubar">
               <div class="mac-menu-left" aria-hidden="true"><span class="apple-symbol">●</span><strong>Finder</strong><span>File</span><span>Edit</span><span>View</span></div>
               <div class="mac-menu-right"><button class="menu-mark" id="panel-toggle" type="button" aria-label="Toggle Ember preview panel" aria-expanded="true" aria-controls="preview-panel"><img src="assets/icon.png" width="22" height="22" alt=""><span>Ember</span></button><span id="preview-clock" aria-hidden="true">2:30 PM</span></div>
             </div>
             <div class="note-window" aria-hidden="true">
               <div class="window-toolbar"><span class="traffic-lights"><i></i><i></i><i></i></span><span>Notes</span></div>
-              <div class="note-content"><span class="note-date">Today</span><h3>A little room to slow down.</h3><p>Close the last tab.<br>Make something for dinner.<br>Leave tomorrow for tomorrow.</p><div class="photo-study"><img src="assets/desktop-wallpaper.webp" width="1672" height="941" alt=""></div><div class="color-samples"><i></i><i></i><i></i><i></i><i></i></div></div>
+              <div class="note-content"><span class="note-date">Today</span><h3>A little room to slow down.</h3><p>Close the last tab.<br>Make something for dinner.<br>Leave tomorrow for tomorrow.</p><div class="photo-study"><img src="assets/desktop-wallpaper.webp" width="1672" height="941" alt="" loading="lazy"></div><div class="color-samples"><i></i><i></i><i></i><i></i><i></i></div></div>
             </div>
             <div class="screen-cool"></div><div class="screen-tint"></div><div class="screen-dim"></div>
           </div>
@@ -113,6 +123,11 @@ whop.track("page");
           <p class="preview-status" id="demo-reading" aria-live="polite">Daylight · 6500K · Original display profile</p>
           <p class="small subtle preview-disclaimer">This illustrates screen color. Your display, brightness, and color profile affect the result.</p>
         </div>
+      </section>
+
+      <section class="night-scene" aria-labelledby="night-title">
+        <div class="landscape night-landscape" aria-hidden="true"><img src="assets/cinematic/night.jpg" width="2400" height="1350" alt="" loading="lazy" decoding="async"></div>
+        <div class="night-copy content-width"><p class="eyebrow">Night / Room to slow down</p><h2 id="night-title">The day is done.<br>Let the light settle.</h2><p>Warmer before bedtime. Warm and dim until wake.<br>Light that follows your schedule.</p></div>
       </section>
 
       <section class="features content-width" aria-labelledby="features-title">
@@ -166,12 +181,16 @@ whop.track("page");
         </div>
       </section>
 
-      <section class="get content-width" id="get" aria-labelledby="get-title">
+      <section class="get" id="get" aria-labelledby="get-title">
+        <div class="get-copy content-width">
+        <p class="eyebrow">Dawn / Begin again tomorrow</p>
         <img class="app-icon" src="assets/icon.png" width="80" height="80" alt="Ember app icon">
         <h2 id="get-title">A softer end to your day.</h2><p class="lede">Your screen, on your schedule.</p>
         <div class="cta-row"><a class="button primary" href="https://whop.com/checkout/ch_vV3fRPAovR4rnHe/" rel="noopener">Buy Ember — $2.99 <span aria-hidden="true">↗</span></a><a class="button secondary download-link" id="download" href="/downloads/Ember.dmg" download="Ember.dmg" aria-controls="download-help">Download for Mac <span aria-hidden="true">↓</span></a></div>
         <p class="small">$2.99 · One-time purchase · No subscription</p><p class="small subtle" id="download-note" aria-live="polite">Version 0.4.1 · Apple silicon &amp; Intel · macOS 14+ · Signed and notarized</p>
         <p class="small subtle">Already bought? Download here. No license key or account in Ember.</p>
+        </div>
+        <div class="landscape dawn-landscape" aria-hidden="true"><img src="assets/cinematic/dawn.jpg" width="2400" height="1350" alt="" loading="lazy" decoding="async"></div>
       </section>
       <section class="download-help content-width" id="download-help" aria-labelledby="download-help-title" tabindex="-1" hidden>
         <div class="section-intro"><h2 id="download-help-title">Next, open Ember.dmg.</h2><p>Your browser saves it to Downloads. Follow these three steps.</p></div>
@@ -185,6 +204,6 @@ whop.track("page");
       </section>
     </main>
     <footer class="footer content-width"><a class="wordmark" href="/"><img src="assets/icon.png" width="28" height="28" alt="">Ember</a><nav aria-label="Footer navigation"><a href="#get">Pricing</a><a href="#how">Installation</a><a href="mailto:hi@cohencool.com">Support</a><a href="/privacy">Privacy</a></nav><p>Made by <a href="https://cohencool.com/">Cohen</a>.</p></footer>
-    <script src="site.js?v=5" defer></script>
+    <script src="site.js?v=6" defer></script>
   </body>
 </html>
