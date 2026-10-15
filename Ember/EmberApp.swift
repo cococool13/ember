@@ -33,10 +33,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !AppModel.isRunningTests {
             guard Self.keepNewestCopy() else { return }
         }
+        #if DEBUG
+        let benchmarkStartup = ProcessInfo.processInfo.arguments.contains("xctest-benchmark-startup")
+        let startupStart = ProcessInfo.processInfo.systemUptime
+        #endif
         Fonts.register()
+        #if DEBUG
+        let fontsReady = ProcessInfo.processInfo.systemUptime
+        #endif
         NSApp.setActivationPolicy(UserDefaults.standard.bool(forKey: "showDockIcon") ? .regular : .accessory)
         let model = AppModel()
         self.model = model
+        #if DEBUG
+        let modelReady = ProcessInfo.processInfo.systemUptime
+        #endif
         let status = StatusItem(model: model)
         self.status = status
         let windows = EmberWindows(model: model)
@@ -53,6 +63,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.setup = setup
         model.showSetup = { [weak setup] in setup?.show() }
         model.startSetupIfNeeded()
+        #if DEBUG
+        if benchmarkStartup {
+            let initialized = ProcessInfo.processInfo.systemUptime - startupStart
+            DispatchQueue.main.async {
+                // Runs after StatusItem's normal preparation task.
+                status.open()
+                let ready = ProcessInfo.processInfo.systemUptime - startupStart
+                print("EMBER_STARTUP fonts_ms=\((fontsReady-startupStart)*1000) model_ms=\((modelReady-fontsReady)*1000) init_ms=\(initialized * 1_000) panel_ready_ms=\(ready * 1_000)")
+                fflush(stdout)
+                status.closeImmediately()
+                NSApp.terminate(nil)
+            }
+        }
+        #endif
     }
 
     @MainActor func openMain() { model?.showMainWindow?() }

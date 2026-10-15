@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0A88189C97FFF6ABA8117EA4 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A434538941A02FA9EE8B4 /* Theme.swift */; };
+		0B454DB03E5AE3D0E84B7883 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1146318C4ADF0362CB1CD8CD /* PerformanceTests.swift */; };
 		0F94F0D5E0D4DCFD7DCAF7C8 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D084BB873222B06781302E /* LocationService.swift */; };
 		14A3CE8E0B4339EC31297DDD /* SleepScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE97F4CC41BAF4D1450AB26F /* SleepScheduleView.swift */; };
 		1598FC46C06C7E7C72B39118 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 464EC65D7072A250F85349B0 /* PreferencesView.swift */; };
@@ -54,6 +55,7 @@
 /* Begin PBXFileReference section */
 		0906923197AB189DCD84B0A0 /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
 		0BD66A22F293D40A5CBB5111 /* PanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelTests.swift; sourceTree = "<group>"; };
+		1146318C4ADF0362CB1CD8CD /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
 		133B8690463D9CBFBF76DCA9 /* ColorApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorApps.swift; sourceTree = "<group>"; };
 		2109C27E486EF90CCCA3B4E9 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		23CBE3BA5EB37DB0633A5B6E /* Schedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 				511602227DCF6AF7601F6901 /* IconTests.swift */,
 				C3E2644AADB6AAC3C73D8AB1 /* LocationServiceTests.swift */,
 				0BD66A22F293D40A5CBB5111 /* PanelTests.swift */,
+				1146318C4ADF0362CB1CD8CD /* PerformanceTests.swift */,
 				3E7063E306BF5B9BA797648B /* ScheduleTests.swift */,
 				6A3041D62A00584181B6223E /* SolarTests.swift */,
 			);
@@ -292,6 +295,7 @@
 				6B3171E1EFABE94AA3854415 /* IconTests.swift in Sources */,
 				DC73C7A1AFA73AC24D415E20 /* LocationServiceTests.swift in Sources */,
 				FB8BF04338BCC9D9D9601BD9 /* PanelTests.swift in Sources */,
+				0B454DB03E5AE3D0E84B7883 /* PerformanceTests.swift in Sources */,
 				8962BC36FC53074A4050F3C6 /* ScheduleTests.swift in Sources */,
 				AF96B136CDA4A331F06690CC /* SolarTests.swift in Sources */,
 			);

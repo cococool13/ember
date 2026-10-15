@@ -146,7 +146,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
                 return
             }
             if Date().timeIntervalSince(lastFetch) < 12 * 3600 {
-                access = .allowed
+                if access != .allowed { access = .allowed }
                 return
             }
             fetch()
