@@ -31,6 +31,7 @@
 		A01C5A37131AE9BB90CFF385 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2109C27E486EF90CCCA3B4E9 /* SetupView.swift */; };
 		AF96B136CDA4A331F06690CC /* SolarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3041D62A00584181B6223E /* SolarTests.swift */; };
 		C2181A13B04AA0EA828F0A1D /* ColorApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133B8690463D9CBFBF76DCA9 /* ColorApps.swift */; };
+		CF244C88743D1CC26FDA58F2 /* MainWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5706D96D080300FC878B3AA5 /* MainWindow.swift */; };
 		DC73C7A1AFA73AC24D415E20 /* LocationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E2644AADB6AAC3C73D8AB1 /* LocationServiceTests.swift */; };
 		E238619C6876BC28D352146F /* StatusItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEEEBA365F0E9DEA369F9B3B /* StatusItem.swift */; };
 		E45FB08E441A143BC02547B3 /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C477123C637BF589E1C3D0EF /* Installation.swift */; };
@@ -65,6 +66,7 @@
 		47D46140053FF98D187778E0 /* MenuBarMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarMark.swift; sourceTree = "<group>"; };
 		511602227DCF6AF7601F6901 /* IconTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconTests.swift; sourceTree = "<group>"; };
 		560FB4DBE6731C4343D82111 /* ColorAppsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorAppsTests.swift; sourceTree = "<group>"; };
+		5706D96D080300FC878B3AA5 /* MainWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindow.swift; sourceTree = "<group>"; };
 		58D084BB873222B06781302E /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		6752DDC80D86400E563D51FB /* BarlowCondensed-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-Regular.ttf"; sourceTree = "<group>"; };
 		6A2B92CBF94C08F3AE0A4B34 /* NightShift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightShift.swift; sourceTree = "<group>"; };
@@ -135,6 +137,7 @@
 				ED26FA11AE7FFC52DC8BE916 /* Intents.swift */,
 				58D084BB873222B06781302E /* LocationService.swift */,
 				71437483C0CF628522BDF4C4 /* LoginItem.swift */,
+				5706D96D080300FC878B3AA5 /* MainWindow.swift */,
 				47D46140053FF98D187778E0 /* MenuBarMark.swift */,
 				8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */,
 				6A2B92CBF94C08F3AE0A4B34 /* NightShift.swift */,
@@ -264,6 +267,7 @@
 				1CA4FDD944AEC33D47F1E5AF /* Intents.swift in Sources */,
 				0F94F0D5E0D4DCFD7DCAF7C8 /* LocationService.swift in Sources */,
 				FFA26F6B3E996F759E4E4242 /* LoginItem.swift in Sources */,
+				CF244C88743D1CC26FDA58F2 /* MainWindow.swift in Sources */,
 				2DC51342D44D81EB216A1AAC /* MenuBarMark.swift in Sources */,
 				2BE6DAC1D01379647D97286B /* MenuBarView.swift in Sources */,
 				2182B97040CD500FBE0978E3 /* NightShift.swift in Sources */,

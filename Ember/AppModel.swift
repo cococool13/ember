@@ -44,6 +44,8 @@ final class AppModel: ObservableObject {
 
     @Published private(set) var needsOnboarding: Bool
     var showSetup: (() -> Void)?
+    var showMainWindow: (() -> Void)?
+    var showPreferences: (() -> Void)?
 
     private let defaults: UserDefaults
 

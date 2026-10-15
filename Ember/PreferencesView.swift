@@ -5,24 +5,19 @@ struct PreferencesView: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(spacing: 0) {
-                locationRow
-                Divider().overlay(Theme.steel)
-                ToggleRow(title: "True color apps", caption: "Original color in Photos, Figma, Photoshop and more.", isOn: $model.colorAppBypass)
-                Divider().overlay(Theme.steel)
-                loginRow
-            }
-            .padding(.horizontal, 16).emberCard(padding: 0)
-            Text("While on, Ember turns off Night Shift and quits f.lux so one app controls your light.")
-                .font(Theme.body(12)).foregroundStyle(Theme.smoke)
-                .fixedSize(horizontal: false, vertical: true)
+        Group {
+            locationRow
+            Toggle("True color apps", isOn: $model.colorAppBypass)
+                .help("Original color in Photos, Figma, Photoshop and other color apps.")
+            loginRow
             if let error = model.loginError {
-                Text(error).font(Theme.body(12)).foregroundStyle(Theme.ash)
+                Text(error).font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            Text("While on, Ember turns off Night Shift and quits f.lux so one app controls your light.")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Button("Set up again…") { model.showSetup?() }
-                .buttonStyle(MiniPillStyle())
         }
     }
 
@@ -53,7 +48,7 @@ struct PreferencesView: View {
 
     private var loginRow: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ToggleRow(title: "Open at login", caption: "Ready when your Mac starts.", isOn: Binding(get: { model.openAtLogin }, set: { model.setOpenAtLogin($0) }))
+            Toggle("Open at login", isOn: Binding(get: { model.openAtLogin }, set: { model.setOpenAtLogin($0) }))
             if model.loginNeedsApproval || model.loginError != nil {
                 Button(!Installation.isInApplications() ? "Show in Finder" : (model.loginNeedsApproval ? "Allow in Login Items…" : "Check Login Items…")) {
                     if Installation.isInApplications() { LoginItem.openSettings() } else { Installation.showInFinder() }

@@ -3,54 +3,40 @@ import SwiftUI
 
 struct MenuBarView: View {
     @EnvironmentObject private var model: AppModel
-    @State var showingSettings = false
+    var inMainWindow = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             header
-            if showingSettings {
-                ScrollView {
-                    PreferencesView().padding(.bottom, 4)
-                }
-                .scrollIndicators(.never)
-            } else {
-                currentLight
+            currentLight
+            if inMainWindow {
                 SleepScheduleView()
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Night light").emberLabel(16).foregroundStyle(Theme.white)
+                    SegmentedPills(options: NightStrength.allCases, label: \.label, selection: $model.strength)
+                }
+                .emberCard()
             }
             Spacer(minLength: 0)
             footer
         }
-        .padding(20)
-        .frame(width: Theme.panelWidth, height: Theme.panelHeight)
-        .background(Theme.void)
+        .padding(16)
+        .frame(width: Theme.panelWidth, height: inMainWindow ? 484 : Theme.panelHeight)
+        .background { if !inMainWindow { PanelMaterial() } }
         .clipShape(RoundedRectangle(cornerRadius: Theme.panelRadius, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: Theme.panelRadius, style: .continuous)
-            .stroke(Theme.steel, lineWidth: Theme.hairline))
+            .stroke(inMainWindow ? .clear : Theme.steel, lineWidth: Theme.hairline))
         .preferredColorScheme(.dark)
     }
 
     private var header: some View {
         HStack(spacing: 10) {
-            if showingSettings {
-                Button { showingSettings = false } label: { Image(systemName: "chevron.left") }
-                    .buttonStyle(IconButtonStyle())
-                    .help("Back to your light")
-                    .accessibilityLabel("Back to your light")
-            } else {
-                EmberMark(lit: model.isActive).frame(width: 22, height: 22)
-                    .accessibilityHidden(true)
-            }
-            Text(showingSettings ? "Settings" : "Ember").emberLabel(22)
+            EmberMark(lit: model.isActive).frame(width: 22, height: 22)
+                .accessibilityHidden(true)
+            Text("Ember").emberLabel(22)
             Spacer()
-            if !showingSettings {
-                Button { model.endScrub(); showingSettings = true } label: {
-                    Image(systemName: "gearshape")
-                }
-                .buttonStyle(IconButtonStyle())
-                .help("Ember settings")
-                .accessibilityLabel("Ember settings")
-                EmberSwitch(isOn: $model.enabled, label: "Ember")
-            }
+            EmberSwitch(isOn: $model.enabled, label: "Ember")
         }
         .foregroundStyle(Theme.white)
         .frame(height: 30)
@@ -86,7 +72,8 @@ struct MenuBarView: View {
                     Button(model.isTimedPause ? "Resume" : "Pause 1h") {
                         if model.isTimedPause { model.resume() } else { model.pause(hours: 1) }
                     }
-                    .buttonStyle(MiniPillStyle())
+                    .buttonStyle(MiniPillStyle(emphasized: true))
+                    .keyboardShortcut("p", modifiers: .command)
                     .help(model.isTimedPause ? "Return to your schedule" : "Original display color for one hour")
                 }
             }
@@ -95,18 +82,23 @@ struct MenuBarView: View {
     }
 
     private var footer: some View {
-        HStack {
+        HStack(spacing: 16) {
             if model.needsOnboarding {
-                Button("Finish setup") { model.showSetup?() }.buttonStyle(MiniPillStyle())
-            } else {
-                Text(showingSettings ? "Ember \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")" : "Drag the day track to preview")
-                    .font(Theme.body(11)).foregroundStyle(Theme.smoke)
+                Button("Finish setup") { model.showSetup?() }
+            } else if !inMainWindow {
+                Button("Open Ember") { model.showMainWindow?() }
+                    .keyboardShortcut("o", modifiers: .command)
             }
-            Spacer()
+            Spacer(minLength: 0)
+            Button("Settings…") { model.showPreferences?() }
+                .keyboardShortcut(",", modifiers: .command)
             Button("Quit") { model.quit() }
-                .buttonStyle(.plain).font(Theme.body(12)).foregroundStyle(Theme.ash)
+                .keyboardShortcut("q", modifiers: .command)
         }
-        .frame(height: 26)
+        .buttonStyle(.plain)
+        .font(Theme.body(12))
+        .foregroundStyle(Theme.ash)
+        .frame(height: 24)
     }
 
     private var shown: LightState { model.preview ?? model.state }
