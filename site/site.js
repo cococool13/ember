@@ -1,6 +1,55 @@
 (function () {
   "use strict";
 
+  // Hero video: still for Reduce Motion / failed play; pause off-screen or when the tab is hidden.
+  var hero = document.querySelector(".hero");
+  var heroVideo = hero && hero.querySelector(".hero-video");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function useHeroStill() {
+    if (!hero) return;
+    hero.classList.add("use-still");
+    if (heroVideo) {
+      try { heroVideo.pause(); } catch (e) {}
+    }
+  }
+  function syncHeroVideo() {
+    if (!hero || !heroVideo || hero.classList.contains("use-still")) return;
+    var on = hero.classList.contains("is-in-view") && !document.hidden;
+    if (on) {
+      var play = heroVideo.play();
+      if (play && typeof play.then === "function") {
+        play.catch(function () { useHeroStill(); });
+      }
+    } else {
+      try { heroVideo.pause(); } catch (e) {}
+    }
+  }
+  if (hero) {
+    if (reduceMotion || !heroVideo) {
+      useHeroStill();
+    } else {
+      heroVideo.addEventListener("error", useHeroStill);
+      heroVideo.addEventListener("stalled", function () {
+        if (heroVideo.readyState < 2) useHeroStill();
+      });
+    }
+    if ("IntersectionObserver" in window) {
+      var heroVisible = false;
+      function updateScene() {
+        hero.classList.toggle("is-in-view", heroVisible && !document.hidden);
+        syncHeroVideo();
+      }
+      new IntersectionObserver(function (entries) {
+        heroVisible = entries[0].isIntersecting;
+        updateScene();
+      }).observe(hero);
+      document.addEventListener("visibilitychange", updateScene);
+    } else {
+      hero.classList.add("is-in-view");
+      syncHeroVideo();
+    }
+  }
+
   var stage = document.getElementById("stage");
   var panel = document.getElementById("preview-panel");
   var panelToggle = document.getElementById("panel-toggle");
