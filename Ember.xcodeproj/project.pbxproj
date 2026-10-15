@@ -21,6 +21,7 @@
 		3D3B37AAC6D1B8DC2540A645 /* RobotoMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D162D9528F3F2B7C28851343 /* RobotoMono-Regular.ttf */; };
 		570FA4B23EC19843FF5EDDEB /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0906923197AB189DCD84B0A0 /* AppModelTests.swift */; };
 		67859A316F0412DBA2D2E6E3 /* Solar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2695ACEB14831776BE171871 /* Solar.swift */; };
+		6B3171E1EFABE94AA3854415 /* IconTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 511602227DCF6AF7601F6901 /* IconTests.swift */; };
 		78B9CA4A2393CF8AB9B1E469 /* EmberApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC635EBE2AC3C4079688D51C /* EmberApp.swift */; };
 		7D78F2E708DC62068AC25272 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CCAECECB01C03E7C4363DCA5 /* Assets.xcassets */; };
 		806B09AB638EC9B51F2A4B1D /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CBE3BA5EB37DB0633A5B6E /* Schedule.swift */; };
@@ -62,6 +63,7 @@
 		3FD152F594A5DA75DF7C1E1D /* EmberTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EmberTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		464EC65D7072A250F85349B0 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		47D46140053FF98D187778E0 /* MenuBarMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarMark.swift; sourceTree = "<group>"; };
+		511602227DCF6AF7601F6901 /* IconTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconTests.swift; sourceTree = "<group>"; };
 		560FB4DBE6731C4343D82111 /* ColorAppsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorAppsTests.swift; sourceTree = "<group>"; };
 		58D084BB873222B06781302E /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		6752DDC80D86400E563D51FB /* BarlowCondensed-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-Regular.ttf"; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 				0906923197AB189DCD84B0A0 /* AppModelTests.swift */,
 				560FB4DBE6731C4343D82111 /* ColorAppsTests.swift */,
 				B19CF753842AF5A8A1B3E91C /* DisplayEngineTests.swift */,
+				511602227DCF6AF7601F6901 /* IconTests.swift */,
 				C3E2644AADB6AAC3C73D8AB1 /* LocationServiceTests.swift */,
 				0BD66A22F293D40A5CBB5111 /* PanelTests.swift */,
 				3E7063E306BF5B9BA797648B /* ScheduleTests.swift */,
@@ -282,6 +285,7 @@
 				570FA4B23EC19843FF5EDDEB /* AppModelTests.swift in Sources */,
 				F65FBFB2878DE126886F5C8F /* ColorAppsTests.swift in Sources */,
 				1B9CECEFD2B0E1E2CF18E217 /* DisplayEngineTests.swift in Sources */,
+				6B3171E1EFABE94AA3854415 /* IconTests.swift in Sources */,
 				DC73C7A1AFA73AC24D415E20 /* LocationServiceTests.swift in Sources */,
 				FB8BF04338BCC9D9D9601BD9 /* PanelTests.swift in Sources */,
 				8962BC36FC53074A4050F3C6 /* ScheduleTests.swift in Sources */,
