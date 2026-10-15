@@ -13,7 +13,7 @@ final class EmberWindows: NSObject, NSWindowDelegate {
     func showMain() {
         if main == nil {
             main = window(title: "Ember", size: NSSize(width: 660, height: 556),
-                          view: MainWindowView().environmentObject(model))
+                          toolbar: true, view: MainWindowView().environmentObject(model))
             main?.minSize = NSSize(width: 660, height: 556)
         }
         show(main)
@@ -29,7 +29,7 @@ final class EmberWindows: NSObject, NSWindowDelegate {
         show(preferences)
     }
 
-    private func window<V: View>(title: String, size: NSSize, view: V) -> NSWindow {
+    private func window<V: View>(title: String, size: NSSize, toolbar: Bool = false, view: V) -> NSWindow {
         let window = NSWindow(contentRect: NSRect(origin: .zero, size: size),
                               styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                               backing: .buffered, defer: false)
@@ -38,8 +38,10 @@ final class EmberWindows: NSObject, NSWindowDelegate {
         window.title = title
         window.isReleasedWhenClosed = false
         window.titlebarAppearsTransparent = true
-        window.toolbar = NSToolbar(identifier: title)
-        window.toolbarStyle = .unified
+        if toolbar {
+            window.toolbar = NSToolbar(identifier: title)
+            window.toolbarStyle = .unified
+        }
         window.contentView = NSHostingView(rootView: view)
         window.center()
         return window

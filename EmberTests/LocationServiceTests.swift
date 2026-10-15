@@ -1,5 +1,6 @@
 import AppKit
 import CoreLocation
+import Combine
 import XCTest
 import Security
 @testable import Ember
@@ -79,6 +80,32 @@ final class LocationServiceTests: XCTestCase {
         XCTAssertEqual(manager.locationRequests, 1, "Denial must not start another request")
     }
 
+
+    func testCachedLocationDoesNotInvalidateScreensOnReopen() {
+        let suite = "EmberCachedLocationTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(40.0, forKey: "locationLatitude")
+        defaults.set(-70.0, forKey: "locationLongitude")
+        defaults.set(Date(), forKey: "locationFetchedAt")
+        let manager = SilentLocationManager()
+        manager.status = .authorizedAlways
+        let service = LocationService(defaults: defaults, manager: manager)
+        var invalidations = 0
+        let observation = service.objectWillChange.sink { invalidations += 1 }
+        let start = ProcessInfo.processInfo.systemUptime
+        for _ in 0..<1_000 { service.resumeIfAuthorized() }
+        let elapsed = (ProcessInfo.processInfo.systemUptime - start) * 1_000
+        withExtendedLifetime(observation) {}
+        print("EMBER_LOCATION_REOPEN 1000_calls_ms=\(elapsed) invalidations=\(invalidations)")
+        XCTAssertEqual(service.access, .allowed)
+        XCTAssertEqual(manager.locationRequests, 0)
+        XCTAssertEqual(invalidations, 0, "A fresh saved location must not invalidate all screens on every open")
+        manager.status = .denied
+        service.resumeIfAuthorized()
+        XCTAssertEqual(service.access, .denied)
+        XCTAssertGreaterThan(invalidations, 0, "Real permission changes must still reach the screens")
+    }
 
     func testSignedAppIncludesLocationResourceAccess() throws {
         var code: SecStaticCode?
