@@ -36,14 +36,14 @@ enum EmberGeometry {
 enum MenuBarMark {
     /// Template image. A ring by day; the crescent fills in at dusk and
     /// thickens at night.
-    static func image(phase: Phase? = .day) -> NSImage {
-        let size = NSSize(width: 18, height: 18)
+    static func image(phase: Phase? = .day, pointSize: CGFloat = 18) -> NSImage {
+        let size = NSSize(width: pointSize, height: pointSize)
         let image = NSImage(size: size, flipped: false) { rect in
-            let r = min(rect.width, rect.height) / 2 - 2
+            let r = min(rect.width, rect.height) / 2 - 2.5
             let center = CGPoint(x: rect.midX, y: rect.midY)
             NSColor.black.set()
             let ring = NSBezierPath(ovalIn: NSRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2))
-            ring.lineWidth = 1.2
+            ring.lineWidth = 1
             ring.stroke()
             let terminator: Double?
             switch phase {
