@@ -11,12 +11,17 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     DEVELOPMENT_TEAM: CU8NTJWQ43
     ENABLE_TESTABILITY: YES
+packages:
+  LicenseKit:
+    path: ../licensing/LicenseKit
 targets:
   Ember:
     type: application
     platform: macOS
     sources:
       - Ember
+    dependencies:
+      - package: LicenseKit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cohen.ember
@@ -24,6 +29,7 @@ targets:
         ARCHS: "arm64 x86_64"
         ENABLE_APP_SANDBOX: NO
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: Ember/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: Ember
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: Copyright 2026 Cohen Coolidge
