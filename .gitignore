@@ -7,3 +7,5 @@ dist/
 site/.wrangler
 site/downloads/
 .idea/
+.redesign/*.log
+.redesign/shots/
