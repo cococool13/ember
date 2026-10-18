@@ -13,7 +13,8 @@ settings:
     ENABLE_TESTABILITY: YES
 packages:
   LicenseKit:
-    path: ../licensing/LicenseKit
+    url: https://github.com/cococool13/licensing.git
+    from: 1.0.0
 targets:
   Ember:
     type: application

@@ -78,7 +78,6 @@
 		71437483C0CF628522BDF4C4 /* LoginItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItem.swift; sourceTree = "<group>"; };
 		73037730603AA7EDFCC5A41F /* SunTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunTimeline.swift; sourceTree = "<group>"; };
 		738C57AD4865B9D8A9B2012D /* Ember.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Ember.entitlements; sourceTree = "<group>"; };
-		837906287BE3F1F1ADBE347E /* LicenseKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LicenseKit; path = ../licensing/LicenseKit; sourceTree = SOURCE_ROOT; };
 		8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		9B5E3461D20AC34B06E3EDF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9E9067BF3BE6B3B48DB3B5FE /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
@@ -175,20 +174,11 @@
 			path = Ember;
 			sourceTree = "<group>";
 		};
-		9926DCE6E3BB67A1DB2598C9 /* Packages */ = {
-			isa = PBXGroup;
-			children = (
-				837906287BE3F1F1ADBE347E /* LicenseKit */,
-			);
-			name = Packages;
-			sourceTree = "<group>";
-		};
 		BBC0B4313EBF53B16DC19257 = {
 			isa = PBXGroup;
 			children = (
 				56E6B0F7A59E63C82AB86141 /* Ember */,
 				3999E6B19D269E59FFEB712F /* EmberTests */,
-				9926DCE6E3BB67A1DB2598C9 /* Packages */,
 				233CA52765D6C49205F221FF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -262,7 +252,7 @@
 			mainGroup = BBC0B4313EBF53B16DC19257;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				B04BC263A691C4F1EFACEDAE /* XCLocalSwiftPackageReference "../licensing/LicenseKit" */,
+				11CC838DC06FE61639C82947 /* XCRemoteSwiftPackageReference "licensing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 233CA52765D6C49205F221FF /* Products */;
@@ -597,16 +587,21 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		B04BC263A691C4F1EFACEDAE /* XCLocalSwiftPackageReference "../licensing/LicenseKit" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../licensing/LicenseKit;
+/* Begin XCRemoteSwiftPackageReference section */
+		11CC838DC06FE61639C82947 /* XCRemoteSwiftPackageReference "licensing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cococool13/licensing.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
 		};
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		87F65F9CF7A74115C8B5E45A /* LicenseKit */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 11CC838DC06FE61639C82947 /* XCRemoteSwiftPackageReference "licensing" */;
 			productName = LicenseKit;
 		};
 /* End XCSwiftPackageProductDependency section */
