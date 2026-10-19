@@ -28,6 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor private var windows: EmberWindows?
     @MainActor private var status: StatusItem?
     @MainActor private var setup: SetupController?
+    @MainActor private var license: LicenseController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         if !AppModel.isRunningTests {
@@ -59,7 +60,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             status?.closeImmediately()
             windows?.showPreferences()
         }
-        let setup = SetupController(model: model) { status.open() }
+        if !AppModel.isRunningTests {
+            let license = LicenseController(model: model)
+            self.license = license
+            license.start()
+        }
+        let setup = SetupController(model: model) {
+            if model.licenseLocked { model.showLicense?() } else { status.open() }
+        }
         self.setup = setup
         model.showSetup = { [weak setup] in setup?.show() }
         model.startSetupIfNeeded()
@@ -103,8 +111,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if model?.needsOnboarding == true { setup?.show() } else { windows?.showMain() }
+        if model?.needsOnboarding == true {
+            setup?.show()
+        } else if model?.licenseLocked == true {
+            license?.show()
+        } else {
+            windows?.showMain()
+        }
         return false
+    }
+
+    /// `ember://activate?key=…` from the purchase email or the thanks page.
+    @MainActor func application(_ application: NSApplication, open urls: [URL]) {
+        urls.forEach { license?.handle($0) }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }

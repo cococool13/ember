@@ -2,7 +2,7 @@
 
 ## Cinematic redesign · 2026-10-15
 
-The approved `.redesign/BRIEF.md` supersedes the website layout below with “The last light”: dusk → night → dawn, `#09090B`, large Newsreader headlines, restrained Inter body text, asymmetric borderless sections, and the supplied cinematic landscapes. Gradient masks fade the imagery into the page without tint overlays. The hero drifts slowly while visible; the night landscape follows scroll where supported. Reduced motion stops both. The existing interactive Mac preview, product copy, $2.99 checkout, Whop attribution, downloads, FAQ, science caveats, metadata, JSON-LD, privacy and 404 pages remain intact. The native app is unchanged.
+The approved `.redesign/BRIEF.md` supersedes the website layout below with “The last light”: dusk → night → dawn, `#09090B`, large Newsreader headlines, restrained Inter body text, asymmetric borderless sections, and the supplied cinematic landscapes. Gradient masks fade the imagery into the page without tint overlays. The hero drifts slowly while visible; the night landscape follows scroll where supported. Reduced motion stops both. The existing interactive Mac preview, product copy, $9 checkout, downloads, FAQ, science caveats, metadata, JSON-LD, privacy and 404 pages remain intact. The native app is unchanged.
 
 Verified locally in Ego Lite: preview phases, strengths, schedule, keyboard track, pause/resume, on/off, true color apps, menus, FAQs, anchors, download instructions, privacy/404, and no-JavaScript content. No overflow or broken loaded images at 320, 390, 768, 1280, 1440 and 1920px. Motion runs in view, pauses offscreen, and has zero running animations under reduced motion. `node --check site/site.js`, content/link preservation checks and `git diff --check` pass. Desktop and 390px visual checks cover dusk, preview, night, features, app panel, science and dawn. Safari and physical touch devices were not tested. No deploy or push.
 
@@ -19,7 +19,7 @@ The live reference was inspected in the collaborative browser. Its strongest tra
 - Demonstrate Morning, Day, Evening, Night, night strength, and On/Off through usable controls. Tint only the demo desktop; maintain readable controls outside the tinted area. Clearly label the demonstration as illustrative.
 - Use an original bright coastal wallpaper so warmer and dimmer states are visible. Do not reuse Dockset's artwork, source code, branding, or testimonials.
 - Keep real app imagery and explicitly identify the screenshot as the next-release preview. The available download remains notarized 0.2.0 for Apple silicon and macOS 14+ until the new release passes notarization.
-- Retain $2.99 one-time Whop pricing, direct download, installation guidance, and the website's attribution disclosure. Do not claim measured blue-light reduction, sleep improvements, or eye-disease protection.
+- Retain $9 one-time Stripe pricing (license key by email), direct download, and installation guidance. Do not claim measured blue-light reduction, sleep improvements, or eye-disease protection.
 - Use native disclosure controls for Resources and FAQs. Support keyboard input, visible focus, narrow screens, and reduced motion. Avoid autoplay or repeating decorative animation.
 
 ## Verification

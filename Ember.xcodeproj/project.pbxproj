@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0A88189C97FFF6ABA8117EA4 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A434538941A02FA9EE8B4 /* Theme.swift */; };
 		0B454DB03E5AE3D0E84B7883 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1146318C4ADF0362CB1CD8CD /* PerformanceTests.swift */; };
+		0BD77B5E441B2A5EF34A037A /* LicenseKit in Frameworks */ = {isa = PBXBuildFile; productRef = 87F65F9CF7A74115C8B5E45A /* LicenseKit */; };
 		0F94F0D5E0D4DCFD7DCAF7C8 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D084BB873222B06781302E /* LocationService.swift */; };
 		14A3CE8E0B4339EC31297DDD /* SleepScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE97F4CC41BAF4D1450AB26F /* SleepScheduleView.swift */; };
 		1598FC46C06C7E7C72B39118 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 464EC65D7072A250F85349B0 /* PreferencesView.swift */; };
@@ -17,6 +18,7 @@
 		1CA4FDD944AEC33D47F1E5AF /* Intents.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED26FA11AE7FFC52DC8BE916 /* Intents.swift */; };
 		2182B97040CD500FBE0978E3 /* NightShift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2B92CBF94C08F3AE0A4B34 /* NightShift.swift */; };
 		25E9300B753D721374F8656D /* DisplayEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE644841B4F82012455FD0C /* DisplayEngine.swift */; };
+		2904A0B0AAEFB8726715908C /* LicenseWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB35145602039572AE901292 /* LicenseWindow.swift */; };
 		2BE6DAC1D01379647D97286B /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */; };
 		2DC51342D44D81EB216A1AAC /* MenuBarMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D46140053FF98D187778E0 /* MenuBarMark.swift */; };
 		3D3B37AAC6D1B8DC2540A645 /* RobotoMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D162D9528F3F2B7C28851343 /* RobotoMono-Regular.ttf */; };
@@ -77,6 +79,7 @@
 		73037730603AA7EDFCC5A41F /* SunTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunTimeline.swift; sourceTree = "<group>"; };
 		738C57AD4865B9D8A9B2012D /* Ember.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Ember.entitlements; sourceTree = "<group>"; };
 		8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		9B5E3461D20AC34B06E3EDF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9E9067BF3BE6B3B48DB3B5FE /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		ABE644841B4F82012455FD0C /* DisplayEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayEngine.swift; sourceTree = "<group>"; };
 		AEEEBA365F0E9DEA369F9B3B /* StatusItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItem.swift; sourceTree = "<group>"; };
@@ -89,7 +92,19 @@
 		D1E129474145FB033E3BBB86 /* Ember.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ember.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC635EBE2AC3C4079688D51C /* EmberApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberApp.swift; sourceTree = "<group>"; };
 		ED26FA11AE7FFC52DC8BE916 /* Intents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Intents.swift; sourceTree = "<group>"; };
+		FB35145602039572AE901292 /* LicenseWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BB326CA5A71916D2515EA573 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0BD77B5E441B2A5EF34A037A /* LicenseKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		233CA52765D6C49205F221FF /* Products */ = {
@@ -136,8 +151,10 @@
 				738C57AD4865B9D8A9B2012D /* Ember.entitlements */,
 				DC635EBE2AC3C4079688D51C /* EmberApp.swift */,
 				35FFAEBA297BB5AB64F260E5 /* FluxGuard.swift */,
+				9B5E3461D20AC34B06E3EDF9 /* Info.plist */,
 				C477123C637BF589E1C3D0EF /* Installation.swift */,
 				ED26FA11AE7FFC52DC8BE916 /* Intents.swift */,
+				FB35145602039572AE901292 /* LicenseWindow.swift */,
 				58D084BB873222B06781302E /* LocationService.swift */,
 				71437483C0CF628522BDF4C4 /* LoginItem.swift */,
 				5706D96D080300FC878B3AA5 /* MainWindow.swift */,
@@ -175,6 +192,7 @@
 			buildPhases = (
 				60A89B85028B91AE593FB976 /* Sources */,
 				8B6B0FFA7E15F621C34D6356 /* Resources */,
+				BB326CA5A71916D2515EA573 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -182,6 +200,7 @@
 			);
 			name = Ember;
 			packageProductDependencies = (
+				87F65F9CF7A74115C8B5E45A /* LicenseKit */,
 			);
 			productName = Ember;
 			productReference = D1E129474145FB033E3BBB86 /* Ember.app */;
@@ -232,6 +251,9 @@
 			);
 			mainGroup = BBC0B4313EBF53B16DC19257;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				11CC838DC06FE61639C82947 /* XCRemoteSwiftPackageReference "licensing" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 233CA52765D6C49205F221FF /* Products */;
 			projectDirPath = "";
@@ -268,6 +290,7 @@
 				180B7DD41274E9840D02D8A1 /* FluxGuard.swift in Sources */,
 				E45FB08E441A143BC02547B3 /* Installation.swift in Sources */,
 				1CA4FDD944AEC33D47F1E5AF /* Intents.swift in Sources */,
+				2904A0B0AAEFB8726715908C /* LicenseWindow.swift in Sources */,
 				0F94F0D5E0D4DCFD7DCAF7C8 /* LocationService.swift in Sources */,
 				FFA26F6B3E996F759E4E4242 /* LoginItem.swift in Sources */,
 				CF244C88743D1CC26FDA58F2 /* MainWindow.swift in Sources */,
@@ -341,6 +364,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Ember/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Ember;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSMinimumSystemVersion = 14.0;
@@ -447,6 +471,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Ember/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Ember;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSMinimumSystemVersion = 14.0;
@@ -562,6 +587,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		11CC838DC06FE61639C82947 /* XCRemoteSwiftPackageReference "licensing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cococool13/licensing.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		87F65F9CF7A74115C8B5E45A /* LicenseKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 11CC838DC06FE61639C82947 /* XCRemoteSwiftPackageReference "licensing" */;
+			productName = LicenseKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 60EE479878F0F38411A15B19 /* Project object */;
 }

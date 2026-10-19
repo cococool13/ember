@@ -18,7 +18,7 @@ Checked 2026-10-05. This release is prepared locally, not published.
 - A rejected duplicate startup cannot reset the active instance's display color.
 - Night-strength captions explain the presets; panel spacing remains compact.
 - Unmeasured biological percentages and sleep guarantees were removed. Presets and schedule math remain unchanged. See `circadian-evidence.md` for sources and limitations.
-- The website keeps Ciridae, improves installation and download guidance, discloses Whop website attribution, and separates display adjustments from health claims.
+- The website keeps Ciridae, improves installation and download guidance, discloses the license check, and separates display adjustments from health claims.
 - Packaging creates universal binaries, preserves the public DMG until notarization succeeds, and uses a Keychain profile rather than loading credential files.
 
 ## Verification

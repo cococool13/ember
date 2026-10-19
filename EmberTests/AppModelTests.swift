@@ -3,6 +3,22 @@ import XCTest
 
 final class AppModelTests: XCTestCase {
     @MainActor
+    func testLicenseLockKeepsTrueColorAndCancelsPreview() {
+        withModel { model in
+            model.scrub(to: 0.95)
+            XCTAssertNotNil(model.preview)
+            model.licenseLocked = true
+            XCTAssertNil(model.preview)
+            XCTAssertFalse(model.isActive)
+            model.scrub(to: 0.95)
+            XCTAssertNil(model.preview)
+
+            model.licenseLocked = false
+            XCTAssertTrue(model.isActive)
+        }
+    }
+
+    @MainActor
     func testOffAndPausedNeverPreviewScreenTint() {
         withModel { model in
             model.enabled = false
