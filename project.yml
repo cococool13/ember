@@ -11,6 +11,9 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     DEVELOPMENT_TEAM: CU8NTJWQ43
     ENABLE_TESTABILITY: YES
+  configs:
+    Debug:
+      COMPILATION_CACHE_ENABLE_CACHING: YES
 packages:
   LicenseKit:
     url: https://github.com/cococool13/licensing.git
