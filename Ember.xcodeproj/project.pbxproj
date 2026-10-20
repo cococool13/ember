@@ -22,6 +22,7 @@
 		2BE6DAC1D01379647D97286B /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */; };
 		2DC51342D44D81EB216A1AAC /* MenuBarMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D46140053FF98D187778E0 /* MenuBarMark.swift */; };
 		3D3B37AAC6D1B8DC2540A645 /* RobotoMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D162D9528F3F2B7C28851343 /* RobotoMono-Regular.ttf */; };
+		3F6CB064F2B0AA442F8E769B /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 31EEA72BCF5F671A6158A047 /* PostHog */; };
 		570FA4B23EC19843FF5EDDEB /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0906923197AB189DCD84B0A0 /* AppModelTests.swift */; };
 		67859A316F0412DBA2D2E6E3 /* Solar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2695ACEB14831776BE171871 /* Solar.swift */; };
 		6B3171E1EFABE94AA3854415 /* IconTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 511602227DCF6AF7601F6901 /* IconTests.swift */; };
@@ -31,6 +32,7 @@
 		833F7FAA51C233305C8973F7 /* BarlowCondensed-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6752DDC80D86400E563D51FB /* BarlowCondensed-Regular.ttf */; };
 		8962BC36FC53074A4050F3C6 /* ScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E7063E306BF5B9BA797648B /* ScheduleTests.swift */; };
 		8A45FDD6936156EBFB8CFA20 /* SunTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73037730603AA7EDFCC5A41F /* SunTimeline.swift */; };
+		95D0E36457A1DFB5601395D5 /* ErrorTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AB19E8158B2B71BC119F7DA /* ErrorTracking.swift */; };
 		A01C5A37131AE9BB90CFF385 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2109C27E486EF90CCCA3B4E9 /* SetupView.swift */; };
 		AF96B136CDA4A331F06690CC /* SolarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3041D62A00584181B6223E /* SolarTests.swift */; };
 		C2181A13B04AA0EA828F0A1D /* ColorApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133B8690463D9CBFBF76DCA9 /* ColorApps.swift */; };
@@ -59,6 +61,7 @@
 		0BD66A22F293D40A5CBB5111 /* PanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelTests.swift; sourceTree = "<group>"; };
 		1146318C4ADF0362CB1CD8CD /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
 		133B8690463D9CBFBF76DCA9 /* ColorApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorApps.swift; sourceTree = "<group>"; };
+		1AB19E8158B2B71BC119F7DA /* ErrorTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorTracking.swift; sourceTree = "<group>"; };
 		2109C27E486EF90CCCA3B4E9 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		23CBE3BA5EB37DB0633A5B6E /* Schedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
 		2695ACEB14831776BE171871 /* Solar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Solar.swift; sourceTree = "<group>"; };
@@ -101,6 +104,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0BD77B5E441B2A5EF34A037A /* LicenseKit in Frameworks */,
+				3F6CB064F2B0AA442F8E769B /* PostHog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -150,6 +154,7 @@
 				ABE644841B4F82012455FD0C /* DisplayEngine.swift */,
 				738C57AD4865B9D8A9B2012D /* Ember.entitlements */,
 				DC635EBE2AC3C4079688D51C /* EmberApp.swift */,
+				1AB19E8158B2B71BC119F7DA /* ErrorTracking.swift */,
 				35FFAEBA297BB5AB64F260E5 /* FluxGuard.swift */,
 				9B5E3461D20AC34B06E3EDF9 /* Info.plist */,
 				C477123C637BF589E1C3D0EF /* Installation.swift */,
@@ -201,6 +206,7 @@
 			name = Ember;
 			packageProductDependencies = (
 				87F65F9CF7A74115C8B5E45A /* LicenseKit */,
+				31EEA72BCF5F671A6158A047 /* PostHog */,
 			);
 			productName = Ember;
 			productReference = D1E129474145FB033E3BBB86 /* Ember.app */;
@@ -253,6 +259,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				11CC838DC06FE61639C82947 /* XCRemoteSwiftPackageReference "licensing" */,
+				4002446F1D240F2A2C4425D7 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 233CA52765D6C49205F221FF /* Products */;
@@ -287,6 +294,7 @@
 				C2181A13B04AA0EA828F0A1D /* ColorApps.swift in Sources */,
 				25E9300B753D721374F8656D /* DisplayEngine.swift in Sources */,
 				78B9CA4A2393CF8AB9B1E469 /* EmberApp.swift in Sources */,
+				95D0E36457A1DFB5601395D5 /* ErrorTracking.swift in Sources */,
 				180B7DD41274E9840D02D8A1 /* FluxGuard.swift in Sources */,
 				E45FB08E441A143BC02547B3 /* Installation.swift in Sources */,
 				1CA4FDD944AEC33D47F1E5AF /* Intents.swift in Sources */,
@@ -378,6 +386,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.5.0;
+				POSTHOG_HOST = "https://us.i.posthog.com";
+				POSTHOG_PROJECT_TOKEN = REPLACE_ME;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;
@@ -468,6 +478,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 6;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -485,6 +496,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.5.0;
+				POSTHOG_HOST = "https://us.i.posthog.com";
+				POSTHOG_PROJECT_TOKEN = REPLACE_ME;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;
@@ -597,9 +610,22 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		4002446F1D240F2A2C4425D7 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.92.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		31EEA72BCF5F671A6158A047 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4002446F1D240F2A2C4425D7 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
+		};
 		87F65F9CF7A74115C8B5E45A /* LicenseKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 11CC838DC06FE61639C82947 /* XCRemoteSwiftPackageReference "licensing" */;

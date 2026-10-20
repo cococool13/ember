@@ -40,6 +40,9 @@ xcodebuild -project Ember.xcodeproj -scheme Ember -configuration Release \
 
 app="$PWD/build/release/Build/Products/Release/Ember.app"
 [[ -d "$app" ]] || { echo "Release app missing at $app" >&2; exit 1; }
+
+# Crash symbols for PostHog error tracking (skipped with a warning when no PostHog CLI key is set).
+scripts/upload-dsyms.sh "$PWD/build/release" Ember
 architectures="$(lipo -archs "$app/Contents/MacOS/Ember")"
 [[ " $architectures " == *" arm64 "* && " $architectures " == *" x86_64 "* ]] || {
   echo "Expected a universal app; found architectures: $architectures" >&2

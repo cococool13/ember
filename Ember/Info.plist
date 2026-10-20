@@ -13,5 +13,9 @@
 			</array>
 		</dict>
 	</array>
+	<key>PostHogHost</key>
+	<string>$(POSTHOG_HOST)</string>
+	<key>PostHogProjectToken</key>
+	<string>$(POSTHOG_PROJECT_TOKEN)</string>
 </dict>
 </plist>
