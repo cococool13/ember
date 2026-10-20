@@ -607,7 +607,7 @@
 			repositoryURL = "https://github.com/cococool13/licensing.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				minimumVersion = 1.1.0;
 			};
 		};
 		4002446F1D240F2A2C4425D7 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
