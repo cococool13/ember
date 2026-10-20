@@ -14,12 +14,18 @@ settings:
   configs:
     Debug:
       COMPILATION_CACHE_ENABLE_CACHING: YES
+packages:
+  LicenseKit:
+    url: https://github.com/cococool13/licensing.git
+    from: 1.0.0
 targets:
   Ember:
     type: application
     platform: macOS
     sources:
       - Ember
+    dependencies:
+      - package: LicenseKit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cohen.ember
@@ -27,6 +33,7 @@ targets:
         ARCHS: "arm64 x86_64"
         ENABLE_APP_SANDBOX: NO
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: Ember/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: Ember
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: Copyright 2026 Cohen Coolidge

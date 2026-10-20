@@ -1,0 +1,27 @@
+# Runs automatically on commit. Install once per clone with: lefthook install
+# Formatting auto-fixes and re-stages. Secret scanning hard-blocks.
+# Linters report but do NOT block (remove the "|| true" once a repo is clean).
+pre-commit:
+  parallel: true
+  commands:
+    swiftformat:
+      glob: "*.swift"
+      run: swiftformat {staged_files}
+      stage_fixed: true
+    biome-format:
+      glob: "*.{js,jsx,ts,tsx,json,jsonc}"
+      run: biome format --write {staged_files}
+      stage_fixed: true
+    gitleaks:
+      run: gitleaks protect --staged --no-banner
+    swiftlint:
+      glob: "*.swift"
+      run: swiftlint lint --quiet {staged_files} || true
+    biome-lint:
+      glob: "*.{js,jsx,ts,tsx}"
+      run: biome lint {staged_files} || true
+
+pre-push:
+  commands:
+    gitleaks-full:
+      run: gitleaks detect --no-banner

@@ -1,0 +1,15 @@
+{
+  "originHash" : "e9a8a69c0fc72a13b9d080cbfea87d775c8afd129bb2dd2408aa5af83672b95a",
+  "pins" : [
+    {
+      "identity" : "licensing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/cococool13/licensing.git",
+      "state" : {
+        "revision" : "f5fdc35745b4f75f07da35eed956d53373c30dfc",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}

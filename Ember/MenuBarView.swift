@@ -68,7 +68,7 @@ struct MenuBarView: View {
                 Text(nextReading).font(Theme.body(11)).foregroundStyle(Theme.ash)
                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
-                if model.enabled && !model.needsOnboarding {
+                if model.enabled && !model.needsOnboarding && !model.licenseLocked {
                     Button(model.isTimedPause ? "Resume" : "Pause 1h") {
                         if model.isTimedPause { model.resume() } else { model.pause(hours: 1) }
                     }
@@ -85,6 +85,8 @@ struct MenuBarView: View {
         HStack(spacing: 16) {
             if model.needsOnboarding {
                 Button("Finish setup") { model.showSetup?() }
+            } else if model.licenseLocked {
+                Button("Activate…") { model.showLicense?() }
             } else if !inMainWindow {
                 Button("Open Ember") { model.showMainWindow?() }
                     .keyboardShortcut("o", modifiers: .command)
@@ -105,6 +107,7 @@ struct MenuBarView: View {
     private var headline: String {
         if let preview = model.preview { return preview.phase.title }
         if model.needsOnboarding { return "Ready when you are" }
+        if model.licenseLocked { return "Not activated" }
         if !model.enabled { return "Off" }
         if model.isTimedPause { return "Paused" }
         if model.colorAppName != nil { return "True color" }
@@ -112,6 +115,7 @@ struct MenuBarView: View {
     }
     private var description: String {
         if model.needsOnboarding { return "Set your schedule to start Ember." }
+        if model.licenseLocked { return "Your original display color." }
         if !model.enabled || model.isPaused { return "Your original display color." }
         switch shown.phase {
         case .morning: return "Easing into the day."
@@ -126,6 +130,7 @@ struct MenuBarView: View {
             return "Preview · \(time.label)"
         }
         if model.needsOnboarding { return "Setup takes about a minute" }
+        if model.licenseLocked { return "Activate with the key from your purchase email" }
         if !model.enabled { return "Turn on to follow your schedule" }
         if let until = model.pausedUntil, model.isTimedPause { return "Back at \(clock(until)?.label ?? "")" }
         if let name = model.colorAppName { return "While \(name) is frontmost" }

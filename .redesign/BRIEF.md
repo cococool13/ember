@@ -9,7 +9,7 @@ Assets in `site/assets/cinematic/`: hero-dusk.jpg (+ hero-dusk-1200.jpg for smal
 Ideas (optional): scroll-tied color temperature shift across the page, keep and restyle the existing interactive Mac preview as a centerpiece, sticky hero that releases after section two.
 
 Guardrails:
-- Keep all existing functionality working: the interactive preview (site.js), nav/anchors, Whop checkout link + whop tracking script, downloads, privacy.html, 404.html, _headers, JSON-LD, meta tags.
+- Keep all existing functionality working: the interactive preview (site.js), nav/anchors, Stripe checkout link (licensing Worker /buy/ember, no tracking script), downloads, privacy.html, 404.html, _headers, JSON-LD, meta tags.
 - Keep content truthful: same claims, price, requirements, FAQ, science caveats. No invented testimonials, stats, reviews, or features.
 - Responsive (mobile-first check at 390px), accessible (contrast, focus, alt, skip link, prefers-reduced-motion disables motion), fast (no heavy libs; no frameworks; lazy-load non-hero images).
 - Do not deploy, do not push, do not touch the native app, do not run git commands that discard work. Do not edit files outside site/ except a short note in docs/website-design.md.

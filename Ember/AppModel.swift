@@ -43,7 +43,12 @@ final class AppModel: ObservableObject {
     @Published private(set) var loginError: String?
 
     @Published private(set) var needsOnboarding: Bool
+    /// No valid license on this Mac. Ember keeps true color until one is activated.
+    @Published var licenseLocked = false {
+        didSet { if licenseLocked != oldValue { tick() } }
+    }
     var showSetup: (() -> Void)?
+    var showLicense: (() -> Void)?
     var showMainWindow: (() -> Void)?
     var showPreferences: (() -> Void)?
 
@@ -67,7 +72,7 @@ final class AppModel: ObservableObject {
 
     var isPaused: Bool { isTimedPause || colorAppName != nil }
 
-    var isActive: Bool { enabled && !isPaused && !needsOnboarding }
+    var isActive: Bool { enabled && !isPaused && !needsOnboarding && !licenseLocked }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
