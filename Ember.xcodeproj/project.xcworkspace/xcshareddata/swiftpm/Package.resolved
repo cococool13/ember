@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/cococool13/licensing.git",
       "state" : {
-        "revision" : "f5fdc35745b4f75f07da35eed956d53373c30dfc",
-        "version" : "1.0.0"
+        "revision" : "9d59fc220af7437a751b1c098bcccf6d755c7d36",
+        "version" : "1.1.0"
       }
     },
     {
