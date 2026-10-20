@@ -21,7 +21,8 @@ packages:
     from: 3.92.0
   LicenseKit:
     url: https://github.com/cococool13/licensing.git
-    from: 1.0.0
+    # 1.1.0 adds "Unlock with email" (6-digit code) to ActivationView; the key stays the fallback.
+    from: 1.1.0
 targets:
   Ember:
     type: application
