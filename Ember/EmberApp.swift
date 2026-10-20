@@ -30,23 +30,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor private var setup: SetupController?
     @MainActor private var license: LicenseController?
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
+    func applicationDidFinishLaunching(_: Notification) {
         if !AppModel.isRunningTests {
             guard Self.keepNewestCopy() else { return }
         }
+        ErrorTracking.start()
         #if DEBUG
-        let benchmarkStartup = ProcessInfo.processInfo.arguments.contains("xctest-benchmark-startup")
-        let startupStart = ProcessInfo.processInfo.systemUptime
+            let benchmarkStartup = ProcessInfo.processInfo.arguments.contains("xctest-benchmark-startup")
+            let startupStart = ProcessInfo.processInfo.systemUptime
         #endif
         Fonts.register()
         #if DEBUG
-        let fontsReady = ProcessInfo.processInfo.systemUptime
+            let fontsReady = ProcessInfo.processInfo.systemUptime
         #endif
         NSApp.setActivationPolicy(UserDefaults.standard.bool(forKey: "showDockIcon") ? .regular : .accessory)
         let model = AppModel()
         self.model = model
         #if DEBUG
-        let modelReady = ProcessInfo.processInfo.systemUptime
+            let modelReady = ProcessInfo.processInfo.systemUptime
         #endif
         let status = StatusItem(model: model)
         self.status = status
@@ -66,30 +67,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             license.start()
         }
         let setup = SetupController(model: model) {
-            if model.licenseLocked { model.showLicense?() } else { status.open() }
+            if model.licenseLocked {
+                model.showLicense?()
+            } else {
+                status.open()
+            }
         }
         self.setup = setup
         model.showSetup = { [weak setup] in setup?.show() }
         model.startSetupIfNeeded()
         #if DEBUG
-        if benchmarkStartup {
-            let initialized = ProcessInfo.processInfo.systemUptime - startupStart
-            DispatchQueue.main.async {
-                // Runs after StatusItem's normal preparation task.
-                status.open()
-                let ready = ProcessInfo.processInfo.systemUptime - startupStart
-                print("EMBER_STARTUP fonts_ms=\((fontsReady-startupStart)*1000) model_ms=\((modelReady-fontsReady)*1000) init_ms=\(initialized * 1_000) panel_ready_ms=\(ready * 1_000)")
-                fflush(stdout)
-                status.closeImmediately()
-                NSApp.terminate(nil)
+            if benchmarkStartup {
+                let initialized = ProcessInfo.processInfo.systemUptime - startupStart
+                DispatchQueue.main.async {
+                    // Runs after StatusItem's normal preparation task.
+                    status.open()
+                    let ready = ProcessInfo.processInfo.systemUptime - startupStart
+                    print("EMBER_STARTUP fonts_ms=\((fontsReady - startupStart) * 1000) model_ms=\((modelReady - fontsReady) * 1000) init_ms=\(initialized * 1000) panel_ready_ms=\(ready * 1000)")
+                    fflush(stdout)
+                    status.closeImmediately()
+                    NSApp.terminate(nil)
+                }
             }
-        }
         #endif
     }
 
-    @MainActor func openMain() { model?.showMainWindow?() }
-    @MainActor func openPreferences() { model?.showPreferences?() }
-    @MainActor func quitEmber() { model?.quit() }
+    @MainActor func openMain() {
+        model?.showMainWindow?()
+    }
+
+    @MainActor func openPreferences() {
+        model?.showPreferences?()
+    }
+
+    @MainActor func quitEmber() {
+        model?.quit()
+    }
 
     /// One Ember. A newer copy replaces an older one, including a different build path.
     private static func keepNewestCopy() -> Bool {
@@ -110,7 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
         if model?.needsOnboarding == true {
             setup?.show()
         } else if model?.licenseLocked == true {
@@ -122,13 +135,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// `ember://activate?key=…` from the purchase email or the thanks page.
-    @MainActor func application(_ application: NSApplication, open urls: [URL]) {
+    @MainActor func application(_: NSApplication, open urls: [URL]) {
         urls.forEach { license?.handle($0) }
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+    func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
+        false
+    }
 
-    func applicationWillTerminate(_ notification: Notification) {
+    func applicationWillTerminate(_: Notification) {
         // A copy rejected before model startup never owned the display tint.
         guard model != nil, !AppModel.isRunningTests else { return }
         DisplayEngine.restore()
