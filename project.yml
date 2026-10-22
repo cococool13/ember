@@ -52,8 +52,8 @@ targets:
         CODE_SIGN_STYLE: Automatic
         ENABLE_HARDENED_RUNTIME: YES
         COMBINE_HIDPI_IMAGES: YES
-        MARKETING_VERSION: 0.6.0
-        CURRENT_PROJECT_VERSION: 7
+        MARKETING_VERSION: 0.6.1
+        CURRENT_PROJECT_VERSION: 8
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # PostHog error tracking. The project token (phc_...) is public by design; paste it here.
         # While it is REPLACE_ME, ErrorTracking.start() does nothing. The personal API key for dSYM

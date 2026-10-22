@@ -8,7 +8,9 @@ final class EmberWindows: NSObject, NSWindowDelegate {
     private var main: NSWindow?
     private var preferences: NSWindow?
 
-    init(model: AppModel) { self.model = model; super.init() }
+    init(model: AppModel) {
+        self.model = model; super.init()
+    }
 
     func showMain() {
         if main == nil {
@@ -47,7 +49,9 @@ final class EmberWindows: NSObject, NSWindowDelegate {
         return window
     }
 
-    func windowWillClose(_ notification: Notification) { model.endScrub() }
+    func windowWillClose(_: Notification) {
+        model.endScrub()
+    }
 
     private func show(_ window: NSWindow?) {
         NSApp.activate(ignoringOtherApps: true)
@@ -63,7 +67,9 @@ struct MainWindowView: View {
         NavigationSplitView {
             List(selection: $selection) {
                 Label("Your light", systemImage: "sun.max").tag("light")
+                    .listItemTint(Theme.ember)
                 Label("Sleep schedule", systemImage: "moon").tag("schedule")
+                    .listItemTint(Theme.ember)
             }
             .foregroundStyle(Theme.white)
             .navigationSplitViewColumnWidth(180)
@@ -72,20 +78,27 @@ struct MainWindowView: View {
                 if selection == "schedule" {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Sleep schedule").emberLabel(28)
-                        Text("Light follows your wake time and bedtime.")
-                            .font(Theme.body(13)).foregroundStyle(Theme.ash)
                         SleepScheduleView()
                         Spacer()
                     }
                     .padding(24)
                 } else {
-                    MenuBarView(inMainWindow: true)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ScrollView {
+                        MenuBarView(inMainWindow: true)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .foregroundStyle(Theme.white)
             .background { PanelMaterial() }
             .navigationTitle(selection == "schedule" ? "Sleep schedule" : "Your light")
+            .toolbar {
+                Button { model.showPreferences?() } label: {
+                    Label("Settings", systemImage: "gearshape")
+                }
+                .help("Settings (⌘,)")
+            }
         }
         .preferredColorScheme(.dark)
         .onDisappear { model.endScrub() }

@@ -42,8 +42,7 @@ enum Theme {
 extension View {
     /// Barlow Condensed 400, uppercase. Titles and labels.
     func emberLabel(_ size: CGFloat = 14) -> some View {
-        self
-            .font(Theme.display(size))
+        font(Theme.display(size))
             .textCase(.uppercase)
             .tracking(size >= 14 ? -0.02 * size : -0.01 * size)
             .fontWeight(.regular)
@@ -51,8 +50,7 @@ extension View {
 
     /// Roboto Mono reading. Times, kelvin, percentages.
     func emberReading(_ size: CGFloat = 11) -> some View {
-        self
-            .font(Theme.mono(size))
+        font(Theme.mono(size))
             .tracking(-0.22)
             .textCase(.uppercase)
     }
@@ -82,6 +80,7 @@ private struct MiniPillBody<Label: View>: View {
     var isPressed: Bool
     @ViewBuilder var label: () -> Label
     @State private var hover = false
+    @Environment(\.isEnabled) private var enabled
 
     var body: some View {
         label()
@@ -98,7 +97,7 @@ private struct MiniPillBody<Label: View>: View {
                     lineWidth: Theme.hairline
                 )
             )
-            .opacity(isPressed ? 0.7 : 1)
+            .opacity(!enabled ? 0.4 : isPressed ? 0.7 : 1)
             .onHover { hover = $0 }
     }
 }
@@ -137,6 +136,8 @@ struct EmberSwitch: View {
                     .frame(width: 12, height: 12)
                     .padding(3)
             }
+            .frame(minWidth: 32, minHeight: 32)
+            .contentShape(Rectangle())
             .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: isOn)
         }
         .buttonStyle(.plain)
@@ -232,7 +233,7 @@ struct PanelMaterial: View {
 }
 
 private struct VisualEffectSurface: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSVisualEffectView {
+    func makeNSView(context _: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.material = .popover
         view.blendingMode = .behindWindow
@@ -240,5 +241,5 @@ private struct VisualEffectSurface: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
+    func updateNSView(_: NSVisualEffectView, context _: Context) {}
 }
