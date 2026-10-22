@@ -30,6 +30,8 @@ final class LicenseController: NSObject, NSWindowDelegate {
             return
         }
         let host = NSHostingController(rootView: ActivationView(licensing: licensing)
+            // Buy opens the licensing /buy URL; tag it so the server-side purchase joins this install.
+            .environment(\.openURL, OpenURLAction { .systemAction(Analytics.checkoutURL($0)) })
             .background(Theme.void)
             .preferredColorScheme(.dark))
         let window = NSWindow(contentViewController: host)
@@ -45,11 +47,15 @@ final class LicenseController: NSObject, NSWindowDelegate {
     }
 
     func handle(_ url: URL) {
-        if licensing.handle(url: url) { show() }
+        if licensing.handle(url: url) {
+            show()
+        }
     }
 
     private func apply(_ state: LicenseState) {
-        if state == .unknown { return }
+        if state == .unknown {
+            return
+        }
         model.licenseLocked = !state.isLicensed
         if state.isLicensed {
             window?.close()
@@ -58,7 +64,7 @@ final class LicenseController: NSObject, NSWindowDelegate {
         }
     }
 
-    func windowWillClose(_ notification: Notification) {
+    func windowWillClose(_: Notification) {
         window = nil
     }
 }

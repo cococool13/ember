@@ -8,6 +8,7 @@
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="stylesheet" href="/assets/fonts/fonts.css">
     <link rel="stylesheet" href="/styles.css?v=10">
+    <script src="/analytics.js" defer></script>
   </head>
   <body>
     <header class="nav">
@@ -16,10 +17,12 @@
     </header>
     <main class="legal">
       <h1>Privacy</h1>
-      <p>The menu-bar app does not make an account and does not send usage data. Wake time, bed time, and on/off live in local preferences on your Mac.</p>
-      <p>To check your license, the app sends your license key and a one-way hash of this Mac&apos;s hardware ID to Ember&apos;s license server when you activate and about once a week after that. If you unlock with your email instead of the key, the app also sends your purchase email to that server, which uses it to email you a 6-digit code (through our email provider, Resend) and to check that code. The server stores only a scrambled form of the code, which expires after 10 minutes and works once. Nothing else is sent.</p>
+      <p>The menu-bar app does not make an account. Wake time, bed time, and on/off live in local preferences on your Mac.</p>
+      <p>The app sends anonymous usage events and crash reports to PostHog (US). They hold no personal data: no name, email, license key, or file names. PostHog discards IP addresses. To stop them, turn off &ldquo;Share anonymous usage and crash reports&rdquo; in Settings.</p>
+      <p>To check your license, the app sends your license key and a one-way hash of this Mac&apos;s hardware ID to Ember&apos;s license server when you activate and about once a week after that. If you unlock with your email instead of the key, the app also sends your purchase email to that server, which uses it to email you a 6-digit code (through our email provider, Resend) and to check that code. The server stores only a scrambled form of the code, which expires after 10 minutes and works once.</p>
       <p>Location is optional and stays on the device. The app uses it only to compute sunrise and sunset. If you decline, it uses Brunswick, Georgia.</p>
-      <p>Checkout runs on Stripe&apos;s hosted page. Stripe and Link receive your payment details and email; the license server keeps your email and key so it can resend a lost key. The marketing site loads no analytics.</p>
+      <p>Checkout runs on Stripe&apos;s hosted page. Stripe and Link receive your payment details and email; the license server keeps your email and key so it can resend a lost key.</p>
+      <p>This site counts anonymous page views and clicks with PostHog (US), stored in your browser without cookies. It loads nothing when Do Not Track or Global Privacy Control is on.</p>
       <p>Questions: <a href="mailto:cohenbcoolidge@gmail.com">cohenbcoolidge@gmail.com</a></p>
     </main>
   </body>

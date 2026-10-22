@@ -55,8 +55,8 @@ targets:
         MARKETING_VERSION: 0.6.1
         CURRENT_PROJECT_VERSION: 8
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        # PostHog error tracking. The project token (phc_...) is public by design; paste it here.
-        # While it is REPLACE_ME, ErrorTracking.start() does nothing. The personal API key for dSYM
+        # PostHog analytics and error tracking (docs/analytics.md). The project token (phc_...) is public
+        # by design; paste it here. While it is REPLACE_ME, Analytics.start() does nothing. The personal API key for dSYM
         # upload is a secret and never goes here (see scripts/upload-dsyms.sh).
         POSTHOG_PROJECT_TOKEN: REPLACE_ME
         POSTHOG_HOST: https://us.i.posthog.com
