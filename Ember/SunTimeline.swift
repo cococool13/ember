@@ -13,17 +13,30 @@ struct SunTimeline: View {
     var sunset: ClockTime?
     var onScrub: (Double) -> Void
     var onEnd: () -> Void
+    var expanded = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var scrubbing = false
     @State private var hovering = false
     @State private var trackWidth: CGFloat = 1
+    @FocusState private var focused: Bool
 
-    private let trackHeight: CGFloat = 6
+    private var trackHeight: CGFloat {
+        expanded ? 12 : 6
+    }
+
     private let markerSize: CGFloat = 10
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: expanded ? 12 : 6) {
+            if expanded {
+                HStack {
+                    Label("Wake", systemImage: "sunrise")
+                    Spacer()
+                    Label("Bedtime", systemImage: "moon")
+                }
+                .font(Theme.body(12)).foregroundStyle(Theme.ash)
+            }
             GeometryReader { geo in
                 let w = geo.size.width
                 let p = min(1, max(0, progress))
@@ -49,11 +62,11 @@ struct SunTimeline: View {
                         .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: scrubbing)
                         .offset(x: (w - markerSize) * p)
                 }
-                .frame(height: trackHeight + 6)
+                .frame(height: expanded ? 48 : 24)
                 .onAppear { trackWidth = w }
                 .onChange(of: w) { _, new in trackWidth = new }
             }
-            .frame(height: trackHeight + 6)
+            .frame(height: expanded ? 48 : 24)
             HStack {
                 Text(plan.wake.label)
                 Spacer()
@@ -64,6 +77,14 @@ struct SunTimeline: View {
         }
         // The track and its time labels are one drag target.
         .contentShape(Rectangle())
+        .focusable()
+        .focused($focused)
+        .focusEffectDisabled()
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(focused ? Theme.ember : .clear, lineWidth: 2).padding(-4))
+        .onKeyPress(.leftArrow) { adjust(by: -15); return .handled }
+        .onKeyPress(.rightArrow) { adjust(by: 15); return .handled }
+        .onKeyPress(.escape) { onEnd(); return .handled }
+        .onKeyPress(.return) { onEnd(); return .handled }
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { value in
@@ -78,22 +99,33 @@ struct SunTimeline: View {
         .onHover { inside in
             guard inside != hovering else { return }
             hovering = inside
-            if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+            if inside {
+                NSCursor.resizeLeftRight.push()
+            } else {
+                NSCursor.pop()
+            }
         }
         .onDisappear {
-            if hovering { NSCursor.pop() }
-            if scrubbing { onEnd() }
+            if hovering {
+                NSCursor.pop()
+            }
+            if scrubbing {
+                onEnd()
+            }
         }
         .help("Drag to see any time of day on your screen")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Day timeline")
-        .accessibilityValue("\(Int((progress * 100).rounded())) percent from wake to bed")
-        .accessibilityHint("Drag to preview the screen at another time of day")
+        .accessibilityValue(ClockTime.from(fractionalMinutes: Double(plan.wake.minutes) + progress * plan.awakeMinutes).label)
+        .accessibilityHint("Use arrow keys to preview. Press Return to go back to now.")
         .accessibilityAdjustableAction { direction in
-            let delta = direction == .increment ? 0.05 : -0.05
-            onScrub(min(1, max(0, progress + delta)))
+            adjust(by: direction == .increment ? 15 : -15)
         }
         .accessibilityAction(named: "Return to now") { onEnd() }
+    }
+
+    private func adjust(by minutes: Double) {
+        onScrub(min(1, max(0, progress + minutes / max(plan.awakeMinutes, 1))))
     }
 
     private func segment(from: Double, to: Double, width: CGFloat, color: Color) -> some View {
@@ -114,4 +146,3 @@ struct SunTimeline: View {
         }
     }
 }
-
