@@ -34,7 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !AppModel.isRunningTests {
             guard Self.keepNewestCopy() else { return }
         }
-        ErrorTracking.start()
+        Analytics.start()
         #if DEBUG
             let benchmarkStartup = ProcessInfo.processInfo.arguments.contains("xctest-benchmark-startup")
             let startupStart = ProcessInfo.processInfo.systemUptime

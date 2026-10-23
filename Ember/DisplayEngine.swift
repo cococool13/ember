@@ -48,7 +48,9 @@ enum DisplayEngine {
     static func apply(_ target: Target) {
         if isNeutral(target) {
             // Writing an identity table would still replace the display profile.
-            if !usingSystemProfile { restore() }
+            if !usingSystemProfile {
+                restore()
+            }
             return
         }
         let gains = Temperature.gains(kelvin: target.kelvin)
@@ -60,10 +62,14 @@ enum DisplayEngine {
         guard CGGetActiveDisplayList(0, nil, &count) == .success, count > 0 else { return }
         var displays = [CGDirectDisplayID](repeating: 0, count: Int(count))
         guard CGGetActiveDisplayList(count, &displays, &count) == .success else { return }
-        for i in 0..<Int(count) {
+        for i in 0 ..< Int(count) {
             apply(display: displays[i], red: red, green: green, blue: blue)
         }
         usingSystemProfile = false
+        if target.kelvin < Schedule.dayKelvin - 1 {
+            // First warm frame on screen, from the schedule, a fade or a scrub.
+            Analytics.activatedOnce("first_warmth")
+        }
     }
 
     static func restore() {
@@ -107,7 +113,9 @@ enum DisplayEngine {
     }
 
     private static func baseline(for display: CGDirectDisplayID) -> GammaTable {
-        if let saved = baselines[display] { return saved }
+        if let saved = baselines[display] {
+            return saved
+        }
         let table = readTable(display) ?? identityTable(count: 256)
         baselines[display] = table
         return table
@@ -116,7 +124,7 @@ enum DisplayEngine {
     private static func identityTable(count: Int) -> GammaTable {
         let n = max(count, 2)
         let last = Double(n - 1)
-        let values = (0..<n).map { CGGammaValue(Double($0) / last) }
+        let values = (0 ..< n).map { CGGammaValue(Double($0) / last) }
         return GammaTable(red: values, green: values, blue: values)
     }
 
@@ -176,7 +184,7 @@ final class DisplayFader {
             fade(from: .neutral, to: target, seconds: Self.fadeSeconds, thenRelease: false)
             return
         }
-        if from.distance(to: target) < Self.snapThreshold && !releasing {
+        if from.distance(to: target) < Self.snapThreshold, !releasing {
             cancel()
             DisplayEngine.apply(target)
             shown = DisplayEngine.isNeutral(target) ? nil : target
@@ -196,7 +204,9 @@ final class DisplayFader {
     /// Return the display to the system profile. Animated when Ember was
     /// coloring the screen; immediate otherwise.
     func release(animated: Bool) {
-        if releasing { return }
+        if releasing {
+            return
+        }
         guard animated, let from = shown else {
             cancel()
             shown = nil

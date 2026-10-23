@@ -108,6 +108,7 @@ struct MainWindowView: View {
 struct SettingsWindowView: View {
     @EnvironmentObject private var model: AppModel
     @AppStorage("showDockIcon") private var showDockIcon = false
+    @State private var shareAnalytics = Analytics.isEnabled()
 
     var body: some View {
         Form {
@@ -130,11 +131,17 @@ struct SettingsWindowView: View {
             } footer: {
                 Text("When hidden, Ember stays available in the menu bar. Closing a window keeps your light running.")
             }
+            Section {
+                Toggle("Share anonymous usage and crash reports", isOn: $shareAnalytics)
+            } footer: {
+                Text("Anonymous events and crash reports help fix bugs. No personal data.")
+            }
         }
         .formStyle(.grouped)
         .preferredColorScheme(.dark)
         .onChange(of: showDockIcon) { _, visible in
             NSApp.setActivationPolicy(visible ? .regular : .accessory)
         }
+        .onChange(of: shareAnalytics) { _, enabled in Analytics.setEnabled(enabled) }
     }
 }
