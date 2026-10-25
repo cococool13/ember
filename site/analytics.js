@@ -1,7 +1,7 @@
 /* PostHog web analytics. Spec: docs/analytics.md. A no-op until POSTHOG_KEY is set
    (~/.agents/posthog-keys.sh fills it). The phc_ project key is public by design. */
 (function () {
-  var POSTHOG_KEY = ''; // phc_… shared "Cohen Apps" project key
+  var POSTHOG_KEY = 'phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG'; // phc_… shared "Cohen Apps" project key
   var POSTHOG_HOST = 'https://us.i.posthog.com';
   var APP = 'ember';
   var VERSION = '0.6.1';
