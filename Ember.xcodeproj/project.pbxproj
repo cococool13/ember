@@ -391,7 +391,7 @@
 				);
 				MARKETING_VERSION = 0.6.1;
 				POSTHOG_HOST = "https://us.i.posthog.com";
-				POSTHOG_PROJECT_TOKEN = REPLACE_ME;
+				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;
@@ -501,7 +501,7 @@
 				);
 				MARKETING_VERSION = 0.6.1;
 				POSTHOG_HOST = "https://us.i.posthog.com";
-				POSTHOG_PROJECT_TOKEN = REPLACE_ME;
+				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;
