@@ -36,3 +36,7 @@ paths = [
   '''(^|/)\.env\.[^/]+$''',
   '''(^|/)credentials\.json$''',
 ]
+
+[[allowlists]]
+description = "PostHog project keys (phc_) are public client keys by design; see docs/analytics.md"
+regexes = ['''phc_[A-Za-z0-9]{20,}''']
