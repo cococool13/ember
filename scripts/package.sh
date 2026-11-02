@@ -3,7 +3,9 @@
 # and copy it to site/downloads/Ember.dmg.
 # Usage: scripts/package.sh [--skip-notarize]
 set -euo pipefail
-cd "$(dirname "$0")/.."
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
 
 skip_notarize=0
 case "${1:-}" in
@@ -27,6 +29,11 @@ identity=$(security find-identity -v -p codesigning 2>/dev/null \
   exit 1
 }
 team=$(printf '%s' "$identity" | sed -n 's/.*(\([A-Z0-9]*\))$/\1/p')
+
+# Guardrail 10: refuse notarized prod packaging while Stripe HOLD exists.
+if (( ! skip_notarize )); then
+  STRIPE_HOLD_FILE="$ROOT/STRIPE_HOLD" bash "$ROOT/scripts/guardrails/check-stripe-hold.sh" Ember
+fi
 
 xcodegen generate
 xcodebuild -project Ember.xcodeproj -scheme Ember -configuration Release \
@@ -116,8 +123,11 @@ xcrun stapler staple "$app"
 xcrun stapler validate "$dmg"
 spctl --assess --verbose=2 --type execute "$app"
 spctl --assess --verbose=2 --type install "$dmg"
+# Guardrail 9: DMG primary-signature + codesign (live hash at deploy time).
+bash "$ROOT/scripts/guardrails/check-dmg-release.sh" "$dmg" --skip-live
 mkdir -p site/downloads
 cp "$dmg" site/downloads/Ember.dmg
 cp "$dmg" dist/Ember.dmg
 echo "Notarized: $dmg"
 echo "Copied to site/downloads/Ember.dmg for wrangler deploy."
+echo "Before site deploy: LIVE_DOWNLOAD_URL=... scripts/guardrails/check-dmg-release.sh dist/Ember.dmg"
