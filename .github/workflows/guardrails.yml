@@ -64,4 +64,3 @@ jobs:
         run: |
           set -euo pipefail
           bash scripts/guardrails/check-stripe-hold.test.sh
-
