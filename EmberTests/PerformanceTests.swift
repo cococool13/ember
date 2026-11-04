@@ -1,7 +1,7 @@
 import AppKit
+@testable import Ember
 import SwiftUI
 import XCTest
-@testable import Ember
 
 /// Opt-in repeatable AppKit benchmarks. No display writes, login changes or location requests.
 final class PerformanceTests: XCTestCase {
@@ -10,13 +10,12 @@ final class PerformanceTests: XCTestCase {
         guard ProcessInfo.processInfo.environment["EMBER_BENCHMARK"] == "1" else {
             throw XCTSkip("Set TEST_RUNNER_EMBER_BENCHMARK=1 for performance measurements")
         }
-        Fonts.register()
-        let defaults = UserDefaults(suiteName: "EmberPerformanceTests")!
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "EmberPerformanceTests"))
         defaults.set(true, forKey: "didShowSetup")
         defaults.set(false, forKey: "colorAppBypass")
         defer { defaults.removePersistentDomain(forName: "EmberPerformanceTests") }
-        let model = AppModel(defaults: defaults)
-        benchmark("model-init", count: 30) { _ = AppModel(defaults: defaults) }
+        let model = AppModel(defaults: defaults, licenseLocked: false)
+        benchmark("model-init", count: 30) { _ = AppModel(defaults: defaults, licenseLocked: false) }
         benchmark("status-init-and-first-open", count: 20) {
             let status = StatusItem(model: model)
             XCTAssertTrue(status.open())
@@ -53,7 +52,7 @@ final class PerformanceTests: XCTestCase {
         for window in NSApp.windows where window.title == "Ember Settings" || window.title == "Your light" || window.title == "Ember" {
             window.close()
         }
-        benchmarkLayout("panel", model: model, view: MenuBarView(), size: NSSize(width: 360, height: 408))
+        benchmarkLayout("panel", model: model, view: MenuBarView(), size: NSSize(width: Theme.panelWidth, height: Theme.panelHeight))
         benchmarkLayout("main", model: model, view: MainWindowView(), size: NSSize(width: 660, height: 556))
         benchmarkLayout("settings", model: model, view: SettingsWindowView(), size: NSSize(width: 568, height: 400))
         benchmarkLayout("setup", model: model, view: SetupView(finish: {}), size: NSSize(width: 480, height: 520))
@@ -80,7 +79,7 @@ final class PerformanceTests: XCTestCase {
             let range = max(0, (scroll.documentView?.bounds.height ?? 0) - scroll.contentView.bounds.height)
             print("EMBER_PERF \(name)-scroll-range=\(range)")
             benchmark("\(name)-scroll-120-steps", count: 10) {
-                for step in 0..<120 {
+                for step in 0 ..< 120 {
                     let fraction = Double(step < 60 ? step : 119 - step) / 59
                     scroll.contentView.scroll(to: NSPoint(x: 0, y: range * fraction))
                     scroll.reflectScrolledClipView(scroll.contentView)
@@ -92,7 +91,9 @@ final class PerformanceTests: XCTestCase {
     }
 
     private func scrollView(in view: NSView) -> NSScrollView? {
-        if let scroll = view as? NSScrollView { return scroll }
+        if let scroll = view as? NSScrollView {
+            return scroll
+        }
         return view.subviews.lazy.compactMap { self.scrollView(in: $0) }.first
     }
 
@@ -100,10 +101,10 @@ final class PerformanceTests: XCTestCase {
         print("EMBER_PERF_BEGIN \(name)")
         fflush(stdout)
         var samples: [Double] = []
-        for _ in 0..<count {
+        for _ in 0 ..< count {
             let start = ProcessInfo.processInfo.systemUptime
             autoreleasepool { action() }
-            samples.append((ProcessInfo.processInfo.systemUptime - start) * 1_000)
+            samples.append((ProcessInfo.processInfo.systemUptime - start) * 1000)
         }
         let sorted = samples.sorted()
         print("EMBER_PERF \(name) n=\(count) first=\(samples[0]) median=\(sorted[count / 2]) p95=\(sorted[min(count - 1, Int(Double(count) * 0.95))]) ms")

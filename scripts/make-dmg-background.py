@@ -11,7 +11,7 @@ draw = ImageDraw.Draw(image)
 
 
 def font(name, size):
-    return ImageFont.truetype(str(ROOT / "Ember/Fonts" / name), size * SCALE)
+    return ImageFont.truetype(str(ROOT / "scripts/dmg-fonts" / name), size * SCALE)
 
 
 def text(value, y, face, color):

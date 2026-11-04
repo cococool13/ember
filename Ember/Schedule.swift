@@ -4,7 +4,9 @@ struct ClockTime: Equatable, Sendable {
     var hour: Int
     var minute: Int
 
-    var minutes: Int { hour * 60 + minute }
+    var minutes: Int {
+        hour * 60 + minute
+    }
 
     static func from(minutes: Int) -> ClockTime {
         let wrapped = ((minutes % 1440) + 1440) % 1440
@@ -87,12 +89,25 @@ struct DayPlan: Equatable, Sendable {
     var duskEndMinutes: Double
     var tooShort: Bool
 
-    var morningEnd: ClockTime { clock(at: morningEndMinutes) }
-    var eveningStart: ClockTime { clock(at: eveningStartMinutes) }
+    var morningEnd: ClockTime {
+        clock(at: morningEndMinutes)
+    }
 
-    var morningFraction: Double { fraction(morningEndMinutes) }
-    var eveningFraction: Double { fraction(eveningStartMinutes) }
-    var duskFraction: Double { fraction(duskEndMinutes) }
+    var eveningStart: ClockTime {
+        clock(at: eveningStartMinutes)
+    }
+
+    var morningFraction: Double {
+        fraction(morningEndMinutes)
+    }
+
+    var eveningFraction: Double {
+        fraction(eveningStartMinutes)
+    }
+
+    var duskFraction: Double {
+        fraction(duskEndMinutes)
+    }
 
     func fraction(_ minutes: Double) -> Double {
         guard awakeMinutes > 0 else { return 0 }
@@ -115,8 +130,12 @@ struct LightState: Equatable, Sendable {
 
     /// Describes the display adjustment without claiming measured light exposure.
     var signalLabel: String {
-        if abs(kelvin - Schedule.dayKelvin) < 1 && dim >= 0.995 { return "Full color" }
-        if kelvin > Schedule.dayKelvin { return "Cooler light" }
+        if abs(kelvin - Schedule.dayKelvin) < 1 && dim >= 0.995 {
+            return "Full color"
+        }
+        if kelvin > Schedule.dayKelvin {
+            return "Cooler light"
+        }
         return dim < 0.995 ? "Warm and dim" : "Warm light"
     }
 }
@@ -134,6 +153,38 @@ enum Schedule {
     static let morningSettleMinutes = 60
     static let eveningCutMinutes = 40
     static let minimumEveningRamp = 90
+
+    /// Re-evaluate at midnight for the next solar plan and at a DST change
+    /// before using another wall-clock deadline.
+    static func nextUpdate(after now: Date, plan: DayPlan, active: Bool,
+                           pausedUntil: Date?, calendar: Calendar = .current) -> Date?
+    {
+        if !active {
+            return pausedUntil
+        }
+        let elapsed = minutesBetween(Double(plan.wake.minutes), minutes(in: now, calendar: calendar))
+        var deadline = calendar.dateInterval(of: .day, for: now)?.end ?? now.addingTimeInterval(3600)
+        if let transition = calendar.timeZone.nextDaylightSavingTimeTransition(after: now) {
+            deadline = min(deadline, transition)
+        }
+        if plan.tooShort {
+            return deadline
+        }
+        let seconds: TimeInterval
+        if elapsed < plan.settleEndMinutes || (elapsed >= plan.eveningStartMinutes && elapsed < plan.awakeMinutes) {
+            seconds = 4
+        } else if elapsed < plan.eveningStartMinutes {
+            seconds = (plan.eveningStartMinutes - elapsed) * 60
+        } else {
+            seconds = (1440 - elapsed) * 60
+        }
+        return min(deadline, now.addingTimeInterval(max(0.01, seconds)))
+    }
+
+    static func nextWake(after now: Date, wake: ClockTime, calendar: Calendar = .current) -> Date? {
+        calendar.nextDate(after: now, matching: DateComponents(hour: wake.hour, minute: wake.minute, second: 0),
+                          matchingPolicy: .nextTime, repeatedTimePolicy: .first)
+    }
 
     static func plan(
         wake: ClockTime,
@@ -280,7 +331,9 @@ enum Schedule {
 
     static func wrap(_ minutes: Double) -> Double {
         var v = minutes.truncatingRemainder(dividingBy: 1440)
-        if v < 0 { v += 1440 }
+        if v < 0 {
+            v += 1440
+        }
         return v
     }
 

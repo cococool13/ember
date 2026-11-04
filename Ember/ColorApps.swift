@@ -24,19 +24,21 @@ enum ColorApps {
         "com.seriflabs.affinitydesigner2",
         "com.seriflabs.affinitypublisher2",
         "com.captureone.captureone",
-        "com.cohen.lumen"
+        "com.cohen.lumen",
     ]
 
     /// Capture One keeps a new bundle id each year (`captureone16`, `captureone23`, …).
     static let bundlePrefixes = ["com.captureone.captureone"]
 
-    static func matches(bundleID: String) -> Bool {
-        if bundleIDs.contains(bundleID) { return true }
+    static func matches(bundleID: String, additional: [String: String] = [:]) -> Bool {
+        if bundleIDs.contains(bundleID) || additional[bundleID] != nil {
+            return true
+        }
         return bundlePrefixes.contains { bundleID.hasPrefix($0) }
     }
 
-    static func match(_ app: NSRunningApplication?) -> String? {
-        guard let id = app?.bundleIdentifier, matches(bundleID: id) else { return nil }
+    static func match(_ app: NSRunningApplication?, additional: [String: String] = [:]) -> String? {
+        guard let id = app?.bundleIdentifier, matches(bundleID: id, additional: additional) else { return nil }
         return app?.localizedName ?? id
     }
 }

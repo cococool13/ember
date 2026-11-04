@@ -32,7 +32,6 @@ final class StatusItem: NSObject {
         item.button?.action = #selector(toggle(_:))
         item.button?.sendAction(on: [.leftMouseDown, .rightMouseDown])
         refreshChrome()
-        DispatchQueue.main.async { [weak self] in self?.preparePanel() }
         model.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.refreshChrome() }
@@ -64,15 +63,21 @@ final class StatusItem: NSObject {
             tooltip = "True color · \(name)"
         } else if model.isTimedPause {
             tooltip = "Ember paused"
+        } else if model.needsOnboarding {
+            tooltip = "Finish setting up Ember"
+        } else if model.licenseLocked {
+            tooltip = "Activate Ember"
         } else {
             tooltip = "\(model.state.phase.title) · \(model.state.signalLabel)"
         }
-        if item.button?.toolTip != tooltip { item.button?.toolTip = tooltip }
+        if item.button?.toolTip != tooltip {
+            item.button?.toolTip = tooltip
+        }
         item.button?.setAccessibilityLabel("Ember")
         item.button?.setAccessibilityValue(tooltip)
     }
 
-    @objc func toggle(_ sender: Any?) {
+    @objc func toggle(_: Any?) {
         if NSApp.currentEvent?.type == .rightMouseDown || NSApp.currentEvent?.modifierFlags.contains(.option) == true {
             suppressToggle = false
             closeImmediately()
@@ -112,21 +117,17 @@ final class StatusItem: NSObject {
         }
         show(panel)
         panel.displayIfNeeded()
-        lastOpenLatencyMilliseconds = (ProcessInfo.processInfo.systemUptime - started) * 1_000
+        lastOpenLatencyMilliseconds = (ProcessInfo.processInfo.systemUptime - started) * 1000
         return true
     }
 
     /// Keep the hosting tree alive so opening never reconstructs the controls.
     private func preparePanel() {
-        guard panel == nil else { return }
-        guard item.button?.window != nil else { return }
+        guard panel == nil, item.button?.window != nil else { return }
         let host = NSHostingController(rootView: PanelRoot(presence: presence).environmentObject(model))
         host.view.wantsLayer = true
         host.view.layer?.backgroundColor = NSColor.clear.cgColor
-        let width = Theme.panelWidth
-        host.view.frame = NSRect(x: 0, y: 0, width: width, height: 10)
-        let height = host.view.fittingSize.height
-        let size = NSSize(width: width, height: height)
+        let size = NSSize(width: Theme.panelWidth, height: Theme.panelHeight)
         host.view.frame = NSRect(origin: .zero, size: size)
 
         let panel = EmberPanel(
@@ -138,7 +139,7 @@ final class StatusItem: NSObject {
         panel.isFloatingPanel = true
         panel.level = .statusBar
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        // The SwiftUI root paints the void and its rounded hairline edge; the
+        // The SwiftUI root paints the surface and its rounded edge; the
         // panel stays clear so the corners read against the desktop.
         panel.isOpaque = false
         panel.backgroundColor = .clear
@@ -225,8 +226,15 @@ final class StatusItem: NSObject {
             return entry
         }
         add(model.enabled ? "Turn Ember Off" : "Turn Ember On", #selector(toggleEnabled))
-        if model.enabled {
+        if model.needsOnboarding {
+            add("Finish Setup", #selector(finishSetup))
+        } else if model.licenseLocked {
+            add("Activate…", #selector(activate))
+        } else if model.enabled {
             add(model.isTimedPause ? "Resume Schedule" : "Pause for One Hour", #selector(togglePause), key: "p")
+            if !model.isTimedPause {
+                add("Pause Until Morning", #selector(pauseUntilMorning))
+            }
         }
         menu.addItem(.separator())
         add("Open Ember", #selector(openMain), key: "o")
@@ -236,13 +244,41 @@ final class StatusItem: NSObject {
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.minY - 4), in: button)
     }
 
-    @objc private func toggleEnabled() { model.enabled.toggle() }
-    @objc private func togglePause() {
-        if model.isTimedPause { model.resume() } else { model.pause(hours: 1) }
+    @objc private func toggleEnabled() {
+        model.enabled.toggle()
     }
-    @objc private func openMain() { model.showMainWindow?() }
-    @objc private func openPreferences() { model.showPreferences?() }
-    @objc private func quitEmber() { model.quit() }
+
+    @objc private func togglePause() {
+        if model.isTimedPause {
+            model.resume()
+        } else {
+            model.pause(hours: 1)
+        }
+    }
+
+    @objc private func pauseUntilMorning() {
+        model.pauseUntilMorning()
+    }
+
+    @objc private func finishSetup() {
+        model.showSetup?()
+    }
+
+    @objc private func activate() {
+        model.showLicense?()
+    }
+
+    @objc private func openMain() {
+        model.showMainWindow?()
+    }
+
+    @objc private func openPreferences() {
+        model.showPreferences?()
+    }
+
+    @objc private func quitEmber() {
+        model.quit()
+    }
 
     private func listenForDismiss() {
         clearMonitors()
@@ -255,7 +291,9 @@ final class StatusItem: NSObject {
                 }
                 return event
             }
-            if event.window == self.panel { return event }
+            if event.window == self.panel {
+                return event
+            }
             if self.clickHitsStatusItem(event) {
                 self.noteStatusItemClick()
                 return event
@@ -290,7 +328,9 @@ final class StatusItem: NSObject {
     }
 
     private func clickHitsStatusItem(_ event: NSEvent) -> Bool {
-        if event.window === item.button?.window { return true }
+        if event.window === item.button?.window {
+            return true
+        }
         guard let button = item.button, let window = button.window else { return false }
         let rect = window.convertToScreen(button.convert(button.bounds, to: nil))
         return rect.insetBy(dx: -4, dy: -6).contains(NSEvent.mouseLocation)
@@ -316,7 +356,9 @@ enum StatusToggle: Equatable {
 
     static func decide(panelOpen: Bool, leaving: Bool, sameEvent: Bool) -> StatusToggle {
         guard panelOpen else { return .open }
-        if leaving { return sameEvent ? .ignore : .reverse }
+        if leaving {
+            return sameEvent ? .ignore : .reverse
+        }
         return .close
     }
 }
@@ -329,7 +371,9 @@ final class PanelPresence: ObservableObject {
 
     @Published var stage = Stage.entering
     var anchor = UnitPoint.top
-    var shown: Bool { stage == .shown }
+    var shown: Bool {
+        stage == .shown
+    }
 }
 
 /// The surface is submitted immediately; opacity settles within 90 ms.
@@ -350,7 +394,7 @@ private struct PanelRoot: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        MenuBarView()
+        MenuBarView(updateClock: presence.stage == .shown)
             .scaleEffect(reduceMotion ? 1 : scale, anchor: presence.anchor)
             .offset(y: reduceMotion ? 0 : offset)
     }
@@ -373,6 +417,11 @@ private struct PanelRoot: View {
 /// A borderless nonactivating panel still needs key status for Tab and Escape.
 /// It does not become the main window or replace the frontmost color-work app.
 private final class EmberPanel: NSPanel {
-    override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { false }
+    override var canBecomeKey: Bool {
+        true
+    }
+
+    override var canBecomeMain: Bool {
+        false
+    }
 }

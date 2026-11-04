@@ -39,10 +39,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let benchmarkStartup = ProcessInfo.processInfo.arguments.contains("xctest-benchmark-startup")
             let startupStart = ProcessInfo.processInfo.systemUptime
         #endif
-        Fonts.register()
-        #if DEBUG
-            let fontsReady = ProcessInfo.processInfo.systemUptime
-        #endif
         NSApp.setActivationPolicy(UserDefaults.standard.bool(forKey: "showDockIcon") ? .regular : .accessory)
         let model = AppModel()
         self.model = model
@@ -83,7 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     // Runs after StatusItem's normal preparation task.
                     status.open()
                     let ready = ProcessInfo.processInfo.systemUptime - startupStart
-                    print("EMBER_STARTUP fonts_ms=\((fontsReady - startupStart) * 1000) model_ms=\((modelReady - fontsReady) * 1000) init_ms=\(initialized * 1000) panel_ready_ms=\(ready * 1000)")
+                    print("EMBER_STARTUP model_ms=\((modelReady - startupStart) * 1000) init_ms=\(initialized * 1000) panel_ready_ms=\(ready * 1000)")
                     fflush(stdout)
                     status.closeImmediately()
                     NSApp.terminate(nil)

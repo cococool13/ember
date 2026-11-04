@@ -23,15 +23,15 @@ enum Theme {
     static let cardRadius: CGFloat = 12
     static let panelRadius: CGFloat = 14
     static let hairline: CGFloat = 1
-    static let panelWidth: CGFloat = 360
-    static let panelHeight: CGFloat = 408
+    static let panelWidth: CGFloat = 340
+    static let panelHeight: CGFloat = 365
 
     static func display(_ size: CGFloat) -> Font {
-        .custom("Barlow Condensed", size: size, relativeTo: .body)
+        .system(size: size, weight: .medium, design: .default)
     }
 
     static func mono(_ size: CGFloat) -> Font {
-        .custom("Roboto Mono", size: size, relativeTo: .caption)
+        .system(size: size, design: .monospaced)
     }
 
     static func body(_ size: CGFloat = 15) -> Font {
@@ -40,15 +40,14 @@ enum Theme {
 }
 
 extension View {
-    /// Barlow Condensed 400, uppercase. Titles and labels.
+    /// Section labels in the system face.
     func emberLabel(_ size: CGFloat = 14) -> some View {
         font(Theme.display(size))
             .textCase(.uppercase)
             .tracking(size >= 14 ? -0.02 * size : -0.01 * size)
-            .fontWeight(.regular)
     }
 
-    /// Roboto Mono reading. Times, kelvin, percentages.
+    /// Monospaced readings. Times, kelvin, percentages.
     func emberReading(_ size: CGFloat = 11) -> some View {
         font(Theme.mono(size))
             .tracking(-0.22)
@@ -220,14 +219,16 @@ struct IconButtonStyle: ButtonStyle {
 
 /// A real AppKit material, with a solid surface when transparency is reduced.
 struct PanelMaterial: View {
+    var surface = Theme.void
+    var opacity = 0.65
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
         if reduceTransparency {
-            Theme.void
+            surface
         } else {
             VisualEffectSurface()
-                .overlay(Theme.void.opacity(0.65))
+                .overlay(surface.opacity(opacity))
         }
     }
 }
