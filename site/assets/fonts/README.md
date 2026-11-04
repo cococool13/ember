@@ -6,3 +6,5 @@ Served locally. No font request leaves the site.
 - General Sans regular, medium and semibold: Fontshare official CDN; Fontshare Free Font License, https://www.fontshare.com/licenses. Source CSS: https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap
 
 Downloaded 21 October 2026. Original font files are unchanged.
+
+Newsreader is served as a Latin+punctuation WOFF2 subset (OFL). General Sans files are the official Fontshare WOFF2s unchanged (ITF FFL forbids subsetting).
