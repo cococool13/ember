@@ -39,16 +39,3 @@ super-properties, privacy rules and keys live there. Read it before changing ana
   `app = ember`: expect `Application Opened` and one `activated` with `activation = first_warmth`. Turn the Settings
   toggle off and confirm events stop. For crashes, launch the Debug build with `--posthog-test-crash`, relaunch, and
   look for `$exception`. Do not commit the test key unless it is the shared project key.
-
-### Where this repo differs from the master spec
-
-Section 5. Privacy:
-
-- Opt-out toggle in Settings ("Share anonymous usage and crash reports", on by default for direct-download
-  apps, key `analyticsOptOut` in UserDefaults). That setting is the only source of truth: posthog-ios also
-  stores its own opt-out flag and restores it in `setup()`, so the app never relies on `config.optOut`. Off at
-  launch: `setup()` is never called, so nothing is captured, crash reports and lifecycle events included. On at
-  launch: `setup()` then `optIn()`, so an opt-out the SDK stored earlier can't silence the user. Turning it off
-  calls `optOut()`; turning it on calls `optIn()`, or `setup()` + `optIn()` if the SDK was not set up yet.
-- `before_send` strips the query string and `#` hash from `$current_url`, `$referrer`, `$session_entry_url` and
-  `$session_entry_referrer`; utm_* campaign params are extracted first, so attribution stays.
