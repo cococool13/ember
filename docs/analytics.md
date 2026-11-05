@@ -27,10 +27,10 @@ super-properties, privacy rules and keys live there. Read it before changing ana
   LicenseKit's `ActivationView`, so its Buy button opens `Analytics.checkoutURL(licensing.config.buyURL)`. Other
   links from that view pass through unchanged. That is the only place the app opens `/buy/ember`. On the site,
   `site/analytics.js` adds `ph` to the `Get Ember` link in `site/index.html` at click time.
-- Key placeholders:
-  - `project.yml`: `        POSTHOG_PROJECT_TOKEN: REPLACE_ME` (then `xcodegen generate`; Info.plist reads
+- Key: the shared "Cohen Apps" `phc_` key is set in:
+  - `project.yml`: `POSTHOG_PROJECT_TOKEN` (after a change, run `xcodegen generate`; Info.plist reads
     `$(POSTHOG_PROJECT_TOKEN)` through `Ember/Info.plist` `PostHogProjectToken`).
-  - `site/analytics.js`: `  var POSTHOG_KEY = ''; // phc_… shared "Cohen Apps" project key`
+  - `site/analytics.js`: `POSTHOG_KEY`
 - Site: `site/analytics.js` loads on `site/index.html`, `site/privacy.html` and `site/404.html`. `site/_headers` sets
   no Content-Security-Policy, so there is nothing to allow. `site/privacy.html` states the PostHog use. `VERSION` in
   `site/analytics.js` is the app's marketing version (0.6.1); bump it with releases.
