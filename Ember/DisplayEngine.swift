@@ -95,21 +95,34 @@ enum DisplayEngine {
     }
 
     private static var baselines: [CGDirectDisplayID: GammaTable] = [:]
+    // CGSetDisplayTransferByTable consumes these buffers synchronously.
+    // One scratch table serves every display and every frame of a fade.
+    private static var scratch = GammaTable(red: [], green: [], blue: [])
     private static var usingSystemProfile = true
 
     /// Multiply a gamma table by one channel gain. Shape stays; only the scale moves.
     static func scaledTable(_ table: [CGGammaValue], by gain: Double) -> [CGGammaValue] {
-        let gain = min(1, max(0, gain))
-        return table.map { CGGammaValue(min(1, max(0, Double($0) * gain))) }
+        var result: [CGGammaValue] = []
+        scale(table, by: gain, into: &result)
+        return result
+    }
+
+    private static func scale(_ table: [CGGammaValue], by gain: Double, into result: inout [CGGammaValue]) {
+        if result.count < table.count {
+            result = Array(repeating: 0, count: table.count)
+        }
+        let gain = CGGammaValue(min(1, max(0, gain)))
+        for index in table.indices {
+            result[index] = min(1, max(0, table[index] * gain))
+        }
     }
 
     private static func apply(display: CGDirectDisplayID, red: Double, green: Double, blue: Double) {
         let base = baseline(for: display)
-        let r = scaledTable(base.red, by: red)
-        let g = scaledTable(base.green, by: green)
-        let b = scaledTable(base.blue, by: blue)
-        guard !r.isEmpty, r.count == g.count, g.count == b.count else { return }
-        _ = CGSetDisplayTransferByTable(display, UInt32(r.count), r, g, b)
+        scale(base.red, by: red, into: &scratch.red)
+        scale(base.green, by: green, into: &scratch.green)
+        scale(base.blue, by: blue, into: &scratch.blue)
+        _ = CGSetDisplayTransferByTable(display, UInt32(base.red.count), scratch.red, scratch.green, scratch.blue)
     }
 
     private static func baseline(for display: CGDirectDisplayID) -> GammaTable {
@@ -174,92 +187,85 @@ final class DisplayFader {
 
     private(set) var shown: DisplayEngine.Target?
     private var timer: Timer?
-    private var releasing = false
+    private var destination: DisplayEngine.Target?
+    private let apply: (DisplayEngine.Target) -> Void
+
+    init(apply: @escaping (DisplayEngine.Target) -> Void = DisplayEngine.apply) {
+        self.apply = apply
+    }
 
     func show(_ target: DisplayEngine.Target) {
-        if DisplayEngine.isNeutral(target), shown == nil || shown.map(DisplayEngine.isNeutral) == true {
-            return
-        }
+        let target = DisplayEngine.isNeutral(target) ? .neutral : target
+        guard target != (destination ?? shown ?? .neutral) else { return }
         guard let from = shown else {
-            fade(from: .neutral, to: target, seconds: Self.fadeSeconds, thenRelease: false)
+            fade(from: .neutral, to: target, seconds: Self.fadeSeconds)
             return
         }
-        if from.distance(to: target) < Self.snapThreshold, !releasing {
-            cancel()
-            DisplayEngine.apply(target)
-            shown = DisplayEngine.isNeutral(target) ? nil : target
-            return
+        if from.distance(to: target) < Self.snapThreshold, destination != .neutral {
+            snap(target)
+        } else {
+            fade(from: from, to: target, seconds: Self.fadeSeconds)
         }
-        fade(from: from, to: target, seconds: Self.fadeSeconds, thenRelease: false)
     }
 
     /// Apply `target` now with no fade: scrubbing, or a screen that just woke
     /// in the dark and must not flash daylight white first.
     func snap(_ target: DisplayEngine.Target) {
         cancel()
-        DisplayEngine.apply(target)
+        apply(target)
         shown = DisplayEngine.isNeutral(target) ? nil : target
     }
 
     /// Return the display to the system profile. Animated when Ember was
     /// coloring the screen; immediate otherwise.
     func release(animated: Bool) {
-        if releasing {
-            return
+        if animated {
+            show(.neutral)
+        } else {
+            snap(.neutral)
         }
-        guard animated, let from = shown else {
-            cancel()
-            shown = nil
-            DisplayEngine.restore()
-            return
-        }
-        fade(from: from, to: .neutral, seconds: Self.fadeSeconds, thenRelease: true)
     }
 
     /// Fade back to the system profile over `seconds`, then call `done`.
     /// Replaces any fade in progress, including a slower release.
     func release(seconds: TimeInterval, done: @escaping () -> Void) {
-        guard let from = shown else {
+        guard let from = shown, from != .neutral else {
             cancel()
-            DisplayEngine.restore()
+            apply(.neutral)
+            shown = nil
             done()
             return
         }
-        fade(from: from, to: .neutral, seconds: seconds, thenRelease: true, done: done)
+        fade(from: from, to: .neutral, seconds: seconds, done: done)
     }
 
     func cancel() {
         timer?.invalidate()
         timer = nil
-        releasing = false
+        destination = nil
     }
 
     private func fade(
         from: DisplayEngine.Target,
         to: DisplayEngine.Target,
         seconds: TimeInterval,
-        thenRelease: Bool,
         done: (() -> Void)? = nil
     ) {
         cancel()
-        releasing = thenRelease
-        let start = Date()
-        DisplayEngine.apply(from)
+        destination = to
+        let start = ProcessInfo.processInfo.systemUptime
         shown = from
         let timer = Timer(timeInterval: Self.frameSeconds, repeats: true) { [weak self] timer in
-            Task { @MainActor in
+            MainActor.assumeIsolated {
                 guard let self else { timer.invalidate(); return }
-                let t = min(1, Date().timeIntervalSince(start) / seconds)
-                let step = DisplayEngine.Target.blend(from, to, Schedule.ease(t))
-                DisplayEngine.apply(step)
-                self.shown = step
+                let t = min(1, (ProcessInfo.processInfo.systemUptime - start) / seconds)
                 if t >= 1 {
-                    self.cancel()
-                    if thenRelease {
-                        self.shown = nil
-                        DisplayEngine.restore()
-                    }
+                    self.snap(to)
                     done?()
+                } else {
+                    let step = DisplayEngine.Target.blend(from, to, Schedule.ease(t))
+                    self.apply(step)
+                    self.shown = step
                 }
             }
         }

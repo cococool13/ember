@@ -1,5 +1,5 @@
-import XCTest
 @testable import Ember
+import XCTest
 
 final class ScheduleTests: XCTestCase {
     private var calendar: Calendar {
@@ -269,7 +269,7 @@ final class ScheduleTests: XCTestCase {
         var previous: LightState?
         var largestMired = 0.0
         var largestDim = 0.0
-        for minute in 0..<1440 {
+        for minute in 0 ..< 1440 {
             let state = Schedule.state(
                 now: date(hour: minute / 60, minute: minute % 60),
                 calendar: calendar,
@@ -297,7 +297,7 @@ final class ScheduleTests: XCTestCase {
             (wake, .night, .morning),
             (plan.morningEnd, .morning, .day),
             (plan.eveningStart, .day, .evening),
-            (bed, .evening, .night)
+            (bed, .evening, .night),
         ]
         for (at, before, after) in boundaries {
             let a = Schedule.state(
@@ -500,14 +500,14 @@ final class ScheduleTests: XCTestCase {
     }
 
     @MainActor
-    func testScrubPreviewsTheCurveAndEndsOnNow() {
+    func testScrubPreviewsTheCurveAndEndsOnNow() throws {
         let suite = "EmberScrubTests.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suite)!
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         defaults.set(true, forKey: "didShowSetup")
         defaults.set(true, forKey: "enabled")
         defaults.set(false, forKey: "colorAppBypass")
-        let model = AppModel(defaults: defaults)
+        let model = AppModel(defaults: defaults, licenseLocked: false)
         let now = model.state
         model.scrub(to: 0)
         XCTAssertEqual(model.preview?.phase, .morning)

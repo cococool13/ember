@@ -1,24 +1,58 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct PreferencesView: View {
     @EnvironmentObject private var model: AppModel
+    @State private var choosingApp = false
+    @State private var invalidApp = false
 
     var body: some View {
-        Group {
-            locationRow
-            Toggle("True color apps", isOn: $model.colorAppBypass)
-                .help("Original color in Photos, Figma, Photoshop and other color apps.")
-            loginRow
-            if let error = model.loginError {
-                Text(error).font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+        locationRow
+        Toggle("True color apps", isOn: $model.colorAppBypass)
+            .help("Original color in Photos, Figma, Photoshop and other color apps.")
+        DisclosureGroup("Additional true color apps") {
+            ForEach(model.additionalColorApps.keys.sorted(by: appOrder), id: \.self) { id in
+                let name = model.additionalColorApps[id] ?? id
+                HStack {
+                    Text(name)
+                    Spacer()
+                    Button("Remove \(name)", systemImage: "minus.circle") {
+                        model.removeColorApp(bundleID: id)
+                    }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderless)
+                }
             }
-            Text("While on, Ember turns off Night Shift and quits f.lux so one app controls your light.")
-                .font(.caption).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Button("Set up again…") { model.showSetup?() }
+            Button("Add App…") { choosingApp = true }
         }
+        .fileImporter(isPresented: $choosingApp, allowedContentTypes: [.applicationBundle]) { result in
+            guard case let .success(url) = result else { return }
+            guard let bundle = Bundle(url: url), let id = bundle.bundleIdentifier else {
+                invalidApp = true
+                return
+            }
+            let name = FileManager.default.displayName(atPath: url.path)
+            model.addColorApp(bundleID: id, name: name)
+        }
+        .alert("Couldn’t add this app", isPresented: $invalidApp) {
+            Button("OK", role: .cancel) {}
+        }
+        loginRow
+        if let error = model.loginError {
+            Text(error).font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        Text("While on, Ember turns off Night Shift and quits f.lux so one app controls your light.")
+            .font(.caption).foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        Button("Set up again…") { model.showSetup?() }
+    }
+
+    private func appOrder(_ first: String, _ second: String) -> Bool {
+        let apps = model.additionalColorApps
+        let order = (apps[first] ?? first).localizedStandardCompare(apps[second] ?? second)
+        return order == .orderedSame ? first < second : order == .orderedAscending
     }
 
     private var locationRow: some View {
@@ -51,11 +85,15 @@ struct PreferencesView: View {
             Toggle("Open at login", isOn: Binding(get: { model.openAtLogin }, set: { model.setOpenAtLogin($0) }))
             if model.loginNeedsApproval || model.loginError != nil {
                 Button(!Installation.isInApplications() ? "Show in Finder" : (model.loginNeedsApproval ? "Allow in Login Items…" : "Check Login Items…")) {
-                    if Installation.isInApplications() { LoginItem.openSettings() } else { Installation.showInFinder() }
+                    if Installation.isInApplications() {
+                        LoginItem.openSettings()
+                    } else {
+                        Installation.showInFinder()
+                    }
                 }
-                    .buttonStyle(MiniPillStyle())
-                    .help(model.loginError ?? "macOS needs your approval")
-                    .padding(.bottom, 12)
+                .buttonStyle(MiniPillStyle())
+                .help(model.loginError ?? "macOS needs your approval")
+                .padding(.bottom, 12)
             }
         }
     }

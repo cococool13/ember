@@ -22,7 +22,6 @@
 		2BE6DAC1D01379647D97286B /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */; };
 		2D3CE7B0662BBD424EB2CF2C /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD9455B3FFDAD6D6E3A052C /* Analytics.swift */; };
 		2DC51342D44D81EB216A1AAC /* MenuBarMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D46140053FF98D187778E0 /* MenuBarMark.swift */; };
-		3D3B37AAC6D1B8DC2540A645 /* RobotoMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D162D9528F3F2B7C28851343 /* RobotoMono-Regular.ttf */; };
 		3F6CB064F2B0AA442F8E769B /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 31EEA72BCF5F671A6158A047 /* PostHog */; };
 		570FA4B23EC19843FF5EDDEB /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0906923197AB189DCD84B0A0 /* AppModelTests.swift */; };
 		67859A316F0412DBA2D2E6E3 /* Solar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2695ACEB14831776BE171871 /* Solar.swift */; };
@@ -30,11 +29,11 @@
 		78B9CA4A2393CF8AB9B1E469 /* EmberApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC635EBE2AC3C4079688D51C /* EmberApp.swift */; };
 		7D78F2E708DC62068AC25272 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CCAECECB01C03E7C4363DCA5 /* Assets.xcassets */; };
 		806B09AB638EC9B51F2A4B1D /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CBE3BA5EB37DB0633A5B6E /* Schedule.swift */; };
-		833F7FAA51C233305C8973F7 /* BarlowCondensed-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6752DDC80D86400E563D51FB /* BarlowCondensed-Regular.ttf */; };
 		8962BC36FC53074A4050F3C6 /* ScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E7063E306BF5B9BA797648B /* ScheduleTests.swift */; };
 		8A45FDD6936156EBFB8CFA20 /* SunTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73037730603AA7EDFCC5A41F /* SunTimeline.swift */; };
 		9FC0D2E39705A60FB2F07825 /* AnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DD810B25916D7765EC8931 /* AnalyticsTests.swift */; };
 		A01C5A37131AE9BB90CFF385 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2109C27E486EF90CCCA3B4E9 /* SetupView.swift */; };
+		A5E38243C26B8AE4DD55810D /* ScheduleDeadlineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35DB9C16841FF4BEFF2DBDC1 /* ScheduleDeadlineTests.swift */; };
 		AF96B136CDA4A331F06690CC /* SolarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3041D62A00584181B6223E /* SolarTests.swift */; };
 		C2181A13B04AA0EA828F0A1D /* ColorApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133B8690463D9CBFBF76DCA9 /* ColorApps.swift */; };
 		CF244C88743D1CC26FDA58F2 /* MainWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5706D96D080300FC878B3AA5 /* MainWindow.swift */; };
@@ -66,6 +65,7 @@
 		23CBE3BA5EB37DB0633A5B6E /* Schedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
 		2695ACEB14831776BE171871 /* Solar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Solar.swift; sourceTree = "<group>"; };
 		30DD810B25916D7765EC8931 /* AnalyticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsTests.swift; sourceTree = "<group>"; };
+		35DB9C16841FF4BEFF2DBDC1 /* ScheduleDeadlineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleDeadlineTests.swift; sourceTree = "<group>"; };
 		35FFAEBA297BB5AB64F260E5 /* FluxGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxGuard.swift; sourceTree = "<group>"; };
 		3C3A434538941A02FA9EE8B4 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		3E7063E306BF5B9BA797648B /* ScheduleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleTests.swift; sourceTree = "<group>"; };
@@ -76,7 +76,6 @@
 		560FB4DBE6731C4343D82111 /* ColorAppsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorAppsTests.swift; sourceTree = "<group>"; };
 		5706D96D080300FC878B3AA5 /* MainWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindow.swift; sourceTree = "<group>"; };
 		58D084BB873222B06781302E /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
-		6752DDC80D86400E563D51FB /* BarlowCondensed-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-Regular.ttf"; sourceTree = "<group>"; };
 		6A2B92CBF94C08F3AE0A4B34 /* NightShift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightShift.swift; sourceTree = "<group>"; };
 		6A3041D62A00584181B6223E /* SolarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolarTests.swift; sourceTree = "<group>"; };
 		71437483C0CF628522BDF4C4 /* LoginItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItem.swift; sourceTree = "<group>"; };
@@ -93,7 +92,6 @@
 		C477123C637BF589E1C3D0EF /* Installation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Installation.swift; sourceTree = "<group>"; };
 		CCAECECB01C03E7C4363DCA5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE97F4CC41BAF4D1450AB26F /* SleepScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepScheduleView.swift; sourceTree = "<group>"; };
-		D162D9528F3F2B7C28851343 /* RobotoMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RobotoMono-Regular.ttf"; sourceTree = "<group>"; };
 		D1E129474145FB033E3BBB86 /* Ember.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ember.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC635EBE2AC3C4079688D51C /* EmberApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberApp.swift; sourceTree = "<group>"; };
 		ED26FA11AE7FFC52DC8BE916 /* Intents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Intents.swift; sourceTree = "<group>"; };
@@ -133,19 +131,11 @@
 				C3E2644AADB6AAC3C73D8AB1 /* LocationServiceTests.swift */,
 				0BD66A22F293D40A5CBB5111 /* PanelTests.swift */,
 				1146318C4ADF0362CB1CD8CD /* PerformanceTests.swift */,
+				35DB9C16841FF4BEFF2DBDC1 /* ScheduleDeadlineTests.swift */,
 				3E7063E306BF5B9BA797648B /* ScheduleTests.swift */,
 				6A3041D62A00584181B6223E /* SolarTests.swift */,
 			);
 			path = EmberTests;
-			sourceTree = "<group>";
-		};
-		460A1801D28B212F9F56AC9A /* Fonts */ = {
-			isa = PBXGroup;
-			children = (
-				6752DDC80D86400E563D51FB /* BarlowCondensed-Regular.ttf */,
-				D162D9528F3F2B7C28851343 /* RobotoMono-Regular.ttf */,
-			);
-			path = Fonts;
 			sourceTree = "<group>";
 		};
 		56E6B0F7A59E63C82AB86141 /* Ember */ = {
@@ -177,7 +167,6 @@
 				AEEEBA365F0E9DEA369F9B3B /* StatusItem.swift */,
 				73037730603AA7EDFCC5A41F /* SunTimeline.swift */,
 				3C3A434538941A02FA9EE8B4 /* Theme.swift */,
-				460A1801D28B212F9F56AC9A /* Fonts */,
 			);
 			path = Ember;
 			sourceTree = "<group>";
@@ -281,8 +270,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				7D78F2E708DC62068AC25272 /* Assets.xcassets in Resources */,
-				833F7FAA51C233305C8973F7 /* BarlowCondensed-Regular.ttf in Resources */,
-				3D3B37AAC6D1B8DC2540A645 /* RobotoMono-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -331,6 +318,7 @@
 				DC73C7A1AFA73AC24D415E20 /* LocationServiceTests.swift in Sources */,
 				FB8BF04338BCC9D9D9601BD9 /* PanelTests.swift in Sources */,
 				0B454DB03E5AE3D0E84B7883 /* PerformanceTests.swift in Sources */,
+				A5E38243C26B8AE4DD55810D /* ScheduleDeadlineTests.swift in Sources */,
 				8962BC36FC53074A4050F3C6 /* ScheduleTests.swift in Sources */,
 				AF96B136CDA4A331F06690CC /* SolarTests.swift in Sources */,
 			);
@@ -372,7 +360,7 @@
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -389,7 +377,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.6.1;
+				MARKETING_VERSION = 0.6.2;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
@@ -436,7 +424,6 @@
 				DEVELOPMENT_TEAM = CU8NTJWQ43;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -481,7 +468,7 @@
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -499,7 +486,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.6.1;
+				MARKETING_VERSION = 0.6.2;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;

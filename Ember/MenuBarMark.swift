@@ -1,5 +1,4 @@
 import AppKit
-import CoreText
 import SwiftUI
 
 /// The Ember mark: a disc with its lit side toward the lower right, like the
@@ -19,10 +18,14 @@ enum EmberGeometry {
         }
         let steps = 48
         let path = CGMutablePath()
-        for i in 0...steps {
+        for i in 0 ... steps {
             let t = -Double.pi / 2 + Double.pi * Double(i) / Double(steps)
             let p = place(r * CGFloat(cos(t)), r * CGFloat(sin(t)))
-            if i == 0 { path.move(to: p) } else { path.addLine(to: p) }
+            if i == 0 {
+                path.move(to: p)
+            } else {
+                path.addLine(to: p)
+            }
         }
         for i in stride(from: steps, through: 0, by: -1) {
             let t = -Double.pi / 2 + Double.pi * Double(i) / Double(steps)
@@ -93,18 +96,5 @@ struct EmberMark: View {
             context.fill(crescent, with: shading)
         }
         .accessibilityHidden(true)
-    }
-}
-
-enum Fonts {
-    static func register() {
-        let names = ["BarlowCondensed-Regular", "RobotoMono-Regular"]
-        for name in names {
-            let url = Bundle.main.url(forResource: name, withExtension: "ttf", subdirectory: "Fonts")
-                ?? Bundle.main.url(forResource: name, withExtension: "ttf")
-            if let url {
-                CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
-            }
-        }
     }
 }

@@ -1,7 +1,21 @@
-import XCTest
 @testable import Ember
+import XCTest
 
 final class DisplayEngineTests: XCTestCase {
+    @MainActor
+    func testSteadyTargetSkipsWritesButDisplayRefreshCanReapply() {
+        let night = DisplayEngine.Target(kelvin: 1800, dim: 0.55)
+        var writes: [DisplayEngine.Target] = []
+        let fader = DisplayFader(apply: { writes.append($0) })
+        fader.release(animated: true)
+        fader.snap(night)
+        fader.show(night)
+        fader.show(night)
+        XCTAssertEqual(writes, [night])
+        fader.snap(night)
+        XCTAssertEqual(writes, [night, night])
+    }
+
     func testDaylightTemperatureIsNearWhite() {
         let rgb = Temperature.rgb(kelvin: 6500)
         XCTAssertEqual(rgb.r, 1, accuracy: 0.05)

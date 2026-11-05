@@ -3,127 +3,161 @@ import SwiftUI
 
 struct MenuBarView: View {
     @EnvironmentObject private var model: AppModel
+    @Environment(\.colorScheme) private var colorScheme
     var inMainWindow = false
+    var updateClock = false
+
+    private var accent: Color {
+        colorScheme == .dark ? Color(red: 0.63, green: 0.77, blue: 0.94)
+            : Color(red: 0.20, green: 0.37, blue: 0.58)
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: inMainWindow ? 24 : 16) {
+        VStack(alignment: .leading, spacing: 11) {
             header
-            currentLight
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Night light").emberLabel(16).foregroundStyle(Theme.white)
-                SegmentedPills(options: NightStrength.allCases, label: \.label, selection: $model.strength)
+            Divider()
+            if updateClock && (model.state.kelvin == Schedule.dayKelvin || model.state.phase == .night) {
+                TimelineView(.everyMinute) { timeline in light(at: timeline.date) }
+            } else {
+                light(at: nil)
             }
-            .emberCard()
-            Spacer(minLength: 0)
+            Divider()
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Night strength").font(.system(size: 12, weight: .semibold))
+                Picker("Night strength", selection: $model.strength) {
+                    ForEach(NightStrength.allCases, id: \.self) { Text($0.label).tag($0) }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .disabled(model.needsOnboarding || model.licenseLocked)
+            }
             if !inMainWindow {
+                Spacer(minLength: 0)
+                Divider()
                 footer
             }
         }
-        .padding(inMainWindow ? 28 : 16)
-        .frame(maxWidth: inMainWindow ? 620 : Theme.panelWidth)
+        .padding(inMainWindow ? 28 : 18)
+        .frame(maxWidth: inMainWindow ? 620 : Theme.panelWidth, alignment: .leading)
         .frame(width: inMainWindow ? nil : Theme.panelWidth, height: inMainWindow ? nil : Theme.panelHeight)
         .background {
             if !inMainWindow {
-                PanelMaterial()
+                PanelMaterial(surface: colorScheme == .dark ? Color(red: 0.09, green: 0.12, blue: 0.16)
+                    : Color(red: 0.95, green: 0.96, blue: 0.98), opacity: 0.88)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: Theme.panelRadius, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: Theme.panelRadius, style: .continuous)
-            .stroke(inMainWindow ? .clear : Theme.steel, lineWidth: Theme.hairline))
-        .preferredColorScheme(.dark)
+        .clipShape(.rect(cornerRadius: Theme.panelRadius))
+        .overlay {
+            if !inMainWindow {
+                RoundedRectangle(cornerRadius: Theme.panelRadius).strokeBorder(.primary.opacity(0.13))
+            }
+        }
     }
 
     private var header: some View {
-        HStack(spacing: 10) {
-            EmberMark(lit: model.isActive).frame(width: 22, height: 22)
-                .accessibilityHidden(true)
-            Text("Ember").emberLabel(22)
+        HStack(spacing: 8) {
+            EmberMark(lit: model.isActive).frame(width: 20, height: 20)
+            Text("Ember").font(.system(size: 14, weight: .semibold))
             Spacer()
-            EmberSwitch(isOn: $model.enabled, label: "Ember")
+            Toggle("Ember", isOn: $model.enabled)
+                .toggleStyle(.switch)
+                .labelsHidden()
+                .controlSize(.small)
+                .tint(accent)
         }
-        .foregroundStyle(Theme.white)
-        .frame(height: 30)
+        .frame(minHeight: 24)
     }
 
-    private var currentLight: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(headline).emberLabel(inMainWindow ? 48 : 34).foregroundStyle(Theme.white)
-                    Text(description).font(Theme.body(12)).foregroundStyle(Theme.ash)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 0)
-                if model.isActive || model.preview != nil {
-                    Text(verbatim: "\(Int(shown.kelvin.rounded()))K").emberReading(11)
-                        .foregroundStyle(Theme.smoke).padding(.top, 9)
+    private func light(at date: Date?) -> some View {
+        let current = date.map {
+            let elapsed = Schedule.minutesBetween(Double(model.state.plan.wake.minutes),
+                                                  Schedule.minutes(in: $0, calendar: .current))
+            return Schedule.state(elapsed: elapsed, plan: model.state.plan, strength: model.strength)
+        } ?? model.state
+        let shown = model.preview ?? current
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(headline(phase: shown.phase))
+                    .font(.system(size: 30, weight: .medium, design: .rounded))
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 8)
+                if model.isActive {
+                    Text("\(Int(shown.kelvin.rounded()).formatted()) K")
+                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        .foregroundStyle(accent)
+                        .accessibilityLabel("\(Int(shown.kelvin.rounded())) kelvin")
                 }
             }
             SunTimeline(
-                plan: model.state.plan,
-                progress: model.preview?.dayProgress ?? model.state.dayProgress,
-                active: model.isActive || model.preview != nil,
-                sunrise: clock(model.solar?.sunrise), sunset: clock(model.solar?.sunset),
+                plan: current.plan, progress: shown.dayProgress, strength: model.strength,
+                active: model.isActive, accent: accent, previewing: model.preview != nil,
                 onScrub: { model.scrub(to: $0) }, onEnd: { model.endScrub() },
                 expanded: inMainWindow
             )
             .disabled(!model.isActive)
             HStack(spacing: 8) {
-                Text(nextReading).font(Theme.body(11)).foregroundStyle(Theme.ash)
-                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 0)
-                if model.preview != nil {
-                    Button("Return to now") { model.endScrub() }
-                        .buttonStyle(MiniPillStyle(emphasized: true))
-                } else if model.enabled && !model.needsOnboarding && !model.licenseLocked {
-                    Button(model.isTimedPause ? "Resume" : "Pause 1h") {
-                        if model.isTimedPause {
-                            model.resume()
-                        } else {
-                            model.pause(hours: 1)
-                        }
-                    }
-                    .buttonStyle(MiniPillStyle(emphasized: true))
-                    .keyboardShortcut("p", modifiers: .command)
-                    .help(model.isTimedPause ? "Return to your schedule" : "Original display color for one hour")
+                Text(detail(for: shown))
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 4)
+                quickAction
+            }
+            .frame(minHeight: 24)
+        }
+    }
+
+    @ViewBuilder private var quickAction: some View {
+        if model.preview != nil {
+            Button("Return to Now") { model.endScrub() }
+        } else if model.needsOnboarding {
+            Button("Finish Setup") { model.showSetup?() }
+        } else if model.licenseLocked {
+            Button("Activate…") { model.showLicense?() }
+        } else if model.enabled {
+            if model.isTimedPause {
+                Button("Resume") { model.resume() }.keyboardShortcut("p", modifiers: .command)
+            } else {
+                Menu("Pause") {
+                    Button("For One Hour") { model.pause(hours: 1) }
+                        .keyboardShortcut("p", modifiers: .command)
+                    Button("Until Morning") { model.pauseUntilMorning() }
                 }
+                .fixedSize()
+                .controlSize(.small)
             }
         }
-        .emberCard()
     }
 
     private var footer: some View {
-        HStack(spacing: 16) {
-            if model.needsOnboarding {
-                Button("Finish setup") { model.showSetup?() }
-            } else if model.licenseLocked {
-                Button("Activate…") { model.showLicense?() }
-            } else if !inMainWindow {
-                Button("Open Ember") { model.showMainWindow?() }
-                    .keyboardShortcut("o", modifiers: .command)
-            }
-            Spacer(minLength: 0)
-            Button("Settings…") { model.showPreferences?() }
+        HStack(spacing: 12) {
+            Button("Open Ember") { model.showMainWindow?() }
+                .buttonStyle(.plain)
+                .keyboardShortcut("o", modifiers: .command)
+            Spacer()
+            Button("Settings", systemImage: "gearshape") { model.showPreferences?() }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .help("Settings")
                 .keyboardShortcut(",", modifiers: .command)
-            Button("Quit") { model.quit() }
-                .keyboardShortcut("q", modifiers: .command)
+            Menu {
+                Button("Quit Ember") { model.quit() }.keyboardShortcut("q", modifiers: .command)
+            } label: {
+                Label("More Actions", systemImage: "ellipsis.circle")
+                    .labelStyle(.iconOnly)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
         }
-        .buttonStyle(.plain)
-        .font(Theme.body(12))
-        .foregroundStyle(Theme.ash)
-        .frame(height: 24)
+        .font(.system(size: 12, weight: .medium))
+        .foregroundStyle(.secondary)
+        .frame(minHeight: 20)
     }
 
-    private var shown: LightState {
-        model.preview ?? model.state
-    }
-
-    private var headline: String {
-        if let preview = model.preview {
-            return preview.phase.title
-        }
+    private func headline(phase: Phase) -> String {
         if model.needsOnboarding {
-            return "Ready when you are"
+            return "Set up Ember"
         }
         if model.licenseLocked {
             return "Not activated"
@@ -137,54 +171,34 @@ struct MenuBarView: View {
         if model.colorAppName != nil {
             return "True color"
         }
-        return model.state.phase.title
+        return phase.title
     }
 
-    private var description: String {
-        if model.needsOnboarding {
-            return "Set your schedule to start Ember."
-        }
-        if model.licenseLocked {
-            return "Your original display color."
-        }
-        if !model.enabled || model.isPaused {
-            return "Your original display color."
-        }
-        switch shown.phase {
-        case .morning: return "Easing into the day."
-        case .day: return "Your display’s original color."
-        case .evening: return "Warmer light before bedtime."
-        case .night: return "Warm and dim until you wake."
-        }
-    }
-
-    private var nextReading: String {
+    private func detail(for shown: LightState) -> String {
         if let preview = model.preview {
             let time = ClockTime.from(fractionalMinutes: Double(preview.plan.wake.minutes) + preview.dayProgress * preview.plan.awakeMinutes)
             return "Preview · \(time.label)"
         }
-        if model.needsOnboarding {
-            return "Setup takes about a minute"
-        }
-        if model.licenseLocked {
-            return "Activate with the key from your purchase email"
-        }
-        if !model.enabled {
-            return "Turn on to follow your schedule"
+        if model.needsOnboarding || model.licenseLocked || !model.enabled {
+            return "Original display color"
         }
         if let until = model.pausedUntil, model.isTimedPause {
-            return "Back at \(clock(until)?.label ?? "")"
+            return "Resumes at \(until.formatted(date: .omitted, time: .shortened))"
         }
         if let name = model.colorAppName {
-            return "While \(name) is frontmost"
+            return "While \(name) is in front"
         }
-        let time = ClockTime.from(fractionalMinutes: Schedule.minutes(in: Date(), calendar: .current) + Double(model.state.minutesUntilNext))
-        return "\(model.state.nextPhase.title) at \(time.label)"
-    }
-
-    private func clock(_ date: Date?) -> ClockTime? {
-        guard let date else { return nil }
-        let c = Calendar.current.dateComponents([.hour, .minute], from: date)
-        return ClockTime(hour: c.hour ?? 0, minute: c.minute ?? 0)
+        let plan = shown.plan
+        if plan.tooShort {
+            return "Check your wake and bed times"
+        }
+        let nextTime: ClockTime
+        switch shown.phase {
+        case .morning: nextTime = plan.morningEnd
+        case .day: nextTime = plan.eveningStart
+        case .evening: nextTime = plan.bed
+        case .night: nextTime = plan.wake
+        }
+        return "\(shown.nextPhase.title) at \(nextTime.label)"
     }
 }

@@ -1,148 +1,108 @@
 import AppKit
 import SwiftUI
 
-/// Lumy-style sun timeline, flattened for a menu panel: the waking day as one
-/// track, with the morning ramp, day, wind-down and night marked in stages of
-/// a single accent. Ticks mark sunrise and sunset when they fall in the day.
-/// Drag along it and the screen shows that moment's light until you let go.
+/// The waking day's temperature curve. The playhead previews the actual
+/// display adjustment until the user releases it or returns to now.
 struct SunTimeline: View {
     var plan: DayPlan
     var progress: Double
+    var strength: NightStrength
     var active: Bool
-    var sunrise: ClockTime?
-    var sunset: ClockTime?
+    var accent: Color
+    var previewing: Bool
     var onScrub: (Double) -> Void
     var onEnd: () -> Void
     var expanded = false
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var scrubbing = false
-    @State private var hovering = false
     @State private var trackWidth: CGFloat = 1
     @FocusState private var focused: Bool
 
-    private var trackHeight: CGFloat {
-        expanded ? 12 : 6
-    }
-
-    private let markerSize: CGFloat = 10
+    private let inset: CGFloat = 5
 
     var body: some View {
-        VStack(spacing: expanded ? 12 : 6) {
-            if expanded {
-                HStack {
-                    Label("Wake", systemImage: "sunrise")
-                    Spacer()
-                    Label("Bedtime", systemImage: "moon")
-                }
-                .font(Theme.body(12)).foregroundStyle(Theme.ash)
-            }
+        VStack(spacing: 5) {
             GeometryReader { geo in
-                let w = geo.size.width
-                let p = min(1, max(0, progress))
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Theme.graphite)
-                        .frame(height: trackHeight)
-                    segment(from: 0, to: plan.morningFraction, width: w, color: Theme.ember.opacity(0.45))
-                    segment(from: plan.morningFraction, to: plan.eveningFraction, width: w, color: Theme.ash.opacity(0.28))
-                    segment(from: plan.eveningFraction, to: plan.duskFraction, width: w, color: Theme.ember.opacity(0.7))
-                    segment(from: plan.duskFraction, to: 1, width: w, color: Theme.ember.opacity(0.4))
-                    ForEach(sunTicks(width: w), id: \.self) { x in
-                        Rectangle()
-                            .fill(Theme.ash.opacity(0.7))
-                            .frame(width: 1, height: trackHeight + 6)
-                            .offset(x: x)
-                    }
-                    Circle()
-                        .fill(active ? Theme.ember : Theme.smoke)
-                        .frame(width: markerSize, height: markerSize)
-                        .overlay(Circle().stroke(Theme.void, lineWidth: 2))
-                        .scaleEffect(scrubbing ? 1.4 : 1)
-                        .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: scrubbing)
-                        .offset(x: (w - markerSize) * p)
+                Canvas { context, size in
+                    drawCurve(in: context, size: size)
                 }
-                .frame(height: expanded ? 48 : 24)
-                .onAppear { trackWidth = w }
-                .onChange(of: w) { _, new in trackWidth = new }
+                .onAppear { trackWidth = geo.size.width }
+                .onChange(of: geo.size.width) { _, new in trackWidth = new }
             }
-            .frame(height: expanded ? 48 : 24)
+            .frame(height: expanded ? 100 : 67)
             HStack {
                 Text(plan.wake.label)
                 Spacer()
                 Text(plan.bed.label)
             }
-            .emberReading(10)
-            .foregroundStyle(Theme.smoke)
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(.secondary)
         }
-        // The track and its time labels are one drag target.
         .contentShape(Rectangle())
         .focusable()
         .focused($focused)
         .focusEffectDisabled()
-        .overlay(RoundedRectangle(cornerRadius: 6).stroke(focused ? Theme.ember : .clear, lineWidth: 2).padding(-4))
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(focused ? accent : .clear, lineWidth: 2).padding(-4))
         .onKeyPress(.leftArrow) { adjust(by: -15); return .handled }
         .onKeyPress(.rightArrow) { adjust(by: 15); return .handled }
         .onKeyPress(.escape) { onEnd(); return .handled }
         .onKeyPress(.return) { onEnd(); return .handled }
         .gesture(
             DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    scrubbing = true
-                    onScrub(Double((value.location.x - markerSize / 2) / max(trackWidth - markerSize, 1)))
-                }
-                .onEnded { _ in
-                    scrubbing = false
-                    onEnd()
-                }
+                .onChanged { value in onScrub(Double((value.location.x - inset) / max(trackWidth - inset * 2, 1))) }
+                .onEnded { _ in onEnd() }
         )
-        .onHover { inside in
-            guard inside != hovering else { return }
-            hovering = inside
-            if inside {
-                NSCursor.resizeLeftRight.push()
-            } else {
-                NSCursor.pop()
-            }
-        }
-        .onDisappear {
-            if hovering {
-                NSCursor.pop()
-            }
-            if scrubbing {
-                onEnd()
-            }
-        }
-        .help("Drag to see any time of day on your screen")
+        .help("Drag to preview the light at a different time")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Day timeline")
         .accessibilityValue(ClockTime.from(fractionalMinutes: Double(plan.wake.minutes) + progress * plan.awakeMinutes).label)
         .accessibilityHint("Use arrow keys to preview. Press Return to go back to now.")
         .accessibilityAdjustableAction { direction in
-            adjust(by: direction == .increment ? 15 : -15)
+            switch direction {
+            case .increment: adjust(by: 15)
+            case .decrement: adjust(by: -15)
+            @unknown default: break
+            }
         }
         .accessibilityAction(named: "Return to now") { onEnd() }
     }
 
+    private func drawCurve(in context: GraphicsContext, size: CGSize) {
+        let span = max(1, size.width - inset * 2)
+        let bottom = size.height - inset
+        let height = max(1, bottom - inset)
+        func point(_ fraction: Double) -> CGPoint {
+            let state = Schedule.state(elapsed: fraction * plan.awakeMinutes, plan: plan, strength: strength)
+            let mired = 1_000_000 / state.kelvin
+            let warmth = min(1, max(0, (mired - 147) / (625 - 147)))
+            return CGPoint(x: inset + span * CGFloat(fraction), y: inset + height * CGFloat(warmth))
+        }
+
+        var curve = Path()
+        curve.move(to: point(0))
+        for step in 1 ... 128 {
+            curve.addLine(to: point(Double(step) / 128))
+        }
+        var area = curve
+        area.addLine(to: CGPoint(x: inset + span, y: bottom))
+        area.addLine(to: CGPoint(x: inset, y: bottom))
+        area.closeSubpath()
+        let ink: Color = active ? accent : .secondary
+        context.fill(area, with: .color(ink.opacity(0.13)))
+        context.stroke(curve, with: .color(ink), style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+        if active {
+            let marker = point(progress)
+            var needle = Path()
+            needle.move(to: CGPoint(x: marker.x, y: inset))
+            needle.addLine(to: CGPoint(x: marker.x, y: bottom))
+            context.stroke(needle, with: .color(Color.primary.opacity(0.5)), style: StrokeStyle(lineWidth: 1, dash: [2, 3]))
+            let radius: CGFloat = previewing ? 4.5 : 3.5
+            let knob = Path(ellipseIn: CGRect(x: marker.x - radius, y: marker.y - radius,
+                                              width: radius * 2, height: radius * 2))
+            context.fill(knob, with: .color(.primary))
+        }
+    }
+
     private func adjust(by minutes: Double) {
         onScrub(min(1, max(0, progress + minutes / max(plan.awakeMinutes, 1))))
-    }
-
-    private func segment(from: Double, to: Double, width: CGFloat, color: Color) -> some View {
-        let start = width * CGFloat(min(from, to))
-        let length = max(0, width * CGFloat(to - from))
-        return Capsule()
-            .fill(color)
-            .frame(width: length, height: trackHeight)
-            .offset(x: start)
-    }
-
-    private func sunTicks(width: CGFloat) -> [CGFloat] {
-        [sunrise, sunset].compactMap { time -> CGFloat? in
-            guard let time, plan.awakeMinutes > 0 else { return nil }
-            let elapsed = Schedule.minutesBetween(Double(plan.wake.minutes), Double(time.minutes))
-            guard elapsed < plan.awakeMinutes else { return nil }
-            return width * CGFloat(elapsed / plan.awakeMinutes)
-        }
     }
 }

@@ -1,7 +1,7 @@
 import AppKit
+@testable import Ember
 import SwiftUI
 import XCTest
-@testable import Ember
 
 final class PanelTests: XCTestCase {
     func testSunLineFollowsPermission() {
@@ -29,9 +29,14 @@ final class PanelTests: XCTestCase {
     /// The panel has to fit under the menu bar on a 13-inch display.
     @MainActor
     func testPanelFitsUnder760Points() {
-        let height = render(makeModel(), name: "panel-now").height
+        let model = makeModel()
+        let height = render(model, name: "panel-now").height
         XCTAssertGreaterThan(height, 300)
         XCTAssertLessThan(height, 760)
+        XCTAssertEqual(renderView(MenuBarView().environmentObject(model), name: "panel-light",
+                                  width: Theme.panelWidth, appearance: .aqua).height, height)
+        model.licenseLocked = true
+        XCTAssertEqual(render(model, name: "panel-locked").height, height)
     }
 
     @MainActor
@@ -58,7 +63,7 @@ final class PanelTests: XCTestCase {
         defaults.set(true, forKey: "didShowSetup")
         defaults.set(true, forKey: "enabled")
         defaults.set(false, forKey: "colorAppBypass")
-        let model = AppModel(defaults: defaults)
+        let model = AppModel(defaults: defaults, licenseLocked: false)
         defaults.removePersistentDomain(forName: suite)
         return model
     }
@@ -68,7 +73,7 @@ final class PanelTests: XCTestCase {
         let model = makeModel()
         XCTAssertEqual(renderView(SettingsWindowView().environmentObject(model).frame(width: 568, height: 640), name: "panel-settings", width: 568).width, 568)
         XCTAssertEqual(renderView(MainWindowView().environmentObject(model).frame(width: 660, height: 556), name: "main-window", width: 660).width, 660)
-        for step in 0...2 {
+        for step in 0 ... 2 {
             XCTAssertEqual(renderView(SetupView(finish: {}, step: step).environmentObject(model), name: "setup-\(step)", width: 480).height, 520)
         }
     }
@@ -81,7 +86,7 @@ final class PanelTests: XCTestCase {
         let cold = status.lastOpenLatencyMilliseconds
         status.closeImmediately()
         var samples: [Double] = []
-        for _ in 0..<20 {
+        for _ in 0 ..< 20 {
             model.scrub(to: 0.8)
             XCTAssertTrue(status.open())
             samples.append(status.lastOpenLatencyMilliseconds)
@@ -107,11 +112,11 @@ final class PanelTests: XCTestCase {
             }
             return true
         }
-        let rep = NSBitmapImageRep(
+        let rep = try XCTUnwrap(NSBitmapImageRep(
             bitmapDataPlanes: nil, pixelsWide: 18 * 7 * 4, pixelsHigh: 18 * 4, bitsPerSample: 8,
             samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
             bytesPerRow: 0, bitsPerPixel: 0
-        )!
+        ))
         rep.size = strip.size
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
@@ -125,13 +130,13 @@ final class PanelTests: XCTestCase {
     /// folder to also write what it looks like.
     @MainActor
     private func render(_ model: AppModel, name: String) -> NSSize {
-        Fonts.register()
         return renderView(MenuBarView().environmentObject(model), name: name, width: Theme.panelWidth)
     }
 
     @MainActor
-    private func renderView<V: View>(_ view: V, name: String, width: CGFloat) -> NSSize {
-        Fonts.register()
+    private func renderView<V: View>(_ view: V, name: String, width: CGFloat,
+                                     appearance: NSAppearance.Name = .darkAqua) -> NSSize
+    {
         let host = NSHostingView(rootView: view)
         host.frame = NSRect(x: 0, y: 0, width: width, height: 10)
         let size = host.fittingSize
@@ -144,7 +149,7 @@ final class PanelTests: XCTestCase {
                 backing: .buffered,
                 defer: false
             )
-            window.appearance = NSAppearance(named: .darkAqua)
+            window.appearance = NSAppearance(named: appearance)
             window.contentView = host
             window.displayIfNeeded()
             if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {

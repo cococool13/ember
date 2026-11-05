@@ -7,7 +7,9 @@ final class AppModel: ObservableObject {
     @Published var enabled: Bool {
         didSet {
             defaults.set(enabled, forKey: Keys.enabled)
-            if !enabled { pausedUntil = nil }
+            if !enabled {
+                pausedUntil = nil
+            }
             tick()
         }
     }
@@ -28,6 +30,8 @@ final class AppModel: ObservableObject {
         didSet { defaults.set(colorAppBypass, forKey: Keys.colorAppBypass); tick() }
     }
 
+    @Published private(set) var additionalColorApps: [String: String]
+
     @Published var pausedUntil: Date?
     /// The moment the user is scrubbing to on the day timeline. While set, the
     /// screen shows this light instead of now.
@@ -44,9 +48,14 @@ final class AppModel: ObservableObject {
 
     @Published private(set) var needsOnboarding: Bool
     /// No valid license on this Mac. Ember keeps true color until one is activated.
-    @Published var licenseLocked = false {
-        didSet { if licenseLocked != oldValue { tick() } }
+    @Published var licenseLocked: Bool {
+        didSet {
+            if licenseLocked != oldValue {
+                tick()
+            }
+        }
     }
+
     var showSetup: (() -> Void)?
     var showLicense: (() -> Void)?
     var showMainWindow: (() -> Void)?
@@ -57,25 +66,32 @@ final class AppModel: ObservableObject {
     let location: LocationService
     private let fader = DisplayFader()
     private var timer: Timer?
+    private var screensAsleep = false
     private var solarCache = Solar.DayCache()
     private var applyingProfile = false
-    /// The screen just woke. Its next frame is the target itself, not a fade
-    /// up from daylight white.
+    /// Wake or display reconfiguration invalidates what the fader last wrote.
     private var screenWoke = false
     private var observers: [NSObjectProtocol] = []
     private var cancellables = Set<AnyCancellable>()
 
     var isTimedPause: Bool {
-        if let pausedUntil, pausedUntil > Date() { return true }
+        if let pausedUntil, pausedUntil > Date() {
+            return true
+        }
         return false
     }
 
-    var isPaused: Bool { isTimedPause || colorAppName != nil }
+    var isPaused: Bool {
+        isTimedPause || colorAppName != nil
+    }
 
-    var isActive: Bool { enabled && !isPaused && !needsOnboarding && !licenseLocked }
+    var isActive: Bool {
+        enabled && !isPaused && !needsOnboarding && !licenseLocked
+    }
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, licenseLocked: Bool = true) {
         self.defaults = defaults
+        self.licenseLocked = licenseLocked
         needsOnboarding = !defaults.bool(forKey: Keys.didShowSetup)
         location = LocationService(defaults: defaults)
         let wake = ClockTime.from(minutes: defaults.object(forKey: Keys.wake) as? Int ?? RecommendedProfile.wake.minutes)
@@ -86,6 +102,7 @@ final class AppModel: ObservableObject {
         self.bed = bed
         self.strength = strength
         colorAppBypass = defaults.object(forKey: Keys.colorAppBypass) as? Bool ?? true
+        additionalColorApps = defaults.dictionary(forKey: Keys.additionalColorApps) as? [String: String] ?? [:]
         state = Schedule.state(now: Date(), wake: wake, bed: bed, sunrise: nil, sunset: nil, strength: strength)
         let testing = Self.isRunningTests
         openAtLogin = testing ? false : LoginItem.isRequested
@@ -128,12 +145,13 @@ final class AppModel: ObservableObject {
     /// The panel is open: pick up a login-item approval or a Settings change.
     func refreshWhileVisible() {
         guard !Self.isRunningTests else { return }
+        tick()
         refreshLoginStatus()
         location.resumeIfAuthorized()
     }
 
     /// The model the app runs on. App Intents act through it.
-    private(set) static weak var current: AppModel?
+    private(set) weak static var current: AppModel?
 
     static func running() throws -> AppModel {
         guard let current else { throw EmberIntentError.notRunning }
@@ -147,28 +165,35 @@ final class AppModel: ObservableObject {
             DisplayEngine.restore()
         }
         tick()
-        if Self.isRunningTests { return }
+        if Self.isRunningTests {
+            return
+        }
 
         let workspace = NSWorkspace.shared.notificationCenter
-        observe(workspace, NSWorkspace.didWakeNotification) { [weak self] in
-            self?.screenWoke = true
-            self?.location.refresh()
-            self?.tick()
-        }
-        observe(workspace, NSWorkspace.screensDidWakeNotification) { [weak self] in
-            self?.screenWoke = true
-            self?.location.refresh()
-            self?.tick()
-        }
+        observe(workspace, NSWorkspace.didWakeNotification) { [weak self] in self?.wakeDisplays() }
+        observe(workspace, NSWorkspace.screensDidWakeNotification) { [weak self] in self?.wakeDisplays() }
         observe(workspace, NSWorkspace.screensDidSleepNotification) { [weak self] in
-            self?.fader.release(animated: false)
+            self?.suspendDisplays()
         }
         observe(workspace, NSWorkspace.didActivateApplicationNotification) { [weak self] in
-            self?.tick()
+            guard let self, self.enabled, !self.needsOnboarding, !self.licenseLocked,
+                  self.frontmostColorApp != self.colorAppName else { return }
+            self.tick()
         }
+        let launchObserver = workspace.addObserver(
+            forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main
+        ) { [weak self] notification in
+            let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            guard let id = app?.bundleIdentifier, FluxGuard.bundleIDs.contains(id) else { return }
+            Task { @MainActor in self?.tick() }
+        }
+        observers.append(launchObserver)
         observe(NotificationCenter.default, NSApplication.didChangeScreenParametersNotification) { [weak self] in
+            self?.screenWoke = true
             self?.tick()
         }
+        observe(NotificationCenter.default, .NSSystemClockDidChange) { [weak self] in self?.tick() }
+        observe(NotificationCenter.default, .NSSystemTimeZoneDidChange) { [weak self] in self?.tick() }
         observe(NotificationCenter.default, NSApplication.didBecomeActiveNotification) { [weak self] in
             self?.refreshLoginStatus()
             self?.location.resumeIfAuthorized()
@@ -182,16 +207,71 @@ final class AppModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    func suspendDisplays() {
+        screensAsleep = true
+        preview = nil
+        timer?.invalidate()
+        timer = nil
+        if !Self.isRunningTests {
+            fader.release(animated: false)
+        }
+    }
+
+    func wakeDisplays() {
+        screensAsleep = false
+        screenWoke = true
+        if !Self.isRunningTests {
+            location.refresh()
+        }
+        tick()
+    }
+
     func pause(hours: Double) {
         preview = nil
         pausedUntil = Date().addingTimeInterval(hours * 3600)
         tick()
     }
 
+    func addColorApp(bundleID: String, name: String) {
+        guard !ColorApps.matches(bundleID: bundleID, additional: additionalColorApps) else { return }
+        additionalColorApps[bundleID] = name
+        saveColorApps()
+    }
+
+    func removeColorApp(bundleID: String) {
+        guard additionalColorApps.removeValue(forKey: bundleID) != nil else { return }
+        saveColorApps()
+    }
+
+    private func saveColorApps() {
+        defaults.set(additionalColorApps, forKey: Keys.additionalColorApps)
+        tick()
+    }
+
+    private var frontmostColorApp: String? {
+        guard colorAppBypass else { return nil }
+        return ColorApps.match(NSWorkspace.shared.frontmostApplication, additional: additionalColorApps)
+    }
+
+    /// Pause through the next sunrise, or the scheduled wake when there is no sunrise.
+    func pauseUntilMorning(now: Date = Date(), calendar: Calendar = .current) {
+        let today = solarCache.events(on: now, latitude: location.latitude,
+                                      longitude: location.longitude, timeZone: calendar.timeZone)
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: now)
+        let nextSunrise = (today?.sunrise).flatMap { $0 > now ? $0 : nil } ?? tomorrow.flatMap {
+            solarCache.events(on: $0, latitude: location.latitude,
+                              longitude: location.longitude, timeZone: calendar.timeZone)?.sunrise
+        }
+        guard let until = nextSunrise ?? Schedule.nextWake(after: now, wake: wake, calendar: calendar) else { return }
+        preview = nil
+        pausedUntil = until
+        tick()
+    }
+
     func setOpenAtLogin(_ on: Bool) {
         guard !Self.isRunningTests else { return }
         loginError = nil
-        if on && !Installation.isInApplications() {
+        if on, !Installation.isInApplications() {
             loginError = "Move Ember to Applications, then open that copy."
             return
         }
@@ -206,8 +286,12 @@ final class AppModel: ObservableObject {
     private func refreshLoginStatus() {
         let requested = LoginItem.isRequested
         let needsApproval = LoginItem.needsApproval
-        if openAtLogin != requested { openAtLogin = requested }
-        if loginNeedsApproval != needsApproval { loginNeedsApproval = needsApproval }
+        if openAtLogin != requested {
+            openAtLogin = requested
+        }
+        if loginNeedsApproval != needsApproval {
+            loginNeedsApproval = needsApproval
+        }
     }
 
     func resume() {
@@ -218,12 +302,14 @@ final class AppModel: ObservableObject {
     /// Show the light at `progress` (0 wake … 1 bed) of today's plan on the
     /// screen right away, so the whole curve can be tried in a few seconds.
     func scrub(to progress: Double) {
-        guard isActive, !quitting else { return }
+        guard isActive, !quitting, !screensAsleep else { return }
         let plan = state.plan
         let p = min(1, max(0, progress))
         let next = Schedule.state(elapsed: p * plan.awakeMinutes, plan: plan, strength: strength)
         preview = next
-        if Self.isRunningTests { return }
+        if Self.isRunningTests {
+            return
+        }
         fader.snap(DisplayEngine.Target(next))
     }
 
@@ -253,19 +339,23 @@ final class AppModel: ObservableObject {
     }
 
     func tick() {
-        guard !applyingProfile else { return }
+        guard !applyingProfile, !quitting, !screensAsleep else { return }
         let now = Date()
         if let pausedUntil, pausedUntil <= now {
             self.pausedUntil = nil
         }
-        let nextColor = colorAppBypass ? ColorApps.match(NSWorkspace.shared.frontmostApplication) : nil
-        if colorAppName != nextColor { colorAppName = nextColor }
+        let nextColor = frontmostColorApp
+        if colorAppName != nextColor {
+            colorAppName = nextColor
+        }
         let nextSolar = solarCache.events(
             on: now,
             latitude: location.latitude,
             longitude: location.longitude
         )
-        if solar != nextSolar { solar = nextSolar }
+        if solar != nextSolar {
+            solar = nextSolar
+        }
         let nextState = Schedule.state(
             now: now,
             wake: wake,
@@ -274,14 +364,24 @@ final class AppModel: ObservableObject {
             sunset: solar?.sunset,
             strength: strength
         )
-        if state != nextState { state = nextState }
-        if !isActive, preview != nil { preview = nil }
-        if Self.isRunningTests { return }
-        if quitting { return }
-        retuneTimer()
-        if preview != nil { return }
+        if state != nextState {
+            state = nextState
+        }
+        if !isActive, preview != nil {
+            preview = nil
+        }
+        if Self.isRunningTests {
+            return
+        }
+        retuneTimer(now: now)
         let woke = screenWoke
         screenWoke = false
+        if let preview {
+            if woke {
+                fader.snap(DisplayEngine.Target(preview))
+            }
+            return
+        }
         guard isActive else {
             fader.release(animated: true)
             return
@@ -307,23 +407,32 @@ final class AppModel: ObservableObject {
 
     static let isRunningTests: Bool = {
         let env = ProcessInfo.processInfo.environment
-        if env["XCTestConfigurationFilePath"] != nil { return true }
-        if env["XCTestSessionIdentifier"] != nil { return true }
-        if env["XCTestBundlePath"] != nil { return true }
+        if env["XCTestConfigurationFilePath"] != nil {
+            return true
+        }
+        if env["XCTestSessionIdentifier"] != nil {
+            return true
+        }
+        if env["XCTestBundlePath"] != nil {
+            return true
+        }
         return ProcessInfo.processInfo.arguments.contains { $0.contains("xctest") }
     }()
 
-    private func retuneTimer() {
-        let interval: TimeInterval = (state.phase == .morning || state.phase == .evening) ? 4 : 20
-        if let timer, abs(timer.timeInterval - interval) < 0.1 { return }
+    private func retuneTimer(now: Date) {
+        let next = Schedule.nextUpdate(after: now, plan: state.plan, active: isActive, pausedUntil: pausedUntil)
+        if let timer, timer.isValid, let next, abs(timer.fireDate.timeIntervalSince(next)) < 0.1 {
+            return
+        }
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.tick() }
+        timer = nil
+        guard let next else { return }
+        let update = Timer(fire: next, interval: 0, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated { self?.tick() }
         }
-        timer?.tolerance = interval / 5
-        if let timer {
-            RunLoop.main.add(timer, forMode: .common)
-        }
+        update.tolerance = min(0.8, next.timeIntervalSince(now) / 5)
+        RunLoop.main.add(update, forMode: .common)
+        timer = update
     }
 
     private func observe(_ center: NotificationCenter, _ name: Notification.Name, _ handler: @escaping () -> Void) {
@@ -342,6 +451,7 @@ final class AppModel: ObservableObject {
         static let bed = "bedMinutes"
         static let strength = "nightStrength"
         static let colorAppBypass = "colorAppBypass"
+        static let additionalColorApps = "additionalColorApps"
         static let didShowSetup = "didShowSetup"
     }
 }

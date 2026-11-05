@@ -10,9 +10,9 @@ settings:
     SWIFT_VERSION: "5.9"
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     DEVELOPMENT_TEAM: CU8NTJWQ43
-    ENABLE_TESTABILITY: YES
   configs:
     Debug:
+      ENABLE_TESTABILITY: YES
       COMPILATION_CACHE_ENABLE_CACHING: YES
 packages:
   PostHog:
@@ -52,8 +52,8 @@ targets:
         CODE_SIGN_STYLE: Automatic
         ENABLE_HARDENED_RUNTIME: YES
         COMBINE_HIDPI_IMAGES: YES
-        MARKETING_VERSION: 0.6.1
-        CURRENT_PROJECT_VERSION: 8
+        MARKETING_VERSION: 0.6.2
+        CURRENT_PROJECT_VERSION: 9
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # PostHog analytics and error tracking (docs/analytics.md). The project token (phc_...) is public
         # by design; paste it here. While it is REPLACE_ME, Analytics.start() does nothing. The personal API key for dSYM
