@@ -45,4 +45,5 @@ jobs:
       - name: Test
         run: |
           xcodegen generate
-          xcodebuild -scheme Ember -destination "platform=macOS" -scmProvider system CODE_SIGNING_ALLOWED=NO test
+          # The location entitlement test inspects the signed test host.
+          xcodebuild -scheme Ember -destination "platform=macOS" -scmProvider system CODE_SIGN_IDENTITY=- test
