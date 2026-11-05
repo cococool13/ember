@@ -23,5 +23,7 @@ pre-commit:
 
 pre-push:
   commands:
+    site-media:
+      run: node --test site/qa/hero-media.test.mjs
     gitleaks-full:
       run: gitleaks detect --no-banner

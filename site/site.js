@@ -6,9 +6,19 @@
   var heroVideo = hero && hero.querySelector('.hero-video');
   var motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   var reduceMotion = motionPreference.matches;
+  var mobileHero = window.matchMedia('(max-width: 640px)').matches;
+  function loadHeroVideo() {
+    if (!heroVideo || reduceMotion || mobileHero) return;
+    var source = heroVideo.querySelector('source[data-src]');
+    if (source && !source.getAttribute('src')) {
+      source.setAttribute('src', source.dataset.src);
+      heroVideo.load();
+    }
+  }
   function useHeroStill() {
     if (!hero) return;
     hero.classList.add('use-still');
+    hero.classList.remove('has-video');
     if (heroVideo) {
       try {
         heroVideo.pause();
@@ -32,9 +42,13 @@
     }
   }
   if (hero) {
-    if (reduceMotion || !heroVideo) {
+    if (reduceMotion || mobileHero || !heroVideo) {
       useHeroStill();
     } else {
+      loadHeroVideo();
+      heroVideo.addEventListener('playing', function () {
+        hero.classList.add('has-video');
+      });
       heroVideo.addEventListener('error', useHeroStill);
       heroVideo.addEventListener('stalled', function () {
         if (heroVideo.readyState < 2) useHeroStill();
@@ -59,7 +73,8 @@
   motionPreference.addEventListener('change', function (event) {
     reduceMotion = event.matches;
     if (reduceMotion) useHeroStill();
-    else if (hero && heroVideo) {
+    else if (hero && heroVideo && !mobileHero) {
+      loadHeroVideo();
       hero.classList.remove('use-still');
       syncHeroVideo();
     }
