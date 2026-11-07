@@ -1,24 +1,13 @@
 # Ember
 
-Mac menu bar app that changes screen color with the day. Cool light in the morning. Warm and dim at night.
+Ember warms and dims your Mac display as bedtime approaches. It runs in the menu bar.
 
-**Download:** https://ember.cohencool.workers.dev
+[Download Ember](https://ember.cohencool.workers.dev) for macOS 14 or later on Apple silicon or Intel. Open the DMG and drag Ember into Applications.
 
-Ember 0.6.1 is signed and notarized for Apple silicon and Intel Macs running macOS 14 or later.
+Use the menu bar to preview the day, adjust night strength, or pause and restore true color. Set your schedule and choose which apps always show true color in Settings. Location and launch at login are optional.
 
-Open the DMG, drag Ember into Applications, and open it there. First-launch setup offers a recommended profile: wake at 7 AM, bed at 11 PM, Standard night light, and true color apps on. Choose Use recommended to start, or Customize to set your own schedule. Location permission is requested when setup opens; you can decline. Open at login is optional. Use the menu bar for Pause/Resume, day preview and night strength. Open Ember for your sleep schedule; Settings has location, true color apps, login and Dock visibility. Right-click or Option-click the menu-bar mark for a compact menu. Adjust night strength anytime from the menu bar; choose Gentle if Standard makes reading uncomfortable. Pause restores true color for one hour or until morning. Photos and other supported apps keep true color while frontmost. Add your own apps in Settings.
+Ember adjusts display color and software dimming. It cannot measure the light reaching your eyes or predict how you’ll sleep. See the [evidence review](docs/circadian-evidence.md).
 
-Ember changes display color and software dimming. It does not measure light reaching your eyes or guarantee better sleep. See [the evidence review](docs/circadian-evidence.md).
+## Develop
 
-```bash
-xcodegen generate
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -scheme Ember -configuration Debug -destination 'platform=macOS,arch=arm64' test
-scripts/package.sh --skip-notarize # Local signed universal build; not for public distribution
-NOTARYTOOL_PROFILE=your-profile scripts/package.sh # Sign, notarize, staple, verify
-```
-
-Packaging uses an existing Apple notarization Keychain profile and never loads credential files. Only a successful notarization and Gatekeeper check replaces `site/downloads/Ember.dmg`. Public deployment requires Cohen's explicit approval: `(cd site && npx wrangler deploy)`.
-
-The installer uses [create-dmg](https://github.com/create-dmg/create-dmg) v1.3.0, fetched into `build/tools/` on the first package build. `scripts/make-dmg-background.py` needs Pillow (also used by the icon script). A Retina Finder backdrop puts the draggable app beside the Applications shortcut. See [Mac UI research](docs/mac-ui-research.md) and [0.4 validation](docs/ui-install-validation.md).
-
-Menu-bar redesign: [reference teardown](docs/menu-bar-teardown.md), [validation and before/after captures](docs/menu-bar-validation.md). Local development changes require separate release approval.
+Build and test commands, the private LicenseKit dependency, and release safeguards are in [AGENTS.md](AGENTS.md). The [installer validation](docs/ui-install-validation.md) records what was tested.
