@@ -21,9 +21,10 @@ pre-commit:
       glob: "*.{js,jsx,ts,tsx}"
       run: biome lint {staged_files} || true
 
+# Pre-push runs `just check` on each pushed commit (skipped when that commit
+# already passed). Same command as agents and ship.
 pre-push:
   commands:
-    site-media:
-      run: node --test site/qa/hero-media.test.mjs
-    gitleaks-full:
-      run: gitleaks detect --no-banner
+    check:
+      use_stdin: true
+      run: .ci/bin/ci-pre-push
