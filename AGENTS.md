@@ -1,6 +1,6 @@
 # Ember
 
-Always-on Mac menu-bar app for circadian display color (`com.cohen.ember`). Marketing site follows Dockset's design and interaction patterns (https://dockset.app/) on Cloudflare Workers (`ember`); see `docs/website-design.md`. The native menu bar uses Horizon; see `docs/design/2026-11-04/DIRECTION.md`. Not Vercel. Not App Store Connect.
+Always-on Mac menu-bar app for circadian display color (`com.cohen.ember`). Marketing site follows Dockset's design and interaction patterns (https://dockset.app/) on Cloudflare Workers (`ember`); see `docs/website-design.md`. The native menu bar uses Horizon; see `docs/design/2026-11-04/DIRECTION.md`. Not App Store Connect.
 
 ```bash
 cd /Users/cococool/Projects/Ember
