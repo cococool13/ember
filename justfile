@@ -1,9 +1,8 @@
 # CI contract. Agents, the pre-push hook and `ship` all run `just check`.
 # Kit: .ci/ (vendored from ~/.agents/ci; `just ci-drift` shows drift).
-# Public repo: the GitHub workflows stay and run too; this is the same set, locally.
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-# Everything, in parallel (ci.yml, design-guard.yml, guardrails.yml). taste runs first:
+# Everything, in parallel. taste runs first:
 # it scans every file, and xcodegen in `app` rewrites the project mid-scan.
 check:
     .ci/bin/ci-par --pre taste app site-media guardrails gitleaks
@@ -33,28 +32,28 @@ fix:
 test:
     .ci/bin/ci-par app site-media guardrails
 
-# ci.yml `test`. Ad hoc signing: the location entitlement test inspects the signed test host.
+# Ad hoc signing: the location entitlement test inspects the signed test host.
 # LicenseKit comes from the private cococool13/licensing repo; this Mac's git credentials fetch it.
 app:
     xcodegen generate --quiet
     .ci/bin/ci-sim-lock xcodebuild -scheme Ember -destination platform=macOS -scmProvider system CODE_SIGN_IDENTITY=- -quiet test
 
-# ci.yml and the old pre-push: site hero media regression.
+# Site hero media regression.
 site-media:
     node --test site/qa/hero-media.test.mjs
 
-# guardrails.yml Stripe HOLD regression. ship runs guardrails 7 and 8 (Reviewed-by, bug-then-rule).
+# Stripe HOLD regression. ship runs guardrails 7 and 8 (Reviewed-by, bug-then-rule).
 guardrails:
     bash scripts/guardrails/check-stripe-hold.test.sh
 
 taste:
     .ci/bin/ci-taste v1
 
-# The commits this branch adds; nightly and ci.yml scan full history.
+# The commits this branch adds; nightly scans full history.
 gitleaks:
     .ci/bin/ci-gitleaks
 
-# Full history (what ci.yml and the old pre-push `gitleaks detect` ran); ci-nightly runs it.
+# Full history; ci-nightly runs it.
 gitleaks-full:
     .ci/bin/ci-gitleaks --full
 

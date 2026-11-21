@@ -12,7 +12,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 (cd site && npx wrangler dev)
 ```
 
-Checks: `just check` before claiming done (same command as pre-push and `ship`; GitHub Actions also run here because the repo is public); `just check-fast` while working. Never `--no-verify`. Land work only with `.ci/bin/ship`: it checks the exact commit, posts `ci/just-check`, and merges or labels the PR `needs-cohen` (CI, hooks, wrangler, auth, billing, release paths). Merging never deploys.
+Checks: `just check` before claiming done (same command as pre-push and `ship`; there are no GitHub Actions); `just check-fast` while working. Never `--no-verify`. Land work only with `.ci/bin/ship`: it checks the exact commit, posts `ci/just-check`, and merges or labels the PR `needs-cohen` (CI, hooks, wrangler, auth, billing, release paths). Merging never deploys.
 
 Ship: `scripts/package.sh` (Developer ID, `notarytool submit --wait`, staple, `spctl`, copy DMG to `site/downloads/`). Deploy the site only with an explicit yes: `(cd site && npx wrangler deploy)`.
 
