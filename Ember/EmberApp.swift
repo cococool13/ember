@@ -14,6 +14,7 @@ struct EmberApp: App {
                 Button("Settings…") { delegate.openPreferences() }.keyboardShortcut(",")
             }
             CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { Updates.shared.check() }
                 Button("Open Ember") { delegate.openMain() }.keyboardShortcut("o")
             }
             CommandGroup(replacing: .appTermination) {
@@ -72,6 +73,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.setup = setup
         model.showSetup = { [weak setup] in setup?.show() }
         model.startSetupIfNeeded()
+        // Off the launch path: Sparkle only schedules its first check here.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { Updates.shared.start() }
         #if DEBUG
             if benchmarkStartup {
                 let initialized = ProcessInfo.processInfo.systemUptime - startupStart
@@ -143,5 +146,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // A copy rejected before model startup never owned the display tint.
         guard model != nil, !AppModel.isRunningTests else { return }
         DisplayEngine.restore()
+        DisplayEngine.flush()
     }
 }

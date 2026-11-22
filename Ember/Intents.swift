@@ -1,8 +1,8 @@
 import AppIntents
 import Foundation
 
-/// Shortcuts, Spotlight, and automations. Each intent acts on the running
-/// Ember; the system launches Ember first when it is not running.
+// Shortcuts, Spotlight, and automations. Each intent acts on the running
+// Ember; the system launches Ember first when it is not running.
 
 struct PauseEmberIntent: AppIntent {
     static let title: LocalizedStringResource = "Pause Ember"
@@ -78,6 +78,17 @@ extension NightStrength: AppEnum {
     ]
 }
 
+struct NightNowIntent: AppIntent {
+    static let title: LocalizedStringResource = "Start Ember Night Light Now"
+    static let description = IntentDescription("Switch to night light now and hold it until your next wake time.")
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        guard try AppModel.running().nightNow() else { throw EmberIntentError.nightUnavailable }
+        return .result()
+    }
+}
+
 struct EmberShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
@@ -98,13 +109,23 @@ struct EmberShortcuts: AppShortcutsProvider {
             shortTitle: "Night Light",
             systemImageName: "moon"
         )
+        AppShortcut(
+            intent: NightNowIntent(),
+            phrases: ["Start night light in \(.applicationName)"],
+            shortTitle: "Start Night",
+            systemImageName: "moon.zzz"
+        )
     }
 }
 
 enum EmberIntentError: Error, CustomLocalizedStringResourceConvertible {
     case notRunning
+    case nightUnavailable
 
     var localizedStringResource: LocalizedStringResource {
-        "Ember is not running. Open Ember and try again."
+        switch self {
+        case .notRunning: "Ember is not running. Open Ember and try again."
+        case .nightUnavailable: "Ember can't start Night Light. Open Ember to turn it on, finish setup, or click Activate."
+        }
     }
 }

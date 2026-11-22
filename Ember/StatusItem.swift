@@ -234,11 +234,17 @@ final class StatusItem: NSObject {
             add(model.isTimedPause ? "Resume Schedule" : "Pause for One Hour", #selector(togglePause), key: "p")
             if !model.isTimedPause {
                 add("Pause Until Morning", #selector(pauseUntilMorning))
+                if model.nightUntil == nil {
+                    add("Start Night Light Now", #selector(toggleNightNow))
+                } else {
+                    add("End Night Light", #selector(toggleNightNow))
+                }
             }
         }
         menu.addItem(.separator())
         add("Open Ember", #selector(openMain), key: "o")
         add("Settings…", #selector(openPreferences), key: ",")
+        add("Check for Updates…", #selector(checkForUpdates))
         menu.addItem(.separator())
         add("Quit Ember", #selector(quitEmber), key: "q")
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.minY - 4), in: button)
@@ -253,6 +259,14 @@ final class StatusItem: NSObject {
             model.resume()
         } else {
             model.pause(hours: 1)
+        }
+    }
+
+    @objc private func toggleNightNow() {
+        if model.nightUntil == nil {
+            model.nightNow()
+        } else {
+            model.endNightNow()
         }
     }
 
@@ -274,6 +288,10 @@ final class StatusItem: NSObject {
 
     @objc private func openPreferences() {
         model.showPreferences?()
+    }
+
+    @objc private func checkForUpdates() {
+        Updates.shared.check()
     }
 
     @objc private func quitEmber() {
@@ -394,7 +412,10 @@ private struct PanelRoot: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        MenuBarView(updateClock: presence.stage == .shown)
+        // Only the clocked light section reads the stage, so the open
+        // animation does not re-evaluate the whole panel.
+        MenuBarView()
+            .environment(\.panelClockRunning, presence.stage == .shown)
             .scaleEffect(reduceMotion ? 1 : scale, anchor: presence.anchor)
             .offset(y: reduceMotion ? 0 : offset)
     }
