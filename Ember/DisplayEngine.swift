@@ -125,10 +125,12 @@ enum DisplayEngine {
         guard CGGetActiveDisplayList(0, nil, &count) == .success, count > 0 else { return }
         var displays = [CGDirectDisplayID](repeating: 0, count: Int(count))
         guard CGGetActiveDisplayList(count, &displays, &count) == .success else { return }
+        var wrote = false
         for i in 0 ..< Int(count) {
-            apply(display: displays[i], red: red, green: green, blue: blue)
+            wrote = apply(display: displays[i], red: red, green: green, blue: blue) || wrote
         }
         usingSystemProfile = false
+        guard wrote else { return }
         writes += 1
         if target.kelvin < Schedule.dayKelvin - 1 {
             // First warm frame on screen, from the schedule, a fade or a scrub.
@@ -184,12 +186,13 @@ enum DisplayEngine {
         }
     }
 
-    private static func apply(display: CGDirectDisplayID, red: Double, green: Double, blue: Double) {
+    private static func apply(display: CGDirectDisplayID, red: Double, green: Double, blue: Double) -> Bool {
         let base = baseline(for: display)
         scale(base.red, by: red, into: &scratch.red)
         scale(base.green, by: green, into: &scratch.green)
         scale(base.blue, by: blue, into: &scratch.blue)
-        _ = CGSetDisplayTransferByTable(display, UInt32(base.red.count), scratch.red, scratch.green, scratch.blue)
+        return CGSetDisplayTransferByTable(display, UInt32(base.red.count), scratch.red, scratch.green, scratch.blue)
+            == .success
     }
 
     private static func baseline(for display: CGDirectDisplayID) -> GammaTable {

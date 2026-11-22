@@ -19,17 +19,19 @@ if not appcast.is_file():
     problems.append('site/appcast.xml is missing; copy dist/appcast.xml from scripts/make-appcast-item.sh')
 else:
     try:
-        enclosures = ET.parse(appcast).getroot().iter('enclosure')
+        enclosures = ET.parse(appcast).getroot().findall('./channel/item/enclosure')
+        if not enclosures:
+            problems.append('appcast.xml has no channel/item/enclosure, so Sparkle sees no update')
     except ET.ParseError as error:
         problems.append(f'appcast.xml is not valid XML: {error}')
         enclosures = []
     for enclosure_tag in enclosures:
         path = urllib.parse.urlparse(enclosure_tag.get('url', '')).path
         length = enclosure_tag.get('length', '')
-        if '/downloads/' not in path or not length.isdigit():
+        if not path.startswith('/downloads/') or not length.isdigit():
             problems.append(f'appcast.xml enclosure needs a /downloads/ url and a length: {enclosure_tag.attrib}')
             continue
-        url = path.split('/downloads/', 1)[1]
+        url = path.removeprefix('/downloads/')
         allowed.add(url)
         enclosure = downloads / url
         if not enclosure.is_file():
