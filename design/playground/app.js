@@ -546,11 +546,10 @@
         );
     });
     for (const fr of $$('.cmp-frame')) ro.observe(fr);
-    const panelFrames = $$('.cmp-panels iframe');
     window.addEventListener('message', (e) => {
       const m = e.data || {};
       if (m.type !== 'ember-scrub' || !$('#linkTime').checked) return;
-      for (const f of panelFrames) {
+      for (const f of frames) {
         if (f.contentWindow !== e.source)
           f.contentWindow.postMessage(
             Object.assign({}, m, { type: 'ember-set' }),
@@ -563,7 +562,9 @@
   /* ---------- shell ---------- */
   const panels = [];
   const state = {
-    dir: ['a', 'b', 'c', 'compare'].includes(q.get('dir')) ? q.get('dir') : 'a',
+    dir: ['a', 'b', 'c', 'd', 'e', 'f', 'compare'].includes(q.get('dir'))
+      ? q.get('dir')
+      : 'a',
     view: q.get('view') === 'panel' ? 'panel' : 'site',
     appearance:
       q.get('appearance') ||
@@ -578,11 +579,28 @@
     'c-panel': initPanel,
     compare: initCompare,
   };
+  // D, E and F live in dir-def.js; they reuse these pieces and pair with the B panel.
+  if (window.EmberExtraInits)
+    Object.assign(
+      inits,
+      window.EmberExtraInits({
+        binder,
+        dialView,
+        chartView,
+        drawMarks,
+        moonIcons,
+        NOW,
+        embed,
+      }),
+    );
+  const PANEL_OF = { d: 'b', e: 'b', f: 'b' };
   const started = new Set();
 
   function show() {
+    const site =
+      state.view === 'panel' ? PANEL_OF[state.dir] || state.dir : state.dir;
     const target =
-      state.dir === 'compare' ? 'compare' : state.dir + '-' + state.view;
+      state.dir === 'compare' ? 'compare' : site + '-' + state.view;
     for (const v of $$('#stage > .view')) v.hidden = v.id !== target;
     if (!started.has(target)) {
       started.add(target);

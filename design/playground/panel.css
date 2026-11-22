@@ -48,7 +48,8 @@
   --raw-desk-dark-ch-b: #6f98ff;
 }
 
-.desk {
+.desk,
+.panel-host {
   --mb-bg: var(--raw-desk-mb-bg);
   --mb-ink: var(--raw-desk-mb-ink);
   --p-bg: var(--raw-desk-p-bg);
@@ -74,7 +75,8 @@
   --ch-g: var(--raw-desk-ch-g);
   --ch-b: var(--raw-desk-ch-b);
 }
-.desk[data-appearance="dark"] {
+.desk[data-appearance="dark"],
+.panel-host {
   --mb-bg: var(--raw-desk-dark-mb-bg);
   --mb-ink: var(--raw-desk-dark-mb-ink);
   --p-bg: var(--raw-desk-dark-p-bg);

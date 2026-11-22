@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="dir-a.css">
 <link rel="stylesheet" href="dir-b.css">
 <link rel="stylesheet" href="dir-c.css">
+<link rel="stylesheet" href="dir-def.css">
 <script>
   (function () {
     var q = new URLSearchParams(location.search);
@@ -32,6 +33,9 @@
     <button type="button" data-dir="a" aria-pressed="true">A Lamplight</button>
     <button type="button" data-dir="b" aria-pressed="false">B Night window</button>
     <button type="button" data-dir="c" aria-pressed="false">C Instrument</button>
+    <button type="button" data-dir="d" aria-pressed="false">D Eclipse</button>
+    <button type="button" data-dir="e" aria-pressed="false">E Dither sky</button>
+    <button type="button" data-dir="f" aria-pressed="false">F Limb</button>
     <button type="button" data-dir="compare" aria-pressed="false">Side by side</button>
   </div>
   <div class="shell-seg" role="group" aria-label="View" data-hide-in="compare">
@@ -318,6 +322,327 @@
   <footer class="c-foot"><span class="c-word"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.3"/><path class="mark-lit"/></svg>Ember</span><span class="c-foot-links"><a href="https://ember.cohencool.workers.dev/privacy">Privacy</a><a href="https://ember.cohencool.workers.dev/terms">Terms</a></span></footer>
 </section>
 
+<!-- ======================================================= D · ECLIPSE -->
+<section class="view x-site d-site" id="d-site" data-dir="d" data-view="site" aria-label="Direction D site" hidden>
+  <nav class="x-nav" aria-label="Eclipse">
+    <a class="x-word" href="#d-site"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.3"/><path class="mark-lit"/></svg>Ember</a>
+    <span class="x-nav-links"><a href="#d-how">How it works</a><a href="#d-curve">The curve</a><a href="#d-price">Pricing</a><a href="#d-faq">Questions</a></span>
+    <a class="x-btn x-btn-small" href="https://licensing.cohencool.workers.dev/buy/ember">Buy for $9</a>
+  </nav>
+  <header class="x-hero d-hero">
+    <div class="x-stage" aria-hidden="true"><canvas></canvas></div>
+    <div class="d-orb" aria-hidden="true"></div>
+    <div class="x-hero-copy">
+      <h1 class="x-h1">Light that follows the day</h1>
+      <p class="x-lede">Ember warms and dims your Mac from sunset to bedtime, then clears by morning.</p>
+      <p class="x-actions">
+        <a class="x-btn" href="https://licensing.cohencool.workers.dev/buy/ember">Buy Ember for $9</a>
+        <a class="x-link" href="https://ember.cohencool.workers.dev/#get">Download for Mac</a>
+      </p>
+    </div>
+    <div class="x-read" aria-hidden="true">
+      <span class="x-read-time" data-bind="time">9:40 PM</span>
+      <span class="x-read-meta"><span data-bind="phase">Evening</span><span data-bind="kelvin">2,410 K</span><span data-bind="dim">74%</span></span>
+    </div>
+    <div class="x-scrub">
+      <div class="x-track" role="slider" tabindex="0" aria-label="Time of day. The eclipse shows Ember's light at that time." aria-valuemin="0" aria-valuemax="1439" aria-valuenow="0">
+        <div class="x-track-band"></div>
+        <div class="x-track-head"><i></i></div>
+      </div>
+      <div class="x-track-labels" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span><span>12 AM</span></div>
+      <div class="x-chips" role="group" aria-label="Jump to a time">
+        <button type="button" data-goto="430">Morning</button><button type="button" data-goto="750">Daylight</button><button type="button" data-goto="1070">Evening</button><button type="button" data-goto="1410">Night</button>
+        <span class="x-hint">or drag across the day</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="x-sec x-how" id="d-how" aria-labelledby="d-how-h">
+    <h2 class="x-h2" id="d-how-h">How it works</h2>
+    <ol class="x-steps">
+      <li><span class="x-step-n">01</span><h3 class="x-h3">Lives in the menu bar</h3><p>Ember runs quietly in your menu bar. Closing its windows leaves it running.</p></li>
+      <li><span class="x-step-n">02</span><h3 class="x-h3">Follows your evening</h3><p>Evening starts at sunset or three hours before bed, whichever comes first.</p></li>
+      <li><span class="x-step-n">03</span><h3 class="x-h3">Clears by morning</h3><p>At wake it ramps to 6,800 K for 25 minutes, then restores true color for the day.</p></li>
+    </ol>
+  </section>
+
+  <section class="x-sec x-day" aria-labelledby="d-day-h">
+    <h2 class="x-h2" id="d-day-h">Four parts of the day</h2>
+    <ol class="x-tiles">
+      <li data-tile="430"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Morning</span><span class="x-tile-time">7:10 AM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="750"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Daylight</span><span class="x-tile-time">12:30 PM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="1070"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Evening</span><span class="x-tile-time">5:50 PM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="1410"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Night</span><span class="x-tile-time">11:30 PM</span><span class="x-tile-k" data-k></span></li>
+    </ol>
+  </section>
+
+  <section class="x-sec x-product" aria-labelledby="d-product-h">
+    <div class="x-product-copy">
+      <h2 class="x-h2" id="d-product-h">The whole day in one dial</h2>
+      <p class="x-body">Drag the dial to preview any hour on your screen. This one is live: it moves the eclipse above.</p>
+      <ul class="x-points">
+        <li>Pause for one hour or until morning.</li>
+        <li>Night strength: Gentle 2,200 K, Standard 1,800 K, Deep 1,600 K.</li>
+        <li>Photos, Preview, Figma, Photoshop and apps you pick get true color while they are in front.</li>
+      </ul>
+    </div>
+    <div class="x-panel-host panel-host"></div>
+  </section>
+
+  <section class="x-sec x-curve" id="d-curve" aria-labelledby="d-curve-h">
+    <div class="x-sec-head">
+      <h2 class="x-h2" id="d-curve-h">How the color curve moves</h2>
+      <p class="x-body">Ember cools to 6,800 K after wake, restores your display profile at 6,500 K during daylight, then drops through 2,700 K toward your night setting. The curve blends smoothly so there are no visible steps.</p>
+    </div>
+    <div class="chart x-chart" role="slider" tabindex="0" aria-label="Time of day on the curve" aria-valuemin="0" aria-valuemax="1439" aria-valuenow="0">
+      <svg class="chart-base" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true"><path class="chart-area"/><path class="chart-line"/></svg>
+      <div class="chart-glow" aria-hidden="true"><div class="chart-glow-inner"><svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path class="chart-line-hot"/></svg></div></div>
+      <div class="chart-head" aria-hidden="true"><i></i><span class="chart-dot"></span></div>
+      <div class="chart-axis" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span><span>12 AM</span></div>
+    </div>
+    <ol class="x-marks">
+      <li><span class="x-mark-t">7:00 AM</span><span>Wake. Ramp to 6,800 K over 25 minutes.</span></li>
+      <li><span class="x-mark-t">8:25 AM</span><span>Settled at 6,500 K. Gain 1.00 on every channel.</span></li>
+      <li><span class="x-mark-t">5:28 PM</span><span>Sunset. 2,700 K by 6:08 PM.</span></li>
+      <li><span class="x-mark-t">11:00 PM</span><span>Bed. Night strength holds until wake.</span></li>
+    </ol>
+    <p class="x-fine">Curve after Brown et al. 2022 and CIE S 026. Times shown for Brunswick, GA on November 21, waking at 7:00 AM.</p>
+  </section>
+
+  <section class="x-sec x-price" id="d-price" aria-labelledby="d-price-h">
+    <h2 class="x-price-h" id="d-price-h">$9 once, no subscription</h2>
+    <p class="x-lede">You get a license key by email and a notarized download for Apple silicon and Intel Macs on macOS 14 or later.</p>
+    <p class="x-actions">
+      <a class="x-btn" href="https://licensing.cohencool.workers.dev/buy/ember">Buy Ember for $9</a>
+      <a class="x-link" href="https://ember.cohencool.workers.dev/#get">Download for Mac</a>
+    </p>
+  </section>
+
+  <section class="x-sec x-faq" id="d-faq" aria-labelledby="d-faq-h">
+    <h2 class="x-h2" id="d-faq-h">Questions</h2>
+    <div class="faq">
+      <details><summary>Does Ember change color during the day?</summary><p>No. During daylight at 6,500 K, Ember restores your display profile so your screen shows true color with no tint.</p></details>
+      <details><summary>What happens if I use f.lux or Night Shift?</summary><p>While Ember is on, it quits f.lux and turns Night Shift off. Two tints never stack on your screen.</p></details>
+      <details><summary>Can I edit photos with Ember running?</summary><p>Yes. Photos, Preview, Figma, Photoshop and any apps you pick switch to true color while they are in front.</p></details>
+      <details><summary>Is Ember a sleep aid?</summary><p>No. Ember is a display comfort tool and does not claim better sleep or eye health.</p></details>
+      <details><summary>Where do sunset times come from?</summary><p>Ember uses your location for sunset times. If location is off, it uses a default location.</p></details>
+    </div>
+  </section>
+  <footer class="x-foot"><span class="x-word"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.3"/><path class="mark-lit"/></svg>Ember</span><span class="x-foot-links"><a href="https://ember.cohencool.workers.dev/privacy">Privacy</a><a href="https://ember.cohencool.workers.dev/terms">Terms</a></span></footer>
+</section>
+
+<!-- ======================================================= E · DITHER SKY -->
+<section class="view x-site e-site" id="e-site" data-dir="e" data-view="site" aria-label="Direction E site" hidden>
+  <nav class="x-nav" aria-label="Dither sky">
+    <a class="x-word" href="#e-site"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.3"/><path class="mark-lit"/></svg>Ember</a>
+    <span class="x-nav-links"><a href="#e-how">How it works</a><a href="#e-curve">The curve</a><a href="#e-price">Pricing</a><a href="#e-faq">Questions</a></span>
+    <a class="x-btn x-btn-small" href="https://licensing.cohencool.workers.dev/buy/ember">Buy for $9</a>
+  </nav>
+  <header class="x-hero e-hero">
+    <div class="x-stage" aria-hidden="true"><canvas></canvas></div>
+    <div class="x-hero-copy">
+      <h1 class="x-h1">Your screen follows the sky</h1>
+      <p class="x-lede">Ember warms your Mac display at night and keeps true color during daylight.</p>
+      <p class="x-actions">
+        <a class="x-btn" href="https://licensing.cohencool.workers.dev/buy/ember">Buy Ember for $9</a>
+        <a class="x-link" href="https://ember.cohencool.workers.dev/#get">Download for Mac</a>
+      </p>
+    </div>
+    <div class="e-window">
+      <div class="x-panel-host panel-host"></div>
+      <p class="e-hint">Turn the dial. The sky follows.</p>
+    </div>
+    <div class="x-scrub e-scrub">
+      <div class="x-read" aria-hidden="true">
+        <span class="x-read-time" data-bind="time">9:40 PM</span>
+        <span class="x-read-meta"><span data-bind="phase">Evening</span><span data-bind="kelvin">2,410 K</span></span>
+      </div>
+      <div class="x-chips" role="group" aria-label="Jump to a time">
+        <button type="button" data-goto="430">Morning</button><button type="button" data-goto="750">Daylight</button><button type="button" data-goto="1070">Evening</button><button type="button" data-goto="1410">Night</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="x-sec x-how" id="e-how" aria-labelledby="e-how-h">
+    <h2 class="x-h2" id="e-how-h">How it works</h2>
+    <ol class="x-steps">
+      <li><span class="x-step-n">01</span><h3 class="x-h3">Lives in the menu bar</h3><p>Ember runs quietly in your menu bar. Closing its windows leaves it running.</p></li>
+      <li><span class="x-step-n">02</span><h3 class="x-h3">Reads the sky</h3><p>It uses your location for sunset times, or a default location if location is off.</p></li>
+      <li><span class="x-step-n">03</span><h3 class="x-h3">Moves with it</h3><p>Ramps update every four seconds and blend smoothly, so there are no visible jumps.</p></li>
+    </ol>
+  </section>
+
+  <section class="x-sec x-day" aria-labelledby="e-day-h">
+    <h2 class="x-h2" id="e-day-h">Four parts of the day</h2>
+    <ol class="x-tiles">
+      <li data-tile="430"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Morning</span><span class="x-tile-time">7:10 AM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="750"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Daylight</span><span class="x-tile-time">12:30 PM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="1070"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Evening</span><span class="x-tile-time">5:50 PM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="1410"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Night</span><span class="x-tile-time">11:30 PM</span><span class="x-tile-k" data-k></span></li>
+    </ol>
+  </section>
+
+  <section class="x-sec x-quiet" aria-labelledby="e-quiet-h">
+    <h2 class="x-h2" id="e-quiet-h">Stays out of your way</h2>
+    <dl class="x-list">
+      <div><dt>True color apps</dt><dd>Photos, Preview, Figma, Photoshop and apps you pick get true color in front.</dd></div>
+      <div><dt>Pause</dt><dd>Pause the tint for one hour or until morning.</dd></div>
+      <div><dt>No double tint</dt><dd>Ember quits f.lux and turns Night Shift off so tints never stack.</dd></div>
+      <div><dt>Shortcuts</dt><dd>Run Pause, Resume, On/Off and Night light from Shortcuts or Spotlight.</dd></div>
+    </dl>
+  </section>
+
+  <section class="x-sec x-curve" id="e-curve" aria-labelledby="e-curve-h">
+    <div class="x-sec-head">
+      <h2 class="x-h2" id="e-curve-h">How the color curve moves</h2>
+      <p class="x-body">Ember cools to 6,800 K after wake, restores your display profile at 6,500 K during daylight, then drops through 2,700 K toward your night setting. The curve blends smoothly so there are no visible steps.</p>
+    </div>
+    <div class="chart x-chart" role="slider" tabindex="0" aria-label="Time of day on the curve" aria-valuemin="0" aria-valuemax="1439" aria-valuenow="0">
+      <svg class="chart-base" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true"><path class="chart-area"/><path class="chart-line"/></svg>
+      <div class="chart-glow" aria-hidden="true"><div class="chart-glow-inner"><svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path class="chart-line-hot"/></svg></div></div>
+      <div class="chart-head" aria-hidden="true"><i></i><span class="chart-dot"></span></div>
+      <div class="chart-axis" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span><span>12 AM</span></div>
+    </div>
+    <p class="x-fine">Curve after Brown et al. 2022 and CIE S 026. Times shown for Brunswick, GA on November 21, waking at 7:00 AM.</p>
+  </section>
+
+  <section class="x-sec x-price" id="e-price" aria-labelledby="e-price-h">
+    <h2 class="x-price-h" id="e-price-h">Pay $9 once</h2>
+    <p class="x-lede">One payment gets you a license key by email, with no subscription.</p>
+    <p class="x-actions">
+      <a class="x-btn" href="https://licensing.cohencool.workers.dev/buy/ember">Buy Ember for $9</a>
+      <a class="x-link" href="https://ember.cohencool.workers.dev/#get">Download for Mac</a>
+    </p>
+    <p class="x-fine">macOS 14 or later. Apple silicon and Intel. Notarized download.</p>
+  </section>
+
+  <section class="x-sec x-faq" id="e-faq" aria-labelledby="e-faq-h">
+    <h2 class="x-h2" id="e-faq-h">Questions</h2>
+    <div class="faq">
+      <details><summary>Does Ember change color during the day?</summary><p>No. During daylight at 6,500 K, Ember restores your display profile so your screen shows true color with no tint.</p></details>
+      <details><summary>What happens if I use f.lux or Night Shift?</summary><p>While Ember is on, it quits f.lux and turns Night Shift off. Two tints never stack on your screen.</p></details>
+      <details><summary>Is Ember a sleep aid?</summary><p>No. Ember is a display comfort tool and does not claim better sleep or eye health.</p></details>
+      <details><summary>Where do sunset times come from?</summary><p>Ember uses your location for sunset times. If location is off, it uses a default location.</p></details>
+    </div>
+  </section>
+  <footer class="x-foot"><span class="x-word"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.3"/><path class="mark-lit"/></svg>Ember</span><span class="x-foot-links"><a href="https://ember.cohencool.workers.dev/privacy">Privacy</a><a href="https://ember.cohencool.workers.dev/terms">Terms</a></span></footer>
+</section>
+
+<!-- ======================================================= F · LIMB -->
+<section class="view x-site f-site" id="f-site" data-dir="f" data-view="site" aria-label="Direction F site" hidden>
+  <nav class="x-nav" aria-label="Limb">
+    <a class="x-word" href="#f-site"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.3"/><path class="mark-lit"/></svg>Ember</a>
+    <span class="x-nav-links"><a href="#f-how">How it works</a><a href="#f-curve">The curve</a><a href="#f-spec">Pricing</a><a href="#f-faq">Questions</a></span>
+    <a class="x-btn x-btn-small" href="https://licensing.cohencool.workers.dev/buy/ember">Buy for $9</a>
+  </nav>
+  <header class="x-hero f-hero">
+    <div class="x-stage" aria-hidden="true"><canvas></canvas></div>
+    <div class="x-hero-copy">
+      <h1 class="x-h1">Your screen follows the sunset</h1>
+      <p class="x-lede">Ember shifts your Mac from 6,800 K in the morning to 1,800 K at night.</p>
+      <p class="x-actions">
+        <a class="x-btn" href="https://licensing.cohencool.workers.dev/buy/ember">Buy Ember for $9</a>
+        <a class="x-link" href="https://ember.cohencool.workers.dev/#get">Download for Mac</a>
+      </p>
+    </div>
+    <div class="x-read" aria-hidden="true">
+      <span class="x-read-cap">Local time</span>
+      <span class="x-read-time" data-bind="time">9:40 PM</span>
+      <span class="x-read-meta"><span data-bind="phase">Evening</span><span data-bind="kelvin">2,410 K</span><span data-bind="dim">74%</span></span>
+    </div>
+    <div class="x-scrub">
+      <div class="x-track" role="slider" tabindex="0" aria-label="Time of day. The planet turns toward night and the night side glows in Ember's color." aria-valuemin="0" aria-valuemax="1439" aria-valuenow="0">
+        <div class="x-track-band"></div>
+        <div class="x-track-head"><i></i></div>
+      </div>
+      <div class="x-track-labels" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span><span>12 AM</span></div>
+      <div class="x-chips" role="group" aria-label="Jump to a time">
+        <button type="button" data-goto="430">Morning</button><button type="button" data-goto="750">Daylight</button><button type="button" data-goto="1070">Evening</button><button type="button" data-goto="1410">Night</button>
+        <span class="x-hint">or drag across the day</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="x-sec x-how" id="f-how" aria-labelledby="f-how-h">
+    <h2 class="x-h2" id="f-how-h">How it works</h2>
+    <ol class="x-steps">
+      <li><span class="x-step-n">01</span><h3 class="x-h3">Finds your sunset</h3><p>Ember uses your location for sunset times. Brunswick, GA if location is off.</p></li>
+      <li><span class="x-step-n">02</span><h3 class="x-h3">Starts the evening</h3><p>At sunset or three hours before bed, whichever is earlier, it drops to 2,700 K in 40 minutes.</p></li>
+      <li><span class="x-step-n">03</span><h3 class="x-h3">Holds the night</h3><p>Night strength holds until wake, then the morning ramp brings back true color.</p></li>
+    </ol>
+  </section>
+
+  <section class="x-sec x-day" aria-labelledby="f-day-h">
+    <h2 class="x-h2" id="f-day-h">Four parts of the day</h2>
+    <ol class="x-tiles">
+      <li data-tile="430"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Morning</span><span class="x-tile-time">7:10 AM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="750"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Daylight</span><span class="x-tile-time">12:30 PM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="1070"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Evening</span><span class="x-tile-time">5:50 PM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="1410"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Night</span><span class="x-tile-time">11:30 PM</span><span class="x-tile-k" data-k></span></li>
+    </ol>
+  </section>
+
+  <section class="x-sec x-product" aria-labelledby="f-product-h">
+    <div class="x-product-copy">
+      <h2 class="x-h2" id="f-product-h">One dial in your menu bar</h2>
+      <p class="x-body">The panel shows the whole day around a 24-hour ring. Drag it to preview an hour on your screen. This one is live.</p>
+      <ul class="x-points">
+        <li>Pause for one hour or until morning.</li>
+        <li>Pick Gentle, Standard or Deep for the night.</li>
+        <li>Ember quits f.lux and turns Night Shift off so tints never stack.</li>
+      </ul>
+    </div>
+    <div class="x-panel-host panel-host"></div>
+  </section>
+
+  <section class="x-sec x-curve" id="f-curve" aria-labelledby="f-curve-h">
+    <div class="x-sec-head">
+      <h2 class="x-h2" id="f-curve-h">How the color curve moves</h2>
+      <p class="x-body">Ember cools to 6,800 K after wake, restores your display profile at 6,500 K during daylight, then drops through 2,700 K toward your night setting. The curve blends smoothly so there are no visible steps.</p>
+    </div>
+    <div class="chart x-chart" role="slider" tabindex="0" aria-label="Time of day on the curve" aria-valuemin="0" aria-valuemax="1439" aria-valuenow="0">
+      <svg class="chart-base" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true"><path class="chart-area"/><path class="chart-line"/></svg>
+      <div class="chart-glow" aria-hidden="true"><div class="chart-glow-inner"><svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path class="chart-line-hot"/></svg></div></div>
+      <div class="chart-head" aria-hidden="true"><i></i><span class="chart-dot"></span></div>
+      <div class="chart-axis" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span><span>12 AM</span></div>
+    </div>
+    <ol class="x-marks">
+      <li><span class="x-mark-t">7:00 AM</span><span>Wake. Ramp to 6,800 K over 25 minutes.</span></li>
+      <li><span class="x-mark-t">8:25 AM</span><span>Settled at 6,500 K. Gain 1.00 on every channel.</span></li>
+      <li><span class="x-mark-t">5:28 PM</span><span>Sunset. 2,700 K by 6:08 PM.</span></li>
+      <li><span class="x-mark-t">11:00 PM</span><span>Bed. Night strength holds until wake.</span></li>
+    </ol>
+    <p class="x-fine">Curve after Brown et al. 2022 and CIE S 026. Times shown for Brunswick, GA on November 21, waking at 7:00 AM.</p>
+  </section>
+
+  <section class="x-sec x-spec" id="f-spec" aria-labelledby="f-spec-h">
+    <h2 class="x-h2" id="f-spec-h">Specifications</h2>
+    <table class="x-table">
+      <tr><th scope="row">Price</th><td class="x-table-price">$9 once</td></tr>
+      <tr><th scope="row">License</th><td>Key by email. No subscription.</td></tr>
+      <tr><th scope="row">Requires</th><td>macOS 14 or later</td></tr>
+      <tr><th scope="row">Runs on</th><td>Apple silicon and Intel</td></tr>
+      <tr><th scope="row">Night strength</th><td>Gentle 2,200 K 68%, Standard 1,800 K 55%, Deep 1,600 K 45%</td></tr>
+      <tr><th scope="row">Daylight</th><td>6,500 K. Display profile restored.</td></tr>
+    </table>
+    <p class="x-actions">
+      <a class="x-btn" href="https://licensing.cohencool.workers.dev/buy/ember">Buy Ember for $9</a>
+      <a class="x-link" href="https://ember.cohencool.workers.dev/#get">Download for Mac</a>
+    </p>
+  </section>
+
+  <section class="x-sec x-faq" id="f-faq" aria-labelledby="f-faq-h">
+    <h2 class="x-h2" id="f-faq-h">Questions</h2>
+    <div class="faq">
+      <details><summary>Does Ember change color during the day?</summary><p>No. During daylight at 6,500 K, Ember restores your display profile so your screen shows true color with no tint.</p></details>
+      <details><summary>Can I edit photos with Ember running?</summary><p>Yes. Photos, Preview, Figma, Photoshop and any apps you pick switch to true color while they are in front.</p></details>
+      <details><summary>What happens if I use f.lux or Night Shift?</summary><p>While Ember is on, it quits f.lux and turns Night Shift off. Two tints never stack on your screen.</p></details>
+      <details><summary>Is Ember a sleep aid?</summary><p>No. Ember is a display comfort tool and does not claim better sleep or eye health.</p></details>
+    </div>
+  </section>
+  <footer class="x-foot"><span class="x-word"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.3"/><path class="mark-lit"/></svg>Ember</span><span class="x-foot-links"><a href="https://ember.cohencool.workers.dev/privacy">Privacy</a><a href="https://ember.cohencool.workers.dev/terms">Terms</a></span></footer>
+</section>
+
 <!-- ======================================================= PANELS -->
 <!-- One desk per direction. The tint layer covers the whole desk, panel included, because Ember tints the entire display. -->
 <template id="desk-tpl">
@@ -465,7 +790,13 @@
     <figure><iframe title="Direction B panel" data-q="dir=b&amp;view=panel"></iframe><figcaption>B Night window</figcaption></figure>
     <figure><iframe title="Direction C panel" data-q="dir=c&amp;view=panel"></iframe><figcaption>C Instrument</figcaption></figure>
   </div>
-  <div class="cmp-bar"><h2 class="cmp-h">Site heroes</h2></div>
+  <div class="cmp-bar"><h2 class="cmp-h">Site heroes, new (D, E, F)</h2><span class="cmp-note">Scrubbing any hero or panel moves every frame.</span></div>
+  <div class="cmp-sites cmp-sites-new">
+    <figure><div class="cmp-frame"><iframe title="Direction D site" data-q="dir=d&amp;view=site"></iframe></div><figcaption>D Eclipse</figcaption></figure>
+    <figure><div class="cmp-frame"><iframe title="Direction E site" data-q="dir=e&amp;view=site"></iframe></div><figcaption>E Dither sky</figcaption></figure>
+    <figure><div class="cmp-frame"><iframe title="Direction F site" data-q="dir=f&amp;view=site"></iframe></div><figcaption>F Limb</figcaption></figure>
+  </div>
+  <div class="cmp-bar"><h2 class="cmp-h">Site heroes, first round (A, B, C)</h2></div>
   <div class="cmp-sites">
     <figure><div class="cmp-frame"><iframe title="Direction A site" data-q="dir=a&amp;view=site" tabindex="-1"></iframe></div><figcaption>A Lamplight</figcaption></figure>
     <figure><div class="cmp-frame"><iframe title="Direction B site" data-q="dir=b&amp;view=site" tabindex="-1"></iframe></div><figcaption>B Night window</figcaption></figure>
@@ -476,6 +807,8 @@
 </main>
 <script src="curve.js"></script>
 <script src="kit.js"></script>
+<script src="gl.js"></script>
+<script src="dir-def.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

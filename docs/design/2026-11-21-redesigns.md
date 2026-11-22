@@ -4,7 +4,8 @@ Three directions for the marketing site and the menu bar panel, each built aroun
 
 ```bash
 open design/playground/index.html          # or: npx serve design/playground
-# query params: ?dir=a|b|c|compare  &view=site|panel  &appearance=light|dark  &now=HH:MM  &rm=1
+# query params: ?dir=a|b|c|d|e|f|compare  &view=site|panel  &appearance=light|dark  &now=HH:MM  &rm=1
+# D, E and F need http (python3 -m http.server from design/playground) only for Playwright; browsers open them from file:// too
 ```
 
 Nothing under `Ember/`, `EmberTests/`, `project.yml`, `scripts/` or `site/` changed. Site copy came from Gemini 4 Neon (neon-writer). This doc is Claude's.
@@ -160,3 +161,87 @@ Screenshots are in `design/playground/shots/`; the recording is `scrub-all.mp4` 
 ## Docs vs code
 
 - The AGENTS.md panel spec is 340 × 365 pt. B and C exceed it on purpose, as candidates. The shipped panel is unchanged.
+
+## Round 2: D, E, F (bolder sites, B panel)
+
+Cohen kept B's panel (24-hour dial, "Night window") and asked for site directions that are more eye-catching and "more mythical". References: NASA nebula photos (Ring, Butterfly, Horsehead, Hourglass "eye") and morrre_dsgn's dithered skies, clouds and planet limbs behind product UI. Nothing from the references ships: every picture in D, E and F is a WebGL 1 fragment shader (`gl.js`) computed from noise, the curve and the time of day. No photos, no textures, no generated images.
+
+Each direction is a full landing page: hero, how it works, four parts of the day, the B panel (live), the curve, pricing, questions, footer. `?view=panel` on D, E or F opens the B panel.
+
+Shared engine (`dir-def.js`):
+- **One light per page.** The hero, the in-page B panel, the curve chart and the hero chips all drive the same `Light`, so dragging the panel dial moves the hero and vice versa.
+- **Ember's color vs. the sky.** D's corona and F's city lights take their color from Ember's faded gains (`l.shown`), inverted back to kelvin through a lookup table. Pause, Off, strength changes and the 1.8 s fade therefore show up in the visuals. E's sky and F's terminator follow the sun (sunrise 7:01, sunset 5:28 PM), not Ember.
+- **Frames.** The shader renders inside the light's animation frame when time changes. Idle twinkle and drift run at about 30 fps while the hero is on screen. With Reduce Motion there is no idle drawing, and chips jump instead of gliding.
+- **Resolution.** D renders at up to 1.5× device pixels. E renders at 1/3 and F at 1/2 of CSS size with nearest-neighbour upscaling, so each Bayer 8×8 dither cell is a crisp square, and each costs little.
+- **Tiles.** "Four parts of the day" paints four stills from the same shader on a throwaway context, then frees it.
+- **Compare.** The D, E and F heroes join the side-by-side view. Scrubbing any hero or panel there moves every frame.
+- **Scrubber.** D and F use a horizontal `role="slider"` track. E's slider is the B panel's dial. Both use the existing keys and `aria-valuetext` ("9:40 PM, Evening, 2410 kelvin"). Chips (Morning, Daylight, Evening, Night) glide to 7:10 AM, 12:30 PM, 5:50 PM and 11:30 PM.
+
+### D · Eclipse
+
+**Mood:** a total eclipse seen from a dark room, because Ember's mark is already a dark disc with a lit limb, and Ember does its work at night.
+**Signature:** the mark becomes the sky. A procedural corona and ring nebula surround the dark disc. At noon it is a wide, cold teal-and-rose eye (6,500 K). At dusk it pulls in and turns gold. At night it collapses to the mark's own ember crescent on the lower-right limb, dimmed to the night brightness.
+
+- Instrument Serif display, system body, one ember accent on near-black.
+- Hero: copy left, eclipse right, big time readout, full-width day track with the real band of whites, chips.
+- The live B panel sits beside "The whole day in one dial".
+- Risks: the serif departs from AGENTS.md's "native system typography" (that line is about the app; the site rule is Dockset). At 1.5× DPR the shader is the heaviest of the three, though still 120 fps on an M4 Pro.
+
+### E · Dither sky
+
+**Mood:** a summer sky printed through a screen door, because Ember is about the light outside reaching the screen inside.
+**Signature:** the product is the controller. The live B panel floats over a full-bleed dithered sky, and turning its dial moves the sun. Dawn turns the sky pink and gold, noon brings deep blue with white cumulus, dusk brings violet and orange, and night brings stars with an ember glow on the horizon.
+
+- Schibsted Grotesk 700 display, DM Mono labels, deep night-navy sections.
+- Hero: headline over the sky (a left scrim keeps it legible at noon), the panel as the hero product shot, a glass time readout and chips.
+- Risks: the dial is the only hero scrubber, and it is a smaller target than a full-width track. Dithered stars render as 3 px squares at 400 px wide. The sky reflects the sun, not Ember's tint, so the warming shows in the panel and the readout, not on the sky.
+
+### F · Limb
+
+**Mood:** low orbit at the terminator, because Ember's job is the line between day and night.
+**Signature:** a geostationary view. Local solar time runs across the screen, so scrubbing sweeps the terminator over a dithered planet. A rainbow atmosphere band and a sunrise flare mark where the sun crosses the limb, and the night side lights up with cities in Ember's current color.
+
+- System display type at weight 300, DM Mono labels, black.
+- Hero: copy top-left, "Local time" readout top-right, planet in the lower half, and the track in a glass bar.
+- The live B panel sits beside "One dial in your menu bar". Pricing is a spec table.
+- Risks: continents and clouds read as "space app" before "screen color app". It is the busiest picture of the three. At 400 px the track sits below the fold.
+
+### Copy
+
+The ledes, pricing, questions, curve text, lists and spec table are reused from the round-1 copy (Neon). **Draft, to be rewritten by Neon:**
+- D: "Light that follows the day"; the steps "Lives in the menu bar", "Follows your evening", "Clears by morning" and their bodies; "The whole day in one dial" and its body; "or drag across the day".
+- E: "Your screen follows the sky"; "Turn the dial. The sky follows."; the steps "Reads the sky" and "Moves with it" and their bodies.
+- F: "Your screen follows the sunset"; the steps "Finds your sunset", "Starts the evening", "Holds the night" and their bodies; "One dial in your menu bar" and its body; "Pick Gentle, Standard or Deep for the night."; "Local time".
+
+### Round 2 pick: D, Eclipse
+
+1. It is the only direction where the hero *is* the brand. The night state lands exactly on the Ember mark: dark disc, ember crescent, lower-right limb. The same shader can make the DMG background, social cards and an animated icon.
+2. It reads instantly as warm versus cold light, which is the product. E reads as weather and F reads as Earth.
+3. It is the "mythical" one Cohen asked for, and it stays dark and refined, as DESIGN-PREFS asks.
+
+Worth borrowing: E's panel-as-controller. Put D's live B panel in the hero on wide screens as a second way to scrub. F's sunrise flare could also serve as a one-time intro beat.
+
+### Round 2 measured
+
+Setup: Chrome via Playwright, ANGLE Metal on an Apple M4 Pro, 120 Hz. An independent rAF meter and a long-task observer ran while each hero scrubber was dragged for 240 steps.
+- D, E and F at 1× DPR: ~120 fps, p95 frame 9.2–9.3 ms, 0 frames over 20 ms, 0 long tasks.
+- At 2× DPR (D canvas 2160 × 1350): the same numbers.
+- Reduce Motion: 0 draws in 1 s idle; a chip jump redraws only for the 260 ms colour fade.
+- Keyboard: Shift+Arrow and End move the track, and `aria-valuetext` updates. Panel Pause shows "Resumes at …" and the hero readout shows "True color"; Resume brings the tint back.
+- Compare: an arrow key in the D frame moves E's hero and the B panel frame to the same time.
+- 1440 px and 400 px: no horizontal overflow and no console errors. All twelve dir/view combinations load.
+- `just check-fast`: passes.
+
+Screenshots: `shots/d-eclipse-{dawn,noon,dusk,night}.jpg`, `shots/e-dither-sky-*.jpg` and `shots/f-limb-*.jpg` (1440 × 900), `shots/*-400-{dusk,night}.jpg` (400 px), and the recaptured `shots/compare.jpg`. Recording: `shots/scrub-def.mp4` (0.8 MB, 18 s, scrubbing D, then E's dial, then F).
+
+### Round 2 not checked
+
+- Safari (WebGL 1 should work, but it was not run), Firefox, and real phones or touch.
+- VoiceOver itself. Roles and values were checked in the DOM only.
+- A weak GPU or 60 Hz panel. The M4 Pro is far above a base Intel Mac with Iris graphics, so D at 1.5× is the one to profile there.
+- WebGL context loss. The no-WebGL fallback is a flat background colour and was not exercised.
+
+### Round 2 docs vs code
+
+- AGENTS.md says "native system typography throughout". D (Instrument Serif) and E (Schibsted Grotesk) break that if it applies to the site. A, B and C already did. The site's own rule is "follows Dockset", which does not set type.
+- AGENTS.md's 340 × 365 pt panel spec still holds for the shipped panel. The B panel in these pages is the round-1 candidate at about 450 pt.
