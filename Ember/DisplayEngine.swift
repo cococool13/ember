@@ -1,5 +1,6 @@
+import AppKit
 import CoreGraphics
-import Foundation
+import QuartzCore
 
 enum DisplayEngine {
     struct Target: Equatable, Sendable {
@@ -45,11 +46,77 @@ enum DisplayEngine {
             && abs(blue - 1) < slack
     }
 
+    /// Show `target` on every display. Returns at once: the gamma write runs on
+    /// `queue`, because one write to a 1024-entry XDR table costs about 3 ms, and
+    /// at 120 fades a second that would take 40% of each main-thread frame.
+    /// Requests that arrive while a write is in flight collapse to the latest.
     static func apply(_ target: Target) {
+        if target.kelvin < Schedule.dayKelvin - 1, !isNeutral(target) {
+            // First warm frame on screen, from the schedule, a fade or a scrub.
+            Analytics.activatedOnce("first_warmth")
+        }
+        submit { $0.target = target }
+    }
+
+    /// Hand the display back to its ColorSync profile. Never dropped by
+    /// coalescing: it runs before any target requested after it.
+    static func restore() {
+        submit {
+            $0.restore = true
+            $0.target = nil
+        }
+    }
+
+    /// Wait until every requested write has reached the displays (quit, tests).
+    static func flush() {
+        queue.sync {}
+    }
+
+    private struct Pending {
+        var restore = false
+        var target: Target?
+        var draining = false
+    }
+
+    private static let queue = DispatchQueue(label: "com.cohen.ember.gamma", qos: .userInteractive)
+    private static let lock = NSLock()
+    /// Guarded by `lock`.
+    private static var pending = Pending()
+
+    private static func submit(_ change: (inout Pending) -> Void) {
+        lock.lock()
+        change(&pending)
+        let start = !pending.draining
+        pending.draining = true
+        lock.unlock()
+        if start {
+            queue.async(execute: drain)
+        }
+    }
+
+    private static func drain() {
+        while true {
+            lock.lock()
+            let work = pending
+            pending = Pending(draining: work.restore || work.target != nil)
+            lock.unlock()
+            guard work.restore || work.target != nil else { return }
+            if work.restore {
+                writeRestore()
+            }
+            if let target = work.target {
+                write(target)
+            }
+        }
+    }
+
+    // Everything below runs on `queue` only.
+
+    private static func write(_ target: Target) {
         if isNeutral(target) {
             // Writing an identity table would still replace the display profile.
             if !usingSystemProfile {
-                restore()
+                writeRestore()
             }
             return
         }
@@ -66,13 +133,13 @@ enum DisplayEngine {
             apply(display: displays[i], red: red, green: green, blue: blue)
         }
         usingSystemProfile = false
-        if target.kelvin < Schedule.dayKelvin - 1 {
-            // First warm frame on screen, from the schedule, a fade or a scrub.
-            Analytics.activatedOnce("first_warmth")
-        }
+        writes += 1
     }
 
-    static func restore() {
+    /// Tinted frames that reached the displays. Read after `flush()`.
+    private(set) static var writes = 0
+
+    private static func writeRestore() {
         CGDisplayRestoreColorSyncSettings()
         baselines.removeAll()
         usingSystemProfile = true
@@ -95,8 +162,8 @@ enum DisplayEngine {
     }
 
     private static var baselines: [CGDirectDisplayID: GammaTable] = [:]
-    // CGSetDisplayTransferByTable consumes these buffers synchronously.
-    // One scratch table serves every display and every frame of a fade.
+    // Touched only on `queue`. CGSetDisplayTransferByTable consumes these buffers
+    // synchronously; one scratch table serves every display and every frame of a fade.
     private static var scratch = GammaTable(red: [], green: [], blue: [])
     private static var usingSystemProfile = true
 
@@ -175,23 +242,31 @@ enum DisplayEngine {
 /// Eases the display between distant targets instead of snapping. Scheduled
 /// ticks move a few kelvin at a time and apply directly; turning Ember on,
 /// resuming from a pause, leaving a color app, or waking the screen fade in.
+/// Fade frames follow the fastest display's refresh (120 Hz on ProMotion),
+/// so the ramp is as smooth as the screen can show.
 @MainActor
 final class DisplayFader {
     static let fadeSeconds: TimeInterval = 1.8
     /// Quitting should not keep the user waiting; this is still slow enough
     /// that the screen reads as easing out, not snapping.
     static let quitSeconds: TimeInterval = 0.6
-    static let frameSeconds: TimeInterval = 1.0 / 30.0
+    /// Fallback cadence when no screen can drive a display link (headless, lid closed).
+    static let fallbackFrameSeconds: TimeInterval = 1.0 / 60.0
     /// Below this the eye reads the change as continuous; above it we fade.
     static let snapThreshold = 12.0
 
     private(set) var shown: DisplayEngine.Target?
-    private var timer: Timer?
+    private var clock: FrameClock?
     private var destination: DisplayEngine.Target?
     private let apply: (DisplayEngine.Target) -> Void
 
     init(apply: @escaping (DisplayEngine.Target) -> Void = DisplayEngine.apply) {
         self.apply = apply
+    }
+
+    /// True while a fade is running.
+    var isFading: Bool {
+        clock != nil
     }
 
     func show(_ target: DisplayEngine.Target) {
@@ -240,8 +315,8 @@ final class DisplayFader {
     }
 
     func cancel() {
-        timer?.invalidate()
-        timer = nil
+        clock?.stop()
+        clock = nil
         destination = nil
     }
 
@@ -255,23 +330,61 @@ final class DisplayFader {
         destination = to
         let start = ProcessInfo.processInfo.systemUptime
         shown = from
-        let timer = Timer(timeInterval: Self.frameSeconds, repeats: true) { [weak self] timer in
-            MainActor.assumeIsolated {
-                guard let self else { timer.invalidate(); return }
-                let t = min(1, (ProcessInfo.processInfo.systemUptime - start) / seconds)
-                if t >= 1 {
-                    self.snap(to)
-                    done?()
-                } else {
-                    let step = DisplayEngine.Target.blend(from, to, Schedule.ease(t))
-                    self.apply(step)
-                    self.shown = step
-                }
+        clock = FrameClock { [weak self] in
+            guard let self else { return false }
+            let t = min(1, (ProcessInfo.processInfo.systemUptime - start) / seconds)
+            if t >= 1 {
+                self.snap(to)
+                done?()
+                return false
             }
+            let step = DisplayEngine.Target.blend(from, to, Schedule.ease(t))
+            self.apply(step)
+            self.shown = step
+            return true
         }
-        timer.tolerance = Self.frameSeconds / 4
-        RunLoop.main.add(timer, forMode: .common)
-        self.timer = timer
+    }
+}
+
+/// Calls `frame` once per refresh of the fastest connected display until it
+/// returns false or `stop()` runs. A CADisplayLink paces with the panel's
+/// compositor, so a 120 Hz screen gets 120 gamma steps a second instead of a
+/// fixed 30 Hz timer that steps visibly.
+@MainActor
+final class FrameClock: NSObject {
+    private var link: CADisplayLink?
+    private var timer: Timer?
+    private let frame: () -> Bool
+
+    init(frame: @escaping () -> Bool) {
+        self.frame = frame
+        super.init()
+        if let screen = NSScreen.screens.max(by: { $0.maximumFramesPerSecond < $1.maximumFramesPerSecond }) {
+            let link = screen.displayLink(target: self, selector: #selector(step))
+            let fastest = Float(max(60, screen.maximumFramesPerSecond))
+            link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: fastest, preferred: fastest)
+            link.add(to: .main, forMode: .common)
+            self.link = link
+        } else {
+            let timer = Timer(timeInterval: DisplayFader.fallbackFrameSeconds, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.step() }
+            }
+            RunLoop.main.add(timer, forMode: .common)
+            self.timer = timer
+        }
+    }
+
+    @objc private func step() {
+        if !frame() {
+            stop()
+        }
+    }
+
+    func stop() {
+        link?.invalidate()
+        link = nil
+        timer?.invalidate()
+        timer = nil
     }
 }
 

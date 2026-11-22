@@ -15,6 +15,10 @@ settings:
       ENABLE_TESTABILITY: YES
       COMPILATION_CACHE_ENABLE_CACHING: YES
 packages:
+  # Updates for the Developer ID build: EdDSA-signed appcast at https://ember.cohencool.workers.dev/appcast.xml. MIT.
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.9.6
   PostHog:
     url: https://github.com/PostHog/posthog-ios
     # 3.85.3 is the floor: it fixes posthog-ios #857 (EXC_GUARD at launch under Enhanced Security).
@@ -32,6 +36,7 @@ targets:
     dependencies:
       - package: LicenseKit
       - package: PostHog
+      - package: Sparkle
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cohen.ember

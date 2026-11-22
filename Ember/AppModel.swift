@@ -9,6 +9,7 @@ final class AppModel: ObservableObject {
             defaults.set(enabled, forKey: Keys.enabled)
             if !enabled {
                 pausedUntil = nil
+                nightUntil = nil
             }
             tick()
         }
@@ -33,6 +34,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var additionalColorApps: [String: String]
 
     @Published var pausedUntil: Date?
+    /// Night light now, ahead of the schedule, until the next wake time.
+    @Published var nightUntil: Date?
     /// The moment the user is scrubbing to on the day timeline. While set, the
     /// screen shows this light instead of now.
     @Published private(set) var preview: LightState?
@@ -226,8 +229,25 @@ final class AppModel: ObservableObject {
         tick()
     }
 
+    /// Dim now: jump to the night light and hold it until the next wake time,
+    /// for a dark room or a late start before the evening ramp.
+    func nightNow(now: Date = Date(), calendar: Calendar = .current) {
+        guard let until = Schedule.nextWake(after: now, wake: wake, calendar: calendar) else { return }
+        preview = nil
+        pausedUntil = nil
+        nightUntil = until
+        tick()
+    }
+
+    func endNightNow() {
+        guard nightUntil != nil else { return }
+        nightUntil = nil
+        tick()
+    }
+
     func pause(hours: Double) {
         preview = nil
+        nightUntil = nil
         pausedUntil = Date().addingTimeInterval(hours * 3600)
         tick()
     }
@@ -264,6 +284,7 @@ final class AppModel: ObservableObject {
         }
         guard let until = nextSunrise ?? Schedule.nextWake(after: now, wake: wake, calendar: calendar) else { return }
         preview = nil
+        nightUntil = nil
         pausedUntil = until
         tick()
     }
@@ -344,6 +365,9 @@ final class AppModel: ObservableObject {
         if let pausedUntil, pausedUntil <= now {
             self.pausedUntil = nil
         }
+        if let nightUntil, nightUntil <= now {
+            self.nightUntil = nil
+        }
         let nextColor = frontmostColorApp
         if colorAppName != nextColor {
             colorAppName = nextColor
@@ -356,7 +380,7 @@ final class AppModel: ObservableObject {
         if solar != nextSolar {
             solar = nextSolar
         }
-        let nextState = Schedule.state(
+        var nextState = Schedule.state(
             now: now,
             wake: wake,
             bed: bed,
@@ -364,6 +388,10 @@ final class AppModel: ObservableObject {
             sunset: solar?.sunset,
             strength: strength
         )
+        if nightUntil != nil, nextState.phase != .night {
+            // Bedtime's light on today's plan: the night temperature and dim.
+            nextState = Schedule.state(elapsed: nextState.plan.awakeMinutes, plan: nextState.plan, strength: strength)
+        }
         if state != nextState {
             state = nextState
         }
@@ -420,7 +448,8 @@ final class AppModel: ObservableObject {
     }()
 
     private func retuneTimer(now: Date) {
-        let next = Schedule.nextUpdate(after: now, plan: state.plan, active: isActive, pausedUntil: pausedUntil)
+        let scheduled = Schedule.nextUpdate(after: now, plan: state.plan, active: isActive, pausedUntil: pausedUntil)
+        let next = [scheduled, nightUntil].compactMap { $0 }.min()
         if let timer, timer.isValid, let next, abs(timer.fireDate.timeIntervalSince(next)) < 0.1 {
             return
         }

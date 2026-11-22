@@ -13,6 +13,12 @@
 			</array>
 		</dict>
 	</array>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://ember.cohencool.workers.dev/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>YcEA/W80CSdClRzQAxfGYNdDXhVh+G1E9IN+HpouTU8=</string>
 	<key>PostHogHost</key>
 	<string>$(POSTHOG_HOST)</string>
 	<key>PostHogProjectToken</key>

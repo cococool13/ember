@@ -45,6 +45,7 @@ site-media:
 # Stripe HOLD regression. ship runs guardrails 7 and 8 (Reviewed-by, bug-then-rule).
 guardrails:
     bash scripts/guardrails/check-stripe-hold.test.sh
+    bash scripts/guardrails/check-site-downloads.test.sh
 
 taste:
     .ci/bin/ci-taste v1

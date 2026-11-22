@@ -5,7 +5,6 @@ struct MenuBarView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.colorScheme) private var colorScheme
     var inMainWindow = false
-    var updateClock = false
 
     private var accent: Color {
         colorScheme == .dark ? Color(red: 0.63, green: 0.77, blue: 0.94)
@@ -16,10 +15,8 @@ struct MenuBarView: View {
         VStack(alignment: .leading, spacing: 11) {
             header
             Divider()
-            if updateClock && (model.state.kelvin == Schedule.dayKelvin || model.state.phase == .night) {
-                TimelineView(.everyMinute) { timeline in light(at: timeline.date) }
-            } else {
-                light(at: nil)
+            ClockedLight(wantsTicks: model.state.kelvin == Schedule.dayKelvin || model.state.phase == .night) { date in
+                light(at: date)
             }
             Divider()
             VStack(alignment: .leading, spacing: 8) {
@@ -114,6 +111,8 @@ struct MenuBarView: View {
             Button("Finish Setup") { model.showSetup?() }
         } else if model.licenseLocked {
             Button("Activate…") { model.showLicense?() }
+        } else if model.enabled, model.nightUntil != nil, !model.isPaused {
+            Button("End night light") { model.endNightNow() }
         } else if model.enabled {
             if model.isTimedPause {
                 Button("Resume") { model.resume() }.keyboardShortcut("p", modifiers: .command)
@@ -141,6 +140,13 @@ struct MenuBarView: View {
                 .help("Settings")
                 .keyboardShortcut(",", modifiers: .command)
             Menu {
+                if model.nightUntil == nil {
+                    Button("Start Night Light Now") { model.nightNow() }
+                        .disabled(!model.isActive)
+                } else {
+                    Button("End Night Light") { model.endNightNow() }
+                }
+                Divider()
                 Button("Quit Ember") { model.quit() }.keyboardShortcut("q", modifiers: .command)
             } label: {
                 Label("More Actions", systemImage: "ellipsis.circle")
@@ -188,6 +194,9 @@ struct MenuBarView: View {
         if let name = model.colorAppName {
             return "While \(name) is in front"
         }
+        if let until = model.nightUntil {
+            return "Night light until \(until.formatted(date: .omitted, time: .shortened))"
+        }
         let plan = shown.plan
         if plan.tooShort {
             return "Check your wake and bed times"
@@ -200,5 +209,50 @@ struct MenuBarView: View {
         case .night: nextTime = plan.wake
         }
         return "\(shown.nextPhase.title) at \(nextTime.label)"
+    }
+}
+
+extension EnvironmentValues {
+    /// True while the menu bar panel is on screen. The main window leaves it off.
+    @Entry var panelClockRunning = false
+}
+
+/// Updates the light readout each minute only while the panel is shown. It is
+/// the one view that reads `panelClockRunning`, so opening the panel does not
+/// re-evaluate the rest of it, and the subtree keeps its identity either way.
+private struct ClockedLight<Content: View>: View {
+    @Environment(\.panelClockRunning) private var running
+    var wantsTicks: Bool
+    @ViewBuilder var content: (Date?) -> Content
+
+    var body: some View {
+        let ticking = running && wantsTicks
+        TimelineView(MinuteSchedule(paused: !ticking)) { timeline in
+            content(ticking ? timeline.date : nil)
+        }
+    }
+}
+
+/// `.everyMinute` that yields nothing while paused, so a hidden panel never
+/// wakes and the view keeps its identity when the clock starts or stops.
+struct MinuteSchedule: TimelineSchedule {
+    var paused: Bool
+
+    func entries(from startDate: Date, mode _: TimelineScheduleMode) -> AnyIterator<Date> {
+        if paused {
+            var sent = false
+            return AnyIterator {
+                defer { sent = true }
+                return sent ? nil : startDate
+            }
+        }
+        let calendar = Calendar.current
+        var next: Date? = startDate
+        return AnyIterator {
+            defer {
+                next = next.flatMap { calendar.nextDate(after: $0, matching: DateComponents(second: 0), matchingPolicy: .nextTime) }
+            }
+            return next
+        }
     }
 }

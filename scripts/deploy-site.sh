@@ -9,6 +9,7 @@ STRIPE_HOLD_FILE="$ROOT/STRIPE_HOLD" bash "$ROOT/scripts/guardrails/check-stripe
 bash "$ROOT/scripts/guardrails/check-dmg-release.sh" dist/Ember.dmg --skip-live
 mkdir -p site/downloads
 cp dist/Ember.dmg site/downloads/Ember.dmg
+python3 "$ROOT/scripts/check-site-downloads.py" site
 (cd site && npx wrangler deploy "$@")
 LIVE_URL="${LIVE_DOWNLOAD_URL:-https://ember.cohencool.workers.dev/downloads/Ember.dmg}"
 bash "$ROOT/scripts/guardrails/check-dmg-release.sh" dist/Ember.dmg --live-url "$LIVE_URL"

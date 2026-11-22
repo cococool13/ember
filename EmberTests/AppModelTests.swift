@@ -157,6 +157,35 @@ final class AppModelTests: XCTestCase {
     }
 
     @MainActor
+    func testNightNowShowsNightUntilWakeAndPauseOrOffEndIt() {
+        withModel { model in
+            model.nightNow()
+            XCTAssertEqual(model.state.phase, .night)
+            XCTAssertEqual(model.state.kelvin, NightStrength.standard.nightKelvin, accuracy: 1)
+            let until = try? XCTUnwrap(model.nightUntil)
+            let wake = Schedule.nextWake(after: Date(), wake: model.wake)
+            XCTAssertEqual(until, wake)
+            XCTAssertTrue(model.isActive)
+
+            model.pause(hours: 1)
+            XCTAssertNil(model.nightUntil)
+            model.resume()
+            model.nightNow()
+            model.enabled = false
+            XCTAssertNil(model.nightUntil)
+            model.enabled = true
+
+            model.nightNow()
+            model.nightUntil = Date().addingTimeInterval(-1)
+            model.tick()
+            XCTAssertNil(model.nightUntil, "Night now ends at wake")
+            model.nightNow()
+            model.endNightNow()
+            XCTAssertNil(model.nightUntil)
+        }
+    }
+
+    @MainActor
     func testScrubReleaseReturnsToCurrentState() {
         withModel { model in
             let current = model.state

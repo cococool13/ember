@@ -57,16 +57,20 @@ architectures="$(lipo -archs "$app/Contents/MacOS/Ember")"
 }
 version=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")
 
+# Nested code, deepest first: a bundle's seal covers what it contains, so Sparkle.framework's XPC services,
+# Autoupdate and Updater.app are signed before the framework. Symlinks are skipped (they point at Versions/B).
+# --preserve-metadata=entitlements keeps Sparkle's Downloader.xpc entitlements, as Sparkle's docs require.
+nested_code() {
+  find "$app/Contents" \( -type f -o -type d \) \( -name '*.dylib' -o -name '*.so' -o -name '*.framework' \
+    -o -name '*.appex' -o -name '*.xpc' -o -name '*.app' -o \( -name Autoupdate -type f \) \) -print \
+    | awk -F/ '{ print NF "\t" $0 }' | sort -rn | cut -f2-
+}
+
 sign_nested() {
   local file
-  find "$app/Contents" \( -name '*.dylib' -o -name '*.so' \) -print0 \
-    | while IFS= read -r -d '' file; do
-        codesign --force --sign "$identity" --timestamp --options runtime "$file"
-      done
-  find "$app/Contents" \( -name '*.framework' -o -name '*.appex' -o -name '*.xpc' \) -print0 \
-    | while IFS= read -r -d '' file; do
-        codesign --force --sign "$identity" --timestamp --options runtime "$file"
-      done
+  for file in ${(f)"$(nested_code)"}; do
+    codesign --force --sign "$identity" --timestamp --options runtime --preserve-metadata=entitlements "$file"
+  done
   codesign --force --sign "$identity" --timestamp --options runtime \
     --entitlements "$PWD/Ember/Ember.entitlements" "$app"
 }
@@ -128,6 +132,7 @@ bash "$ROOT/scripts/guardrails/check-dmg-release.sh" "$dmg" --skip-live
 mkdir -p site/downloads
 cp "$dmg" site/downloads/Ember.dmg
 cp "$dmg" dist/Ember.dmg
+# The Sparkle enclosure: scripts/make-appcast-item.sh "$dmg" signs it and writes dist/appcast.xml.
 echo "Notarized: $dmg"
 echo "Copied to site/downloads/Ember.dmg for wrangler deploy."
 echo "Before site deploy: LIVE_DOWNLOAD_URL=... scripts/guardrails/check-dmg-release.sh dist/Ember.dmg"
