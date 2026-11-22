@@ -1,0 +1,261 @@
+/* Hallmark · custom (playground) · three directions, one curve · signature: scrub the day, watch the light change */
+/* critique: the shell is chrome for comparison only; each direction owns its own tokens in dir-*.css and panel.css */
+/* waive 7b: the tint layer must be pure white at rest; multiply by white is the identity, i.e. true color */
+/* waive 24b: panel spacing follows macOS point metrics (6, 10, 14 pt), not a 4 px web scale */
+/* waive 64: the C figcaption is a numeric readout, set in the figure face */
+/* waive 47a: the panel views draw a minimal macOS menu bar because the panel must open from its menu bar item */
+
+:root {
+  --shell-h: 48px;
+  --shell-bg: #141414;
+  --shell-ink: #f1f0ed;
+  --shell-muted: #9b9890;
+  --shell-line: rgb(255 255 255 / 0.12);
+  --shell-press: rgb(255 255 255 / 0.14);
+  --shell-focus: #8fb4ff;
+  --shell-seg-bg: rgb(255 255 255 / 0.06);
+  --desk-note-bg: rgb(0 0 0 / 0.45);
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --font-ui-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+  --font-ui-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-io: cubic-bezier(0.77, 0, 0.175, 1);
+  --desk-black: #0b0b0c;
+  --tint-white: #fff;
+  color-scheme: light dark;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+html {
+  scroll-padding-top: calc(var(--shell-h) + 64px);
+}
+body {
+  margin: 0;
+  background: var(--shell-bg);
+  color: var(--shell-ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+[hidden] {
+  display: none !important;
+}
+
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -40px;
+  z-index: 200;
+  padding: 8px 12px;
+  background: var(--shell-ink);
+  color: var(--shell-bg);
+}
+.skip:focus-visible {
+  top: 8px;
+}
+
+/* ---------- shell bar ---------- */
+.shell {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--shell-h);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: 16px;
+  background: var(--shell-bg);
+  border-bottom: 1px solid var(--shell-line);
+  font-size: 13px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.shell-name {
+  font-weight: 600;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+.shell-seg {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--shell-seg-bg);
+  flex: none;
+}
+.shell-seg button {
+  border: 0;
+  background: transparent;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  color: var(--shell-muted);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.shell-seg button[aria-pressed="true"] {
+  background: var(--shell-press);
+  color: var(--shell-ink);
+}
+.shell-check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+  color: var(--shell-muted);
+}
+.shell-fps {
+  margin-left: auto;
+  color: var(--shell-muted);
+  font-family: var(--font-ui-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+:where(.shell, .cmp) :focus-visible {
+  outline: 2px solid var(--shell-focus);
+  outline-offset: 2px;
+}
+.embed .shell,
+.embed .skip {
+  display: none;
+}
+html.embed {
+  --shell-h: 0px;
+}
+
+/* ---------- tint primitives ---------- */
+/* One multiply layer reproduces Ember's gamma gains: white becomes the gain colour, black stays black. */
+.tint,
+.tint-local,
+.a-tint {
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  background-color: var(--tint-white);
+}
+.tint-local {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---------- desk (panel views) ---------- */
+.desk-view {
+  height: calc(100svh - var(--shell-h));
+  min-height: 560px;
+}
+.desk {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--desk-black);
+}
+.desk-wall {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.desk .tint {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+}
+.desk-note {
+  position: absolute;
+  left: 16px;
+  bottom: 12px;
+  margin: 0;
+  z-index: 40;
+  max-width: 34ch;
+  font-size: 12px;
+  color: var(--shell-ink);
+  background: var(--desk-note-bg);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+.embed .desk-note {
+  display: none;
+}
+.embed .desk-view {
+  height: 100svh;
+  min-height: 0;
+}
+
+/* ---------- faq (shared mechanics, each direction styles it) ---------- */
+.faq details summary {
+  cursor: pointer;
+  list-style: none;
+}
+.faq details summary::-webkit-details-marker {
+  display: none;
+}
+
+/* ---------- compare ---------- */
+.cmp {
+  padding: 20px clamp(16px, 3vw, 40px) 64px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.cmp-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin: 12px 0;
+}
+.cmp-h {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+.cmp-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: 16px;
+}
+.cmp figure {
+  margin: 0;
+}
+.cmp figcaption {
+  font-size: 12px;
+  color: var(--shell-muted);
+  padding-top: 6px;
+}
+.cmp-panels iframe {
+  width: 100%;
+  height: 620px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--desk-black);
+}
+.cmp-sites {
+  display: grid;
+  gap: 20px;
+}
+.cmp-frame {
+  position: relative;
+  aspect-ratio: 1440 / 860;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--desk-black);
+}
+.cmp-frame iframe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 860px;
+  border: 0;
+  transform-origin: 0 0;
+  transform: scale(var(--s, 0.5));
+}

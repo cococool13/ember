@@ -1,0 +1,388 @@
+/* Hallmark · custom · B Night window · nocturnal cinematic · signature: a 24-hour dial whose ring is the day's real whites, with your screen in the window */
+/* critique: the only light on the page comes from the porthole image and the ring; no glow orbs, no neon */
+
+:root {
+  --raw-b-b-bg: #0c0b0a;
+  --raw-b-b-raise: #161412;
+  --raw-b-b-ink: #efe9df;
+  --raw-b-b-muted: #958c80;
+  --raw-b-b-rule: rgb(239 233 223 / 0.14);
+  --raw-b-b-accent: #e58450;
+  --raw-b-b-on-accent: #1a0d05;
+  --raw-b-b-focus: #9cc0ff;
+  --raw-b-b-scrim: rgb(12 11 10 / 0.72);
+  --raw-b-p-disc: #171310;
+  --raw-b-p-ember: #e8692e;
+  --raw-b-p-knob: #efe9df;
+  --raw-b-p-shadow: rgb(0 0 0 / 0.6);
+  --raw-b-p-ink3: rgb(239 233 223 / 0.35);
+  --raw-b-p-focus: #9cc0ff;
+  --raw-b-mask-solid: #000;
+  --raw-b-dial-dial-tick: rgb(239 233 223 / 0.3);
+}
+
+.b-site {
+  --b-bg: var(--raw-b-b-bg);
+  --b-raise: var(--raw-b-b-raise);
+  --b-ink: var(--raw-b-b-ink);
+  --b-muted: var(--raw-b-b-muted);
+  --b-rule: var(--raw-b-b-rule);
+  --b-accent: var(--raw-b-b-accent);
+  --b-on-accent: var(--raw-b-b-on-accent);
+  --b-focus: var(--raw-b-b-focus);
+  --b-scrim: var(--raw-b-b-scrim);
+  --p-disc: var(--raw-b-p-disc);
+  --p-ember: var(--raw-b-p-ember);
+  --p-knob: var(--raw-b-p-knob);
+  --p-shadow: var(--raw-b-p-shadow);
+  --p-ink3: var(--raw-b-p-ink3);
+  --p-focus: var(--raw-b-p-focus);
+  --mask-solid: var(--raw-b-mask-solid);
+  --b-max: 1240px;
+  --b-gut: clamp(16px, 4vw, 48px);
+  background: var(--b-bg);
+  color: var(--b-ink);
+  font: 400 17px/1.5 var(--font-ui);
+}
+.b-site :focus-visible {
+  outline: 2px solid var(--b-focus);
+  outline-offset: 3px;
+}
+.b-nav {
+  position: sticky;
+  top: var(--shell-h);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding-inline: max(var(--b-gut), calc((100% - var(--b-max)) / 2));
+  background: var(--b-bg);
+}
+.b-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 17px/1 var(--font-ui-display);
+  color: inherit;
+  text-decoration: none;
+}
+.b-nav-links {
+  display: flex;
+  gap: 22px;
+  margin-left: auto;
+  font-size: 14px;
+}
+.b-nav-links a,
+.b-foot a {
+  color: var(--b-muted);
+  text-decoration: none;
+}
+.b-nav-links a:hover,
+.b-foot a:hover {
+  color: var(--b-ink);
+}
+.b-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: var(--b-ink);
+  color: var(--b-bg);
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 140ms var(--ease-out), background-color 160ms ease;
+}
+.b-btn:hover {
+  background: var(--b-accent);
+  color: var(--b-on-accent);
+}
+.b-btn:active {
+  transform: scale(0.97);
+}
+.b-btn-small {
+  height: 34px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+.b-link {
+  color: var(--b-ink);
+  text-underline-offset: 4px;
+}
+
+/* hero */
+.b-hero {
+  position: relative;
+  max-width: var(--b-max);
+  margin: 0 auto;
+  padding: 8px var(--b-gut) 40px;
+  min-height: calc(100svh - var(--shell-h) - 56px);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 24px;
+  align-items: center;
+}
+.b-h1 {
+  font: 600 clamp(44px, 5.6vw, 80px) / 1 var(--font-ui-display);
+  letter-spacing: -0.035em;
+  margin: 0;
+  overflow-wrap: break-word;
+  min-width: 0;
+  text-wrap: balance;
+}
+.b-lede {
+  font-size: 19px;
+  color: var(--b-muted);
+  max-width: 32ch;
+  margin: 20px 0 28px;
+}
+.b-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  margin: 0;
+}
+.b-dial {
+  justify-self: center;
+  width: min(560px, 100%, calc(100svh - var(--shell-h) - 140px));
+  --ring: 16px;
+  --handle: 46px;
+  --dial-tick: var(--raw-b-dial-dial-tick);
+}
+.b-porthole img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.b-readout {
+  position: absolute;
+  left: 50%;
+  bottom: 20%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 10px 18px;
+  border-radius: 16px;
+  background: var(--b-scrim);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.b-readout-time {
+  font: 500 28px/1 var(--font-ui-display);
+  font-variant-numeric: tabular-nums;
+}
+.b-readout-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--b-muted);
+  font-variant-numeric: tabular-nums;
+}
+.b-dial-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--b-muted);
+  pointer-events: none;
+}
+.b-dial-noon {
+  top: -22px;
+}
+.b-dial-mid {
+  bottom: -22px;
+}
+.b-hint {
+  position: absolute;
+  right: var(--b-gut);
+  bottom: 12px;
+  font-size: 13px;
+  color: var(--b-muted);
+  transition: opacity 200ms ease;
+}
+.b-hero[data-used] .b-hint {
+  opacity: 0;
+}
+
+/* sections */
+.b-sec {
+  max-width: var(--b-max);
+  margin: 0 auto;
+  padding: clamp(72px, 10vw, 128px) var(--b-gut) 0;
+}
+.b-h2 {
+  font: 600 clamp(32px, 3.8vw, 52px) / 1.04 var(--font-ui-display);
+  letter-spacing: -0.03em;
+  margin: 0 0 32px;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+.b-strip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.b-strip li {
+  display: grid;
+  gap: 2px;
+}
+.b-frame {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 6px;
+  aspect-ratio: 3 / 4;
+  margin-bottom: 10px;
+}
+.b-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.b-strip li:nth-child(2) img {
+  object-position: 30% 50%;
+}
+.b-strip li:nth-child(3) img {
+  object-position: 60% 50%;
+}
+.b-strip li:nth-child(4) img {
+  object-position: 90% 50%;
+}
+.b-frame-time {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.b-frame-k {
+  color: var(--b-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.b-night {
+  position: relative;
+  max-width: none;
+  padding: clamp(72px, 10vw, 128px) 0 0;
+}
+.b-night-img {
+  width: 100%;
+  height: min(78svh, 760px);
+  object-fit: cover;
+}
+.b-night-line {
+  position: absolute;
+  left: max(var(--b-gut), calc((100% - var(--b-max)) / 2));
+  bottom: 48px;
+  margin: 0;
+  max-width: 18ch;
+  font: 600 clamp(28px, 3.4vw, 46px) / 1.08 var(--font-ui-display);
+  letter-spacing: -0.03em;
+}
+.b-aside {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 24px;
+}
+.b-aside-body p {
+  margin: 0 0 14px;
+  font-size: 20px;
+  color: var(--b-muted);
+  max-width: 40ch;
+}
+.b-aside-body p:first-child {
+  color: var(--b-ink);
+}
+.b-price {
+  border-top: 1px solid var(--b-rule);
+  margin-top: clamp(72px, 10vw, 128px);
+  padding-top: 56px;
+}
+.b-price-h {
+  font: 600 clamp(44px, 7vw, 104px) / 0.96 var(--font-ui-display);
+  letter-spacing: -0.04em;
+  margin: 0;
+  max-width: 14ch;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+.b-faq .faq {
+  display: grid;
+  gap: 2px;
+}
+.b-faq details {
+  background: var(--b-raise);
+  border-radius: 12px;
+  padding: 0 20px;
+}
+.b-faq summary {
+  padding: 18px 0;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.b-faq summary::after {
+  content: "+";
+  color: var(--b-muted);
+  transition: transform 200ms var(--ease-out);
+}
+.b-faq details[open] summary::after {
+  transform: rotate(45deg);
+}
+.b-faq details p {
+  margin: 0 0 18px;
+  color: var(--b-muted);
+  max-width: 60ch;
+}
+.b-foot {
+  max-width: var(--b-max);
+  margin: 0 auto;
+  padding: 96px var(--b-gut) 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.b-foot-links {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+}
+
+@media (max-width: 820px) {
+  .b-nav-links {
+    display: none;
+  }
+  .b-nav .b-btn-small {
+    margin-left: auto;
+  }
+  .b-hero,
+  .b-aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .b-hero {
+    min-height: 0;
+    padding-top: 24px;
+    gap: 48px;
+  }
+  .b-dial {
+    width: min(100%, 420px);
+    --handle: 38px;
+  }
+  .b-readout-time {
+    font-size: 22px;
+  }
+  .b-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .b-hint {
+    position: static;
+    justify-self: center;
+  }
+}
