@@ -85,6 +85,7 @@ struct MainWindowView: View {
                 } else {
                     ScrollView {
                         MenuBarView(inMainWindow: true)
+                            .environment(\.panelClockRunning, true)
                             .frame(maxWidth: .infinity)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -109,6 +110,7 @@ struct SettingsWindowView: View {
     @EnvironmentObject private var model: AppModel
     @AppStorage("showDockIcon") private var showDockIcon = false
     @State private var shareAnalytics = Analytics.isEnabled()
+    @ObservedObject private var updates = Updates.shared
 
     var body: some View {
         Form {
@@ -130,6 +132,11 @@ struct SettingsWindowView: View {
                 Text("Appearance")
             } footer: {
                 Text("When hidden, Ember stays available in the menu bar. Closing a window keeps your light running.")
+            }
+            Section("Updates") {
+                Toggle("Check for updates automatically", isOn: $updates.automaticallyChecks)
+                Button("Check for Updates…") { updates.check() }
+                    .disabled(!updates.canCheck)
             }
             Section {
                 Toggle("Share anonymous usage and crash reports", isOn: $shareAnalytics)

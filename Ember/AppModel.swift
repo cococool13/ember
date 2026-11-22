@@ -9,6 +9,7 @@ final class AppModel: ObservableObject {
             defaults.set(enabled, forKey: Keys.enabled)
             if !enabled {
                 pausedUntil = nil
+                nightUntil = nil
             }
             tick()
         }
@@ -33,9 +34,20 @@ final class AppModel: ObservableObject {
     @Published private(set) var additionalColorApps: [String: String]
 
     @Published var pausedUntil: Date?
+    /// Night light now, ahead of the schedule, until the next wake time.
+    @Published var nightUntil: Date?
     /// The moment the user is scrubbing to on the day timeline. While set, the
     /// screen shows this light instead of now.
-    @Published private(set) var preview: LightState?
+    @Published private(set) var preview: LightState? {
+        didSet {
+            if preview == nil {
+                previewMinute = nil
+            }
+        }
+    }
+
+    /// The minute of the day a dial preview points at, shared by the panel and the main window.
+    @Published private(set) var previewMinute: Double?
     @Published var state: LightState
     @Published var solar: Solar.Events?
     @Published var fluxQuit = false
@@ -226,8 +238,29 @@ final class AppModel: ObservableObject {
         tick()
     }
 
+    /// Dim now: jump to the night light and hold it until the next wake time,
+    /// for a dark room or a late start before the evening ramp.
+    /// Returns false, changing nothing, while Ember is off, unlicensed or in setup.
+    @discardableResult
+    func nightNow(now: Date = Date(), calendar: Calendar = .current) -> Bool {
+        guard enabled, !needsOnboarding, !licenseLocked,
+              let until = Schedule.nextWake(after: now, wake: wake, calendar: calendar) else { return false }
+        preview = nil
+        pausedUntil = nil
+        nightUntil = until
+        tick()
+        return true
+    }
+
+    func endNightNow() {
+        guard nightUntil != nil else { return }
+        nightUntil = nil
+        tick()
+    }
+
     func pause(hours: Double) {
         preview = nil
+        nightUntil = nil
         pausedUntil = Date().addingTimeInterval(hours * 3600)
         tick()
     }
@@ -264,6 +297,7 @@ final class AppModel: ObservableObject {
         }
         guard let until = nextSunrise ?? Schedule.nextWake(after: now, wake: wake, calendar: calendar) else { return }
         preview = nil
+        nightUntil = nil
         pausedUntil = until
         tick()
     }
@@ -301,12 +335,13 @@ final class AppModel: ObservableObject {
 
     /// Show the light at `progress` (0 wake … 1 bed) of today's plan on the
     /// screen right away, so the whole curve can be tried in a few seconds.
-    func scrub(to progress: Double) {
+    func scrub(to progress: Double, minute: Double? = nil) {
         guard isActive, !quitting, !screensAsleep else { return }
         let plan = state.plan
         let p = min(1, max(0, progress))
         let next = Schedule.state(elapsed: p * plan.awakeMinutes, plan: plan, strength: strength)
         preview = next
+        previewMinute = minute
         if Self.isRunningTests {
             return
         }
@@ -344,6 +379,9 @@ final class AppModel: ObservableObject {
         if let pausedUntil, pausedUntil <= now {
             self.pausedUntil = nil
         }
+        if let nightUntil, nightUntil <= now {
+            self.nightUntil = nil
+        }
         let nextColor = frontmostColorApp
         if colorAppName != nextColor {
             colorAppName = nextColor
@@ -356,7 +394,7 @@ final class AppModel: ObservableObject {
         if solar != nextSolar {
             solar = nextSolar
         }
-        let nextState = Schedule.state(
+        var nextState = Schedule.state(
             now: now,
             wake: wake,
             bed: bed,
@@ -364,6 +402,10 @@ final class AppModel: ObservableObject {
             sunset: solar?.sunset,
             strength: strength
         )
+        if nightUntil != nil, nextState.phase != .night {
+            // Bedtime's light on today's plan: the night temperature and dim.
+            nextState = Schedule.state(elapsed: nextState.plan.awakeMinutes, plan: nextState.plan, strength: strength)
+        }
         if state != nextState {
             state = nextState
         }
@@ -420,7 +462,8 @@ final class AppModel: ObservableObject {
     }()
 
     private func retuneTimer(now: Date) {
-        let next = Schedule.nextUpdate(after: now, plan: state.plan, active: isActive, pausedUntil: pausedUntil)
+        let scheduled = Schedule.nextUpdate(after: now, plan: state.plan, active: isActive, pausedUntil: pausedUntil)
+        let next = [scheduled, nightUntil].compactMap { $0 }.min()
         if let timer, timer.isValid, let next, abs(timer.fireDate.timeIntervalSince(next)) < 0.1 {
             return
         }

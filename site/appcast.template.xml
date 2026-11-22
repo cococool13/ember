@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sparkle feed template. scripts/make-appcast-item.sh fills it into dist/appcast.xml.
+     Publishing means copying that file to site/appcast.xml and the DMG to
+     site/downloads/<version>/Ember.dmg, then deploying the site. That is Cohen's call. -->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Ember</title>
+    <link>{{BASE}}/appcast.xml</link>
+    <description>Ember updates</description>
+    <language>en</language>
+    <item>
+      <title>Ember {{VERSION}}</title>
+      <pubDate>{{PUBDATE}}</pubDate>
+      <sparkle:version>{{BUILD}}</sparkle:version>
+      <sparkle:shortVersionString>{{VERSION}}</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>{{MIN_SYSTEM}}</sparkle:minimumSystemVersion>
+      <enclosure url="{{URL}}" length="{{LENGTH}}" type="application/octet-stream" sparkle:edSignature="{{ED_SIGNATURE}}"/>
+    </item>
+  </channel>
+</rss>

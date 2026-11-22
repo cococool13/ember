@@ -1,3 +1,4 @@
+import AppKit
 @testable import Ember
 import XCTest
 
@@ -14,6 +15,23 @@ final class DisplayEngineTests: XCTestCase {
         XCTAssertEqual(writes, [night])
         fader.snap(night)
         XCTAssertEqual(writes, [night, night])
+    }
+
+    /// Regression: fades ran on a fixed 30 Hz timer and stepped on 120 Hz screens.
+    @MainActor
+    func testFadeFollowsDisplayRefresh() throws {
+        let refresh = NSScreen.screens.map(\.maximumFramesPerSecond).max() ?? 0
+        guard refresh >= 60 else { throw XCTSkip("No display of 60 Hz or more") }
+        var frames = 0
+        let fader = DisplayFader(apply: { _ in frames += 1 })
+        fader.show(DisplayEngine.Target(kelvin: 2700, dim: 0.8))
+        let window = 0.5
+        let deadline = Date().addingTimeInterval(window)
+        while Date() < deadline {
+            _ = RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.005))
+        }
+        fader.cancel()
+        XCTAssertGreaterThan(Double(frames), window * 45, "Fade should write more than 45 frames a second")
     }
 
     func testDaylightTemperatureIsNearWhite() {

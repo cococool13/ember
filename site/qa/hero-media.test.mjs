@@ -85,3 +85,14 @@ test('the HTML parser cannot start the movie or a second poster request', () => 
   assert.doesNotMatch(video, /\s(?:src|poster|autoplay)=/);
   assert.match(video, /data-src=/);
 });
+
+test('hero movie stays small and silent', async () => {
+  const { statSync } = await import('node:fs');
+  const url = new URL('../assets/cinematic/dusk-hero.mp4', import.meta.url);
+  // Regression: the 8 s muted loop shipped at 2.0 MB with a 140 kbps AAC track.
+  assert.ok(statSync(url).size < 1_000_000, 'hero movie should stay under 1 MB');
+  const bytes = readFileSync(url);
+  assert.equal(bytes.includes(Buffer.from('mp4a')), false, 'hero movie should have no audio track');
+  // faststart: the index comes before the media data so playback can begin early.
+  assert.ok(bytes.indexOf(Buffer.from('moov')) < bytes.indexOf(Buffer.from('mdat')));
+});
