@@ -57,7 +57,7 @@ struct DayDial: View {
         .help("Drag to preview the light at a different time")
         // A real slider for VoiceOver, so the dial is announced as adjustable.
         .accessibilityRepresentation {
-            Slider(value: Binding(get: { DialGeometry.snapped(minute) }, set: { onScrub($0) }),
+            Slider(value: Binding(get: { DialGeometry.quarter(below: minute) }, set: { onScrub($0) }),
                    in: 0 ... 1425, step: 15)
             {
                 Text("24-hour dial")
@@ -68,8 +68,11 @@ struct DayDial: View {
         }
     }
 
+    /// Arrows move to the next quarter hour in that direction: 7:08 goes to 7:15 or 7:00.
     private func step(_ delta: Double) {
-        onScrub(Schedule.wrap(DialGeometry.snapped(minute) + delta))
+        let below = DialGeometry.quarter(below: minute)
+        let target = delta < 0 && below < Schedule.wrap(minute) ? below : below + delta
+        onScrub(Schedule.wrap(target))
     }
 }
 
@@ -92,9 +95,9 @@ enum DialGeometry {
         return min(1, Schedule.minutesBetween(Double(plan.wake.minutes), Schedule.wrap(minute)) / plan.awakeMinutes)
     }
 
-    /// The nearest quarter hour, wrapped into the day.
-    static func snapped(_ minute: Double) -> Double {
-        Schedule.wrap((minute / 15).rounded() * 15)
+    /// The quarter hour at or before `minute`, 0 through 1425, so 11:53 PM stays the day's last step.
+    static func quarter(below minute: Double) -> Double {
+        (Schedule.wrap(minute) / 15).rounded(.down) * 15
     }
 }
 

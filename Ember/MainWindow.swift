@@ -85,6 +85,7 @@ struct MainWindowView: View {
                 } else {
                     ScrollView {
                         MenuBarView(inMainWindow: true)
+                            .environment(\.panelClockRunning, true)
                             .frame(maxWidth: .infinity)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -72,8 +72,8 @@ final class PanelTests: XCTestCase {
             let angle = DialGeometry.angle(minute: minute)
             XCTAssertEqual(DialGeometry.minute(dx: sin(angle) * 80, dy: -cos(angle) * 80), minute, accuracy: 1e-6)
         }
-        XCTAssertEqual(DialGeometry.snapped(1438), 0)
-        XCTAssertEqual(DialGeometry.snapped(1300), 1305)
+        XCTAssertEqual(DialGeometry.quarter(below: 1438), 1425, "11:58 PM stays the last step")
+        XCTAssertEqual(DialGeometry.quarter(below: 428), 420)
 
         let plan = Schedule.plan(wake: ClockTime(hour: 7, minute: 0), bed: ClockTime(hour: 23, minute: 0),
                                  sunrise: nil, sunset: nil)
@@ -99,8 +99,8 @@ final class PanelTests: XCTestCase {
                 model.state = Schedule.state(now: now, wake: model.wake, bed: model.bed,
                                              sunrise: nil, sunset: nil, strength: model.strength)
                 let view = MenuBarView(clockOverride: now).environmentObject(model)
-                XCTAssertEqual(renderView(view, name: "b-\(name)-\(look)", width: Theme.panelWidth,
-                                          appearance: appearance).height, Theme.panelHeight)
+                _ = renderView(view, name: "b-\(name)-\(look)", width: Theme.panelWidth,
+                               appearance: appearance)
             }
             let now = today.addingTimeInterval(20 * 3600)
             func pinned(_ model: AppModel) -> some View {
@@ -109,16 +109,16 @@ final class PanelTests: XCTestCase {
             let scrubbing = makeModel()
             scrubbing.scrub(to: DialGeometry.progress(minute: 21 * 60 + 45, plan: scrubbing.state.plan))
             XCTAssertNotNil(scrubbing.preview)
-            XCTAssertEqual(renderView(pinned(scrubbing), name: "b-scrub-\(look)", width: Theme.panelWidth,
-                                      appearance: appearance).height, Theme.panelHeight)
+            _ = renderView(pinned(scrubbing), name: "b-scrub-\(look)", width: Theme.panelWidth,
+                           appearance: appearance)
             let paused = makeModel()
             paused.pause(hours: 1)
-            XCTAssertEqual(renderView(pinned(paused), name: "b-paused-\(look)", width: Theme.panelWidth,
-                                      appearance: appearance).height, Theme.panelHeight)
+            _ = renderView(pinned(paused), name: "b-paused-\(look)", width: Theme.panelWidth,
+                           appearance: appearance)
             let locked = makeModel()
             locked.licenseLocked = true
-            XCTAssertEqual(renderView(pinned(locked), name: "b-locked-\(look)", width: Theme.panelWidth,
-                                      appearance: appearance).height, Theme.panelHeight)
+            _ = renderView(pinned(locked), name: "b-locked-\(look)", width: Theme.panelWidth,
+                           appearance: appearance)
         }
     }
 

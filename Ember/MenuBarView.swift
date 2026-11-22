@@ -7,8 +7,6 @@ struct MenuBarView: View {
     var inMainWindow = false
     /// Renders pin the clock here; the app leaves it nil.
     var clockOverride: Date?
-    /// The minute the dial was dragged to. Read only while a preview is shown.
-    @State private var previewMinute: Double?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -62,14 +60,11 @@ struct MenuBarView: View {
 
     private func light(at date: Date?) -> some View {
         let nowMinute = Schedule.minutes(in: clockOverride ?? date ?? Date(), calendar: .current)
-        // Night light now overrides the clock; the model's state already holds it.
-        let current = (model.nightUntil == nil ? date : nil).map { _ in
-            let elapsed = Schedule.minutesBetween(Double(model.state.plan.wake.minutes), nowMinute)
-            return Schedule.state(elapsed: elapsed, plan: model.state.plan, strength: model.strength)
-        } ?? model.state
+        // The clock moves the knob and the time; phase and kelvin are what the display shows now.
+        let current = model.state
         let shown = model.preview ?? current
         let minute = model.preview.map { preview in
-            previewMinute ?? Double(preview.plan.wake.minutes) + preview.dayProgress * preview.plan.awakeMinutes
+            model.previewMinute ?? Double(preview.plan.wake.minutes) + preview.dayProgress * preview.plan.awakeMinutes
         } ?? nowMinute
         return VStack(spacing: 8) {
             ZStack {
@@ -100,8 +95,7 @@ struct MenuBarView: View {
     }
 
     private func scrub(to minute: Double) {
-        previewMinute = minute
-        model.scrub(to: DialGeometry.progress(minute: minute, plan: model.state.plan))
+        model.scrub(to: DialGeometry.progress(minute: minute, plan: model.state.plan), minute: minute)
     }
 
     private func readout(minute: Double, shown: LightState) -> some View {
