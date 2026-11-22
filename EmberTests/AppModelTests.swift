@@ -173,6 +173,8 @@ final class AppModelTests: XCTestCase {
             model.nightNow()
             model.enabled = false
             XCTAssertNil(model.nightUntil)
+            XCTAssertFalse(model.nightNow(), "Night now does nothing while Ember is off")
+            XCTAssertNil(model.nightUntil)
             model.enabled = true
 
             model.nightNow()

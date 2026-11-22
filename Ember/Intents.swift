@@ -84,7 +84,7 @@ struct NightNowIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        try AppModel.running().nightNow()
+        guard try AppModel.running().nightNow() else { throw EmberIntentError.nightUnavailable }
         return .result()
     }
 }
@@ -120,8 +120,12 @@ struct EmberShortcuts: AppShortcutsProvider {
 
 enum EmberIntentError: Error, CustomLocalizedStringResourceConvertible {
     case notRunning
+    case nightUnavailable
 
     var localizedStringResource: LocalizedStringResource {
-        "Ember is not running. Open Ember and try again."
+        switch self {
+        case .notRunning: "Ember is not running. Open Ember and try again."
+        case .nightUnavailable: "Ember can't start Night Light. Open Ember to turn it on, finish setup, or click Activate."
+        }
     }
 }

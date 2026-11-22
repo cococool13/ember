@@ -51,10 +51,6 @@ enum DisplayEngine {
     /// at 120 fades a second that would take 40% of each main-thread frame.
     /// Requests that arrive while a write is in flight collapse to the latest.
     static func apply(_ target: Target) {
-        if target.kelvin < Schedule.dayKelvin - 1, !isNeutral(target) {
-            // First warm frame on screen, from the schedule, a fade or a scrub.
-            Analytics.activatedOnce("first_warmth")
-        }
         submit { $0.target = target }
     }
 
@@ -134,6 +130,10 @@ enum DisplayEngine {
         }
         usingSystemProfile = false
         writes += 1
+        if target.kelvin < Schedule.dayKelvin - 1 {
+            // First warm frame on screen, from the schedule, a fade or a scrub.
+            DispatchQueue.main.async { Analytics.activatedOnce("first_warmth") }
+        }
     }
 
     /// Tinted frames that reached the displays. Read after `flush()`.
@@ -262,11 +262,6 @@ final class DisplayFader {
 
     init(apply: @escaping (DisplayEngine.Target) -> Void = DisplayEngine.apply) {
         self.apply = apply
-    }
-
-    /// True while a fade is running.
-    var isFading: Bool {
-        clock != nil
     }
 
     func show(_ target: DisplayEngine.Target) {

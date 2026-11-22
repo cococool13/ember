@@ -66,7 +66,8 @@ struct MenuBarView: View {
     }
 
     private func light(at date: Date?) -> some View {
-        let current = date.map {
+        // Night light now overrides the clock; the model's state already holds it.
+        let current = (model.nightUntil == nil ? date : nil).map {
             let elapsed = Schedule.minutesBetween(Double(model.state.plan.wake.minutes),
                                                   Schedule.minutes(in: $0, calendar: .current))
             return Schedule.state(elapsed: elapsed, plan: model.state.plan, strength: model.strength)

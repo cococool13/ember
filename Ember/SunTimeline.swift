@@ -61,7 +61,7 @@ struct SunTimeline: View {
                 Text("Day timeline")
             }
             .accessibilityValue(timeLabel)
-            .accessibilityHint("Adjust to preview another time of day, then release to return to now.")
+            .accessibilityHint("Adjust to preview another time of day. Use the Return to now action to go back.")
             .accessibilityAction(named: "Return to now") { onEnd() }
         }
     }

@@ -231,12 +231,16 @@ final class AppModel: ObservableObject {
 
     /// Dim now: jump to the night light and hold it until the next wake time,
     /// for a dark room or a late start before the evening ramp.
-    func nightNow(now: Date = Date(), calendar: Calendar = .current) {
-        guard let until = Schedule.nextWake(after: now, wake: wake, calendar: calendar) else { return }
+    /// Returns false, changing nothing, while Ember is off, unlicensed or in setup.
+    @discardableResult
+    func nightNow(now: Date = Date(), calendar: Calendar = .current) -> Bool {
+        guard enabled, !needsOnboarding, !licenseLocked,
+              let until = Schedule.nextWake(after: now, wake: wake, calendar: calendar) else { return false }
         preview = nil
         pausedUntil = nil
         nightUntil = until
         tick()
+        return true
     }
 
     func endNightNow() {

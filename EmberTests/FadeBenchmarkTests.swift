@@ -35,10 +35,10 @@ final class FadeBenchmarkTests: XCTestCase {
         while Date() < deadline {
             _ = RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.005))
         }
-        let written = DisplayEngine.writes
         if real {
             DisplayEngine.flush()
         }
+        let written = DisplayEngine.writes
         XCTAssertGreaterThan(stamps.count, 10)
         let span = (stamps.last ?? 0) - (stamps.first ?? 0)
         let gaps = zip(stamps.dropFirst(), stamps).map { ($0 - $1) * 1000 }.sorted()
