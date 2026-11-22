@@ -65,6 +65,14 @@ struct DayDial: View {
             .accessibilityValue(ClockTime.from(fractionalMinutes: minute).label)
             .accessibilityHint("Adjust to preview the display color at another time. Use the Return to now action to go back.")
             .accessibilityAction(named: "Return to now") { onEnd() }
+            // Same quarter-hour steps as the arrow keys, from the time VoiceOver reads out.
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: step(15)
+                case .decrement: step(-15)
+                @unknown default: break
+                }
+            }
         }
     }
 
