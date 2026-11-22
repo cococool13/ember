@@ -117,8 +117,8 @@ private struct DialRing: View, Equatable {
                 .grayscale(active ? 0 : 1)
                 .opacity(active ? 1 : 0.4)
             // Hairlines keep the daylight white visible on a light surface.
-            Circle().strokeBorder(.primary.opacity(0.12), lineWidth: 0.5)
-            Circle().strokeBorder(.primary.opacity(0.12), lineWidth: 0.5).padding(width)
+            Circle().strokeBorder(.primary.opacity(0.22), lineWidth: 1)
+            Circle().strokeBorder(.primary.opacity(0.22), lineWidth: 1).padding(width)
             DialTicks(inset: width + 5)
         }
         .accessibilityHidden(true)
