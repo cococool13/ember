@@ -24,6 +24,153 @@
     return 0.08 + 0.84 * ((C.wrap(m - RISE) / DAYLEN) % (1440 / DAYLEN));
   }
 
+  /* ---------- E · the sky palette, shared by the shader, the CSS fallback and the sections ---------- */
+  /* Keyframes by sun elevation: zenith, middle, horizon, sun glow. Dusk keys; dawn mixes in DAWN. */
+  const SKY_KEYS = [
+    [
+      -1,
+      [0.012, 0.016, 0.06],
+      [0.02, 0.026, 0.085],
+      [0.035, 0.04, 0.11],
+      [0.1, 0.06, 0.1],
+    ],
+    [
+      -0.35,
+      [0.015, 0.02, 0.07],
+      [0.03, 0.035, 0.11],
+      [0.07, 0.05, 0.15],
+      [0.2, 0.09, 0.14],
+    ],
+    [
+      -0.14,
+      [0.05, 0.06, 0.2],
+      [0.17, 0.12, 0.34],
+      [0.46, 0.2, 0.32],
+      [0.78, 0.32, 0.26],
+    ],
+    [0, [0.13, 0.12, 0.38], [0.5, 0.26, 0.48], [1, 0.48, 0.2], [1, 0.7, 0.36]],
+    [
+      0.12,
+      [0.15, 0.28, 0.66],
+      [0.54, 0.56, 0.8],
+      [1, 0.76, 0.54],
+      [1, 0.88, 0.66],
+    ],
+    [
+      0.35,
+      [0.08, 0.27, 0.74],
+      [0.28, 0.53, 0.92],
+      [0.68, 0.83, 0.97],
+      [1, 0.97, 0.9],
+    ],
+    [
+      1,
+      [0.06, 0.24, 0.7],
+      [0.26, 0.52, 0.92],
+      [0.66, 0.82, 0.97],
+      [1, 0.98, 0.92],
+    ],
+  ];
+  /* Dawn runs cooler and rosier than dusk. */
+  const DAWN = {
+    mid: [0.6, 0.42, 0.62],
+    hor: [1, 0.66, 0.5],
+    glow: [1, 0.84, 0.64],
+  };
+  /* The page itself is the ground under the horizon. */
+  const GROUND = [0.039, 0.059, 0.133];
+  const mixv = (a, b, t) => [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ];
+  const smooth = (a, b, x) => {
+    const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  };
+  /** Sky colours and light levels for a clock minute. */
+  function skyAt(m) {
+    const e = sunElev(m);
+    let i = 1;
+    while (i < SKY_KEYS.length - 1 && SKY_KEYS[i][0] < e) i++;
+    const a = SKY_KEYS[i - 1];
+    const b = SKY_KEYS[i];
+    const t = smooth(a[0], b[0], e);
+    const out = {
+      e,
+      zen: mixv(a[1], b[1], t),
+      mid: mixv(a[2], b[2], t),
+      hor: mixv(a[3], b[3], t),
+      glow: mixv(a[4], b[4], t),
+      day: smooth(-0.05, 0.35, e),
+      gold: Math.exp(-(((e - 0.03) / 0.14) ** 2)),
+      night: 1 - smooth(-0.3, -0.06, e),
+    };
+    /* the morning half of the solar day, solar midnight to solar noon */
+    if (C.wrap(m - ((RISE + SET) / 2 + 720)) < 720) {
+      const k = Math.exp(-(((e + 0.02) / 0.16) ** 2)) * 0.85;
+      out.mid = mixv(out.mid, DAWN.mid, k);
+      out.hor = mixv(out.hor, DAWN.hor, k);
+      out.glow = mixv(out.glow, DAWN.glow, k);
+    }
+    return out;
+  }
+  /** E's sun runs between the copy and the panel on wide screens: up at x0, down at x1. */
+  function eSunX(m, wide) {
+    const x0 = wide ? 0.5 : 0.22;
+    const x1 = wide ? 0.64 : 0.78;
+    const d = C.wrap(m - RISE);
+    if (d <= DAYLEN) return x0 + (x1 - x0) * (d / DAYLEN);
+    return x1 - (x1 - x0) * ((d - DAYLEN) / (1440 - DAYLEN));
+  }
+  /** How high the noon sun climbs: on narrow screens it stays below the headline. */
+  const sunPeak = (w) => (w >= 760 ? 0.78 : 0.4);
+  /** Horizon height as a share of the hero, clear of the readout and chips. */
+  const eHorizon = (h) => Math.min(0.17, Math.max(0.09, 140 / Math.max(h, 1)));
+  const rgb = (c, a = 1) =>
+    'rgb(' +
+    c.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255)).join(' ') +
+    (a < 1 ? ' / ' + a.toFixed(3) : '') +
+    ')';
+  /** The painted sky without WebGL: the same palette as a gradient, with the sun as a glow. */
+  function paintSky(el, m, w, h) {
+    const s = skyAt(m);
+    const hz = eHorizon(h) * 100;
+    const x = eSunX(m, w >= 760) * 100;
+    const y = 100 - (hz + (100 - hz) * sunPeak(w) * s.e);
+    const sun = Math.max(0, Math.min(1, (s.e + 0.08) / 0.12));
+    el.style.background =
+      'linear-gradient(to top, ' +
+      rgb(GROUND) +
+      ' ' +
+      (hz - 3).toFixed(1) +
+      '%, transparent ' +
+      (hz - 3).toFixed(1) +
+      '%), radial-gradient(circle at ' +
+      x.toFixed(1) +
+      '% ' +
+      y.toFixed(1) +
+      '%, ' +
+      rgb(s.glow, 0.9 * sun) +
+      ' 0, ' +
+      rgb(s.glow, 0.35 * sun) +
+      ' 4%, transparent 26%), linear-gradient(to top, ' +
+      rgb(GROUND) +
+      ' ' +
+      (hz - 3).toFixed(1) +
+      '%, ' +
+      rgb(s.hor) +
+      ' ' +
+      hz.toFixed(1) +
+      '%, ' +
+      rgb(s.mid) +
+      ' ' +
+      (hz + (100 - hz) * 0.36).toFixed(1) +
+      '%, ' +
+      rgb(s.zen) +
+      ')';
+  }
+
   /* Gains to kelvin: the blue/red ratio rises with kelvin, so a table inverts it. Lets the
      visuals follow the faded value (pause, strength, off) rather than the target. */
   const LUT = [];
@@ -77,14 +224,26 @@
     e: {
       frag: G.SKY,
       opts: { pixel: 3 },
-      values(l, _size, t) {
-        return {
-          uElev: sunElev(l.minute),
-          uSunX: sunX(l.minute),
-          uLevels: 5,
+      values(l, size, t) {
+        const s = skyAt(l.minute);
+        return Object.assign(emberU(l.shown), {
+          uElev: s.e,
+          uSunX: eSunX(l.minute, size.w >= 760),
+          uHz: eHorizon(size.h),
+          uPeak: sunPeak(size.w),
+          uZen: s.zen,
+          uMid: s.mid,
+          uHor: s.hor,
+          uGlow: s.glow,
+          uGround: GROUND,
+          uDay: s.day,
+          uGold: s.gold,
+          uNight: s.night,
+          uLevels: 6,
           uTime: t,
-        };
+        });
       },
+      paint: paintSky,
     },
     f: {
       frag: G.LIMB,
@@ -107,43 +266,95 @@
     },
   };
 
+  /** A dithered fade as an alpha mask: Bayer 8×8 in `cell` px squares, opaque at the bottom
+      and clear at the top, as in the hero. Built once; the colour under it comes from CSS. */
+  function ditherRamp(rows = 64, cell = 3) {
+    const c = document.createElement('canvas');
+    c.width = 8 * cell;
+    c.height = rows * cell;
+    const x = c.getContext('2d');
+    const bayer = (i, j) => {
+      let v = 0;
+      for (let bit = 0; bit < 3; bit++) {
+        const a = (i >> bit) & 1;
+        const b = (j >> bit) & 1;
+        v = v * 4 + ((a ^ b) << 1) + b;
+      }
+      return (v + 0.5) / 64;
+    };
+    for (let j = 0; j < rows; j++) {
+      const ramp = (j / (rows - 1)) ** 1.6;
+      for (let i = 0; i < 8; i++)
+        if (bayer(i, j % 8) < ramp) x.fillRect(i * cell, j * cell, cell, cell);
+    }
+    return c.toDataURL();
+  }
+
   /** Run a shader over a box. Renders inside Light's frame when the light changes; idles at
-      ~30 fps for drift and twinkle while on screen, and not at all with Reduce Motion. */
+      ~30 fps for drift and twinkle while on screen, and not at all with Reduce Motion.
+      Without WebGL, or while the context is lost, pic.paint (if any) paints a CSS sky for the
+      same time; the shader comes back when the context is restored. */
   function heroGL(box, canvas, pic, light, geomFn) {
     let view = null;
-    try {
-      view = G.glView(canvas, pic.frag, pic.opts);
-    } catch (err) {
-      console.warn('Ember hero shader failed', err);
-    }
-    if (!view) {
-      box.classList.add('no-gl');
-      return { invalidate() {} };
-    }
     let visible = true;
     let geom = null;
     let last = 0;
     let raf = 0;
+    let cssW = 0;
+    let cssH = 0;
+    let painted = -1;
+    const fallback = () => {
+      box.classList.add('no-gl');
+      if (!pic.paint) return;
+      const m = Math.round(light.minute);
+      if (m === painted) return;
+      painted = m;
+      pic.paint(box, light.minute, cssW, cssH);
+    };
+    const live = () => view && !view.lost;
     const t0 = performance.now();
     const time = (now) => (K.reduced() ? 18 : (now - t0) / 1000 + 18);
     const draw = (now) => {
       last = now;
+      if (!live()) return fallback();
       view.render(pic.values(light, view.size, time(now), geom));
     };
     const loop = (now) => {
       raf = 0;
-      if (!visible || document.hidden || K.reduced()) return;
+      if (!visible || document.hidden || K.reduced() || !live()) return;
       if (now - last > 33) draw(now);
       raf = requestAnimationFrame(loop);
     };
     const ensure = () => {
-      if (!raf && visible && !document.hidden && !K.reduced())
+      if (!raf && visible && !document.hidden && !K.reduced() && live())
         raf = requestAnimationFrame(loop);
     };
+    try {
+      view = G.glView(canvas, pic.frag, {
+        ...pic.opts,
+        onLost() {
+          painted = -1;
+          fallback();
+        },
+        onRestored() {
+          box.classList.remove('no-gl');
+          box.style.background = '';
+          measure();
+          ensure();
+        },
+      });
+    } catch (err) {
+      console.warn('Ember hero shader failed', err);
+      view = null;
+    }
     const measure = () => {
       const r = box.getBoundingClientRect();
-      view.resize(r.width, r.height);
-      geom = geomFn ? geomFn(view, r) : null;
+      cssW = r.width;
+      cssH = r.height;
+      if (live()) {
+        view.resize(r.width, r.height);
+        geom = geomFn ? geomFn(view, r) : null;
+      } else painted = -1;
       draw(performance.now());
     };
     new ResizeObserver(measure).observe(box);
@@ -159,6 +370,7 @@
     measure();
     ensure();
     return {
+      view,
       invalidate() {
         if (visible) draw(performance.now());
       },
@@ -187,7 +399,21 @@
     } catch (err) {
       console.warn('Ember tile shader failed', err);
     }
-    if (!v) return;
+    if (!v) {
+      if (pic.paint)
+        for (const t of tiles) {
+          const cv = $('canvas', t);
+          const r = cv.getBoundingClientRect();
+          cv.classList.add('no-gl');
+          pic.paint(
+            cv,
+            Number(t.dataset.tile),
+            r.width || 320,
+            r.height || 200,
+          );
+        }
+      return;
+    }
     for (const t of tiles) {
       const cv = $('canvas', t);
       const r = cv.getBoundingClientRect();
@@ -383,6 +609,15 @@
           hero.dataset.used = '';
         });
 
+      /* E's tiles set the page's time too; the strip above the price shows it. */
+      for (const b of $$('[data-show]', el))
+        b.addEventListener('click', () => {
+          light.previewing = true;
+          light.glide(Number(b.dataset.show), 1400);
+          hero.dataset.used = '';
+          post();
+        });
+
       const host = $('.x-panel-host', el);
       if (host)
         mountPanel(host, light, () => {
@@ -398,9 +633,38 @@
         csc = K.scrubber(chartEl, light, { map: K.linearMap(0) });
       }
 
+      /* E: the sections below take the sky's colours for the scrubbed time. */
+      const skyEls = dir === 'e' ? $$('[data-sky]', el) : [];
+      if (skyEls.length)
+        el.style.setProperty('--e-dither', 'url(' + ditherRamp() + ')');
+      const tileEls = $$('[data-phase]', el);
+      let skyKey = '';
+      let tilePhase = '';
+      const skyVars = (m) => {
+        const s = skyAt(m);
+        const vals = {
+          '--sky-zen': rgb(s.zen),
+          '--sky-mid': rgb(s.mid),
+          '--sky-hor': rgb(s.hor),
+          '--sky-glow': rgb(s.glow),
+        };
+        const key = Object.values(vals).join();
+        if (key === skyKey) return;
+        skyKey = key;
+        for (const n of skyEls)
+          for (const k in vals) n.style.setProperty(k, vals[k]);
+      };
+
       light.view({
         draw(l, st) {
           gl.invalidate();
+          if (skyEls.length) skyVars(l.minute);
+          if (tileEls.length && st.phase !== tilePhase) {
+            tilePhase = st.phase;
+            for (const t of tileEls)
+              t.toggleAttribute('data-current', t.dataset.phase === st.phase);
+          }
+          read('cap', l.previewing ? 'Preview' : 'Your time');
           if (head)
             head.style.transform =
               'translateX(' + ((l.minute / 1440) * 100).toFixed(3) + '%)';

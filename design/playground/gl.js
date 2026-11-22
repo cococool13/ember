@@ -86,45 +86,76 @@ void main(){
   gl_FragColor=vec4(col,1.);
 }`;
 
-  /* E · Dither sky: sky, sun and cumulus for the time of day, ordered-dithered to a small palette.
-     The canvas runs at a fraction of the CSS size and scales up with nearest-neighbour, so every
-     dither cell is a crisp square. */
+  /* E · Dither sky: sky, sun, cumulus and a far and near ridge for the time of day, ordered-dithered
+     to a small palette. The palette (zenith, middle, horizon, sun glow) comes from dir-def.js so the
+     CSS fallback and the sections below paint the same colours. At night the horizon and a few
+     the near ridge's edge glow in Ember's current colour (uWhite, uDim). The canvas runs at a
+     fraction of the CSS size and scales up with nearest-neighbour, so every dither cell is a square. */
   const SKY = `${NOISE}
 uniform vec2 uRes;uniform float uTime;uniform float uElev;uniform float uSunX;uniform float uLevels;uniform float uPx;
+uniform float uHz;uniform float uPeak;uniform vec3 uZen;uniform vec3 uMid;uniform vec3 uHor;uniform vec3 uGlow;uniform vec3 uGround;
+uniform vec3 uWhite;uniform float uDim;uniform float uNight;uniform float uGold;uniform float uDay;
+float ridge(float x,float s,float a){return a*(.55*noise(vec2(x*s,s*7.))+.3*noise(vec2(x*s*2.3,s*3.))+.15*noise(vec2(x*s*5.,s)));}
 void main(){
   vec2 fc=gl_FragCoord.xy;vec2 uv=fc/uRes;float asp=uRes.x/uRes.y;
-  float e=uElev;
-  float day=smoothstep(-.28,.32,e);
-  float gold=exp(-pow((e-.03)/.2,2.));
-  float night=1.-smoothstep(-.4,-.06,e);
-  vec3 zen=mix(vec3(.015,.02,.065),vec3(.09,.27,.74),day);zen=mix(zen,vec3(.17,.14,.40),gold*.75);
-  vec3 hor=mix(vec3(.05,.05,.13),vec3(.66,.82,.97),day);hor=mix(hor,vec3(1.,.47,.22),gold*.92);
-  vec3 sky=mix(hor,zen,pow(clamp(uv.y,0.,1.),.62));
+  float e=uElev;float hz=uHz;
+  float t=clamp((uv.y-hz)/(1.-hz),0.,1.);
+  vec3 sky=mix(uHor,uMid,smoothstep(0.,.42,t));
+  sky=mix(sky,uZen,smoothstep(.3,1.,t));
   vec2 pp=vec2(uv.x*asp,uv.y);
-  vec2 sp=vec2(uSunX*asp,.06+.8*max(e,-.3));
-  float sd=length(pp-sp);
-  vec3 sunC=mix(vec3(1.,.48,.18),vec3(1.,.96,.86),smoothstep(0.,.4,e));
-  float vis=smoothstep(-.16,.02,e);
-  sky+=sunC*(exp(-sd*4.5)*.5+exp(-sd*20.)*.55)*vis;
-  float st=star(fc,9.,.9,1.,uTime)+star(fc+3.,23.,.8,1.,uTime*.7);
-  sky+=vec3(.92,.94,1.)*st*night*(1.-uv.y*.0);
-  vec2 cp=pp*vec2(1.35,2.5)+vec2(uTime*.005,0.);
-  float dens=fbm(cp*1.15)+.38*fbm(cp*3.2+4.)-uv.y*.62+.06;
-  float cover=smoothstep(.31,.5,dens);
-  vec2 toSun=normalize(vec2(sp.x-pp.x,sp.y-pp.y+.25));
+  float sy=hz+(1.-hz)*uPeak*e;
+  vec2 sp=vec2(uSunX*asp,sy);
+  vec2 dv=pp-sp;float sd=length(dv);
+  float vis=smoothstep(-.06,.0,e);
+  /* glow along the horizon on the sun's side, wide at sunrise and sunset */
+  float hx=abs(pp.x-sp.x);
+  float band=exp(-hx*(1.1+2.5*uDay))*exp(-max(uv.y-hz,0.)*(5.+6.*uDay));
+  sky+=uGlow*band*(.75*uGold+.12*uDay)*smoothstep(-.32,-.02,e);
+  sky+=uGlow*(exp(-sd*5.)*.42+exp(-sd*22.)*.6)*vis;
+  /* crepuscular rays around a low sun */
+  float ang=atan(dv.y,dv.x);
+  float rays=pow(noise(vec2(ang*9.,uTime*.03)),3.)*exp(-sd*1.6)*smoothstep(0.,.25,dv.y+.05);
+  sky+=uGlow*rays*.55*uGold*vis;
+  /* stars and a faint band of dust */
+  float above=smoothstep(hz+.02,hz+.3,uv.y);
+  float st=star(fc,7.,.88,1.,uTime)*1.1+star(fc+3.,19.,.82,1.,uTime*.7)*1.6;
+  vec2 mw=uv-vec2(.55,.62);float mwd=dot(mw,normalize(vec2(.55,1.)));
+  float dust=exp(-mwd*mwd/.018)*pow(fbm(uv*vec2(6.,9.)+3.),2.)*.55;
+  sky+=(vec3(.92,.94,1.)*st+vec3(.32,.30,.55)*dust)*uNight*above;
+  /* cumulus, thinner at night */
+  vec2 cp=pp*vec2(1.25,2.6)+vec2(uTime*.005,0.);
+  float lift=uv.y-hz;
+  float dens=fbm(cp*1.15)+.38*fbm(cp*3.2+4.)-lift*.78+.02-.12*uNight;
+  float cover=smoothstep(.34,.52,dens)*smoothstep(-.02,.06,lift);
+  vec2 toSun=normalize(vec2(sp.x-pp.x,sp.y-pp.y+.15));
   vec2 cq=cp+toSun*.07;
-  float dens2=fbm(cq*1.15)+.38*fbm(cq*3.2+4.)-uv.y*.62+.06;
+  float dens2=fbm(cq*1.15)+.38*fbm(cq*3.2+4.)-(lift+toSun.y*.07/2.6)*.78+.02-.12*uNight;
   float lit=clamp(.5+(dens-dens2)*4.,0.,1.);
-  vec3 cTop=mix(vec3(.17,.18,.30),vec3(1.),day);cTop=mix(cTop,vec3(1.,.70,.48),gold*.85);
-  vec3 cBase=mix(vec3(.05,.05,.11),vec3(.50,.58,.76),day);cBase=mix(cBase,vec3(.46,.24,.36),gold*.85);
+  vec3 cTop=mix(uMid*.55+uZen*.2,vec3(1.),uDay);cTop=mix(cTop,uGlow*vec3(1.,.82,.72),uGold*.9);
+  vec3 cBase=mix(uZen*.9+.015,uMid*.62+uZen*.2,uDay);cBase=mix(cBase,uMid*.7,uGold*.6);
   vec3 cloud=mix(cBase,cTop,lit);
-  sky=mix(sky,cloud,cover);
-  sky+=vec3(.42,.14,.04)*exp(-uv.y*6.)*night*(1.-cover*.6);
-  float disc=smoothstep(.04,.034,sd)*vis*(1.-cover);
-  sky=mix(sky,vec3(1.,.97,.9),disc);
+  cloud+=uWhite*uDim*.10*uNight*(1.-t);
+  sky=mix(sky,cloud,cover*(1.-.45*uNight));
+  float disc=smoothstep(.034,.03,sd)*vis*(1.-cover*.85);
+  sky=mix(sky,mix(vec3(1.,.72,.42),vec3(1.,.98,.92),smoothstep(0.,.2,e)),disc);
+  /* Ember on the horizon at night */
+  vec3 ember=uWhite*vec3(1.,.62,.42)*uDim;
+  sky+=ember*exp(-max(uv.y-hz,0.)*6.)*(.5+.25*noise(vec2(uv.x*3.,2.)))*uNight;
+  /* far ridge, hazy; near ridge, the ground the page stands on */
+  float far=hz+.012+ridge(uv.x+.3,3.2,.07);
+  float near=hz-.035+ridge(uv.x,5.5,.06)+.02*smoothstep(.55,1.,uv.x);
+  vec3 farC=mix(uGround,uHor,.38+.12*uDay);
+  farC+=uGlow*band*.35*uGold+ember*.12*uNight;
+  float rim=exp(-abs(uv.y-far)*uRes.y*.5)*(uGold*.9*band+.25*uNight*exp(-abs(uv.x-.62)*2.));
+  sky=mix(sky,farC,step(uv.y,far));
+  sky+=uGlow*rim;
+  float onNear=step(uv.y,near);
+  vec3 g=uGround+uGlow*exp(-(near-uv.y)*40.)*band*.18*uGold+ember*exp(-(near-uv.y)*60.)*.10*uNight;
+  sky=mix(sky,g,onNear);
+  /* dither in a perceptual (square-root) space so dark skies keep their steps */
   float b=bayer8(fc);
-  vec3 q=floor(clamp(sky,0.,1.)*uLevels+b)/uLevels;
-  gl_FragColor=vec4(q,1.);
+  vec3 q=floor(sqrt(clamp(sky,0.,1.))*uLevels+b)/uLevels;
+  gl_FragColor=vec4(q*q,1.);
 }`;
 
   /* F · Limb: the edge of a planet seen from orbit, held over one place. Local solar time runs
@@ -191,50 +222,77 @@ void main(){
   gl_FragColor=vec4(qc,1.);
 }`;
 
+  /* ?gl=0 behaves as if the browser had no WebGL, to exercise the painted fallback. */
+  const forceNoGL = new URLSearchParams(location.search).get('gl') === '0';
+
   /**
    * Bind a fragment shader to a canvas. o.pixel: CSS px per canvas px (dither looks), else
-   * a device-pixel ratio capped at o.maxDpr. Returns null without WebGL.
+   * a device-pixel ratio capped at o.maxDpr. Returns null without WebGL. o.onLost and
+   * o.onRestored follow the context: the program is rebuilt on restore.
    */
   function glView(canvas, frag, o = {}) {
+    if (forceNoGL) return null;
     const gl = canvas.getContext('webgl', {
       antialias: false,
       alpha: false,
       depth: false,
       stencil: false,
       preserveDrawingBuffer: !!o.preserve,
-      powerPreference: 'high-performance',
+      powerPreference: o.preserve ? 'default' : 'high-performance',
     });
     if (!gl) return null;
-    const sh = (type, src) => {
-      const s = gl.createShader(type);
-      gl.shaderSource(s, src);
-      gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
-        throw new Error(gl.getShaderInfoLog(s));
-      return s;
-    };
-    const prog = gl.createProgram();
-    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
-    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, frag));
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
-      throw new Error(gl.getProgramInfoLog(prog));
-    gl.useProgram(prog);
-    const buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-1, -1, 3, -1, -1, 3]),
-      gl.STATIC_DRAW,
-    );
-    const loc = gl.getAttribLocation(prog, 'p');
-    gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     const uni = new Map();
+    let lost = false;
+    const build = () => {
+      uni.clear();
+      const sh = (type, src) => {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS) && !gl.isContextLost())
+          throw new Error(gl.getShaderInfoLog(s));
+        return s;
+      };
+      const prog = gl.createProgram();
+      gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
+      gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, frag));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS) && !gl.isContextLost())
+        throw new Error(gl.getProgramInfoLog(prog));
+      gl.useProgram(prog);
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 3, -1, -1, 3]),
+        gl.STATIC_DRAW,
+      );
+      const loc = gl.getAttribLocation(prog, 'p');
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      return prog;
+    };
+    let prog = build();
     const u = (name) => {
       if (!uni.has(name)) uni.set(name, gl.getUniformLocation(prog, name));
       return uni.get(name);
     };
+    canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      lost = true;
+      if (o.onLost) o.onLost();
+    });
+    canvas.addEventListener('webglcontextrestored', () => {
+      try {
+        prog = build();
+      } catch (err) {
+        console.warn('Ember shader rebuild failed', err);
+        return;
+      }
+      lost = false;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      if (o.onRestored) o.onRestored();
+    });
     const ratio = () =>
       o.pixel
         ? 1 / o.pixel
@@ -246,6 +304,9 @@ void main(){
       canvas,
       /** canvas px per CSS px */
       px: ratio(),
+      get lost() {
+        return lost;
+      },
       resize(w, h) {
         cssW = w;
         cssH = h;
@@ -262,6 +323,7 @@ void main(){
         return { w: cssW, h: cssH, W: canvas.width, H: canvas.height };
       },
       render(values) {
+        if (lost) return false;
         gl.uniform2f(u('uRes'), canvas.width, canvas.height);
         gl.uniform1f(u('uPx'), api.px);
         for (const k in values) {
@@ -273,6 +335,7 @@ void main(){
           else gl.uniform3f(l, v[0], v[1], v[2]);
         }
         gl.drawArrays(gl.TRIANGLES, 0, 3);
+        return true;
       },
       dispose() {
         const ext = gl.getExtension('WEBGL_lose_context');

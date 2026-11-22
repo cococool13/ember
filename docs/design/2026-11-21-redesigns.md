@@ -245,3 +245,54 @@ Screenshots: `shots/d-eclipse-{dawn,noon,dusk,night}.jpg`, `shots/e-dither-sky-*
 
 - AGENTS.md says "native system typography throughout". D (Instrument Serif) and E (Schibsted Grotesk) break that if it applies to the site. A, B and C already did. The site's own rule is "follows Dockset", which does not set type.
 - AGENTS.md's 340 × 365 pt panel spec still holds for the shipped panel. The B panel in these pages is the round-1 candidate at about 450 pt.
+
+## Round 3: E, Dither sky, polished
+
+Cohen picked E for the site and B for the panel. This round takes E to release quality. The B panel inside the page is unchanged except that it now follows the Light/Dark appearance and its dial has a round focus ring.
+
+**Mood:** a real sky over a dark ridge at the hour you're reading, because Ember is about the light outside reaching the screen inside, and most people shop for a night light in the evening.
+**Signature:** the horizon glows in Ember's color. At night the glow along the ridge comes from Ember's current gains (`l.shown`), so Standard, Gentle, Deep, Pause and Off all change the sky. By day the sky is the sun's.
+
+### What changed
+
+- **Local time.** The hero already opened at the visitor's clock (`K.nowMinute()` reads `Date`), so there was nothing to change for item 1. The readout now says so: a caption reads "Your time", or "Preview" while you scrub. Sun times are still Brunswick's, applied to the visitor's local clock.
+- **One palette.** `skyAt(minute)` in `dir-def.js` keys zenith, middle, horizon and sun-glow colors to sun elevation, with a rosier, cooler dawn than dusk. The shader, the CSS fallback and the sections below all read it.
+- **Shader (`gl.js` SKY).** It has a three-stop sky, a horizon glow on the sun's side, crepuscular rays while the sun is low, a hazy far ridge and a near ridge in the page color, so the hero runs straight into the page. It adds stars with a faint dust band at night, thinner clouds at night and Ember's glow on the horizon. Dithering happens in square-root space at 6 levels, so dark skies keep their steps. On wide screens the sun rises at 50% across and sets at 64%, in the open sky between the copy and the panel, and the horizon sits clear of the readout. On narrow screens the noon sun stays below the headline.
+- **Below the hero.** The ridge is the page background, so there is no seam. The four sky tiles are buttons that set the page's time, and the tile for the current phase gets a ring. Above the price a second horizon (`.e-strip`) paints the scrubbed sky through a Bayer 8×8 alpha mask with 3 px cells, the same cell as the hero. A CSS gradient under the mask follows the time, so the colors change with no extra rendering.
+- **WebGL failure.** `?gl=0` acts as if the browser had no WebGL. Without WebGL, or after `webglcontextlost`, the hero shows `paintSky()`: the same palette as a CSS gradient, a sun glow and the ground band, repainted as you scrub. The tiles get the same treatment. On `webglcontextrestored` the program is rebuilt and the shader comes back. Both cases were forced and checked. D and F keep their flat background.
+- **Typography.** E now uses the system stack: SF Pro Display for the display and body, and SF Mono for labels. Schibsted Grotesk and DM Mono are gone from E. Ember is a Mac-only download, so nearly every buyer reads the page in SF on a Mac. The live panel in the hero already uses SF, and two different grotesques side by side looked accidental. A system face also means no web-font request and no reflow on the headline, which matters when the hero is a full-screen picture. The dithered sky carries the personality, so the type can stay quiet. This also matches AGENTS.md's "native system typography". Schibsted Grotesk stays in the font link because C uses it.
+- **Focus.** On the E page, focus is a 2 px white ring inside a 6 px dark halo, so it shows on noon cloud and on night sky. Inside the panel it is the panel's own ring, now round on the dial (it was a 6 px rounded square).
+- **Contrast.** A soft elliptical scrim sits behind the copy on wide screens, a top scrim covers it on narrow ones, and the panel hint uses a stronger glass.
+- **Copy.** Every string on E was rewritten by Gemini 4 Neon from the fact list and checked for facts. A fifth question covers night strength.
+
+### Round 3 measured
+
+Setup: Chrome via Playwright, Apple M4 Pro at 120 Hz. The dial was dragged through 240 pointer steps while an independent rAF meter and a long-task observer ran.
+
+| Case | fps | p95 frame | frames > 20 ms | long tasks |
+|---|---|---|---|---|
+| 1440 px, no throttle | 120 | 9.6 ms | 0 | 0 |
+| 1440 px, 4× CPU throttle | 120 | 10.1 ms | 0 | 0 |
+| 1440 px, 6× CPU throttle | 120 | 10.0 ms | 0 | 0 |
+| 400 px, 4× CPU throttle | 120 | 10.0 ms | 0 | 0 |
+
+- Shader cost: 200 draws took about 4 ms in total at 1440 × 852 (480 × 284 canvas) and at 2560 × 1400. That is far under a 16.7 ms frame on this GPU.
+- Reduce Motion: 0 draws in 1 s idle, against 28 draws per second without it.
+- Text contrast was measured with the text hidden, at the 95th percentile of background luminance after a 3 px box blur (one dither cell), across 9 times of day. Body text (lede, links, readout, hint) is at least 4.6:1 at 1440 px and at least 7.5:1 at 400 px. The headline drops to 3.7:1 at 9 AM, which passes the 3:1 bar for large text.
+- Keyboard: Arrow, Shift+Arrow, Home and End move the dial, and Escape glides back to now. `aria-valuetext` updates ("9:15 PM, Evening, 1964 kelvin"), and the caption switches between "Your time" and "Preview".
+- No horizontal overflow at 400 px or 1440 px. The curve chart's playhead box no longer spills past the page (`overflow-x: clip`), which had made full-page captures 2,261 px wide on D, E and F.
+- All 12 direction/view pairs and Side by side load with no console errors.
+
+Shots: `shots/e2-{dawn,noon,dusk,night}.jpg` (1440 × 900, dawn and noon in the Light shell, dusk and night in Dark), `shots/e2-400-{noon,night}.jpg`, `shots/e2-fallback.jpg` (`?gl=0` at 7:10 PM), and `shots/e2-full.jpg` (full page at 5:32 PM). Recording: `shots/scrub-e2.mp4` (1.7 MB, 16 s), dragging the dial through a full day from 8 PM, then the Evening chip.
+
+### Round 3 not checked
+
+- A real 60 Hz display and a weak GPU. CPU throttling doesn't slow the GPU. The shader is cheap here, but a base Intel Iris Mac was not run.
+- VoiceOver itself. Roles, names and values were checked in the DOM. The dial's label still comes from the B panel ("Day preview. Drag around the dial.").
+- Safari, Firefox, and real touch on phones. The tiles say "Click", which reads slightly off on touch.
+- Real context loss from a GPU reset. It was forced with `WEBGL_lose_context`.
+- Visitors outside the US Eastern time zone see Brunswick's sunrise and sunset on their own clock. Sun times from the visitor's location would need a lookup that the playground doesn't have.
+
+### Round 3 docs vs code
+
+- AGENTS.md says the site "follows Dockset's design and interaction patterns". Dockset uses a serif headline (docs/website-design.md), and E now uses the system face. If the Dockset rule covers type, this is a deliberate departure.

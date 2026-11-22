@@ -26,7 +26,11 @@
   --raw-e-shadow: rgb(3 6 18 / 0.5);
   --raw-e-panel-shadow: rgb(3 6 18 / 0.55);
   --raw-e-scrim: rgb(6 12 40 / 0.5);
+  --raw-e-scrim-core: rgb(6 12 40 / 0.5);
   --raw-e-glass: rgb(6 12 40 / 0.42);
+  --raw-e-glass-strong: rgb(6 12 40 / 0.66);
+  --raw-e-ring: #fff;
+  --raw-e-ring-halo: rgb(3 6 18 / 0.85);
   /* F · Limb */
   --raw-f-bg: #000;
   --raw-f-ink: #e9eef5;
@@ -81,8 +85,8 @@
   --x-nav-bg: var(--raw-e-nav);
   --x-chip: var(--raw-e-chip);
   --x-area: var(--raw-e-area);
-  --x-display: "Schibsted Grotesk", var(--font-ui-display);
-  --x-label: "DM Mono", var(--font-ui-mono);
+  --x-display: var(--font-ui-display);
+  --x-label: var(--font-ui-mono);
 }
 .f-site {
   --x-bg: var(--raw-f-bg);
@@ -390,7 +394,9 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(100deg, var(--raw-e-scrim) 0%, transparent 58%);
+  background:
+    radial-gradient(ellipse 46% 62% at 18% 46%, var(--raw-e-scrim-core), transparent 100%),
+    linear-gradient(100deg, var(--raw-e-scrim) 0%, transparent 58%);
 }
 .e-hero .x-hero-copy {
   grid-area: 1 / 1;
@@ -421,7 +427,7 @@
   margin: 0;
   padding: 7px 12px;
   border-radius: 999px;
-  background: var(--raw-e-glass);
+  background: var(--raw-e-glass-strong);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   font: 500 12px/1 var(--x-label);
@@ -463,6 +469,9 @@
   letter-spacing: -0.03em;
 }
 @media (max-width: 760px) {
+  .e-hero::after {
+    background: linear-gradient(to bottom, var(--raw-e-scrim) 0, var(--raw-e-scrim-core) 640px, transparent 860px);
+  }
   .e-hero {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto;
@@ -656,6 +665,7 @@
   transform: none;
 }
 .x-chart {
+  overflow-x: clip;
   --chart-h: clamp(110px, 14vw, 170px);
   --chart-line: var(--x-muted);
   --chart-area: var(--x-area);
@@ -776,8 +786,69 @@
   font-size: 14px;
 }
 
+
+/* ---------- E · round 3 ---------- */
+.x-stage.no-gl canvas {
+  visibility: hidden;
+}
+/* A white ring inside a dark halo reads on noon cloud and night sky alike. */
+.e-site :focus-visible:not(.panel *) {
+  outline: 2px solid var(--raw-e-ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--raw-e-ring-halo);
+}
+.e-scrub .x-read-cap {
+  color: var(--x-ink);
+  margin-bottom: 4px;
+}
+.x-tile-btn {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 2px 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.x-tile-btn:active canvas {
+  transform: scale(0.98);
+}
+.e-site .x-tiles canvas {
+  transition: outline-color 200ms ease, transform 140ms var(--ease-out);
+}
+.e-site .x-tiles canvas {
+  outline: 1px solid transparent;
+  outline-offset: 5px;
+}
+.e-site .x-tiles [data-current] canvas {
+  outline-color: var(--x-ink);
+}
+/* The second horizon: the scrubbed sky again, dithered out of the page above the price. */
+.e-strip {
+  --sky-zen: var(--x-bg);
+  --sky-mid: var(--x-bg);
+  --sky-hor: var(--x-bg);
+  --sky-glow: var(--x-bg);
+  height: 192px;
+  margin-top: clamp(72px, 10vw, 128px);
+  background:
+    radial-gradient(60% 120% at 50% 100%, var(--sky-glow), transparent 70%),
+    linear-gradient(to bottom, var(--sky-zen), var(--sky-mid) 55%, var(--sky-hor));
+  -webkit-mask: var(--e-dither) repeat-x 0 0 / 24px 192px;
+  mask: var(--e-dither) repeat-x 0 0 / 24px 192px;
+}
+.e-strip + .x-price {
+  padding-top: 56px;
+}
+
 /* ---------- compare additions ---------- */
 .cmp-note {
   font-size: 12px;
   color: var(--shell-muted);
+}
+.x-day .x-sec-head {
+  margin-bottom: 32px;
 }

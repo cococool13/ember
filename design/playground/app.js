@@ -616,6 +616,9 @@
         String(b.dataset.appearance === state.appearance),
       );
     $('[data-hide-in="compare"]').hidden = state.dir === 'compare';
+    // The live panel inside the D, E and F pages follows the appearance, as the app does.
+    for (const h of $$('.x-panel-host'))
+      h.dataset.appearance = state.appearance;
     if (!embed) {
       const u = new URL(location.href);
       u.searchParams.set('dir', state.dir);
@@ -642,6 +645,12 @@
           );
     }
     show();
+  });
+  window.addEventListener('message', (e) => {
+    const m = e.data || {};
+    if (m.type !== 'ember-appearance') return;
+    state.appearance = m.appearance;
+    for (const h of $$('.x-panel-host')) h.dataset.appearance = m.appearance;
   });
   const rm = $('#rmToggle');
   rm.checked = root.classList.contains('rm');

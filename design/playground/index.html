@@ -442,7 +442,7 @@
     <div class="x-stage" aria-hidden="true"><canvas></canvas></div>
     <div class="x-hero-copy">
       <h1 class="x-h1">Your screen follows the sky</h1>
-      <p class="x-lede">Ember warms your Mac display at night and keeps true color during daylight.</p>
+      <p class="x-lede">Ember warms and dims your Mac display along the day. Daylight stays true color.</p>
       <p class="x-actions">
         <a class="x-btn" href="https://licensing.cohencool.workers.dev/buy/ember">Buy Ember for $9</a>
         <a class="x-link" href="https://ember.cohencool.workers.dev/#get">Download for Mac</a>
@@ -450,10 +450,11 @@
     </div>
     <div class="e-window">
       <div class="x-panel-host panel-host"></div>
-      <p class="e-hint">Turn the dial. The sky follows.</p>
+      <p class="e-hint">Turn the dial to move the sky.</p>
     </div>
     <div class="x-scrub e-scrub">
       <div class="x-read" aria-hidden="true">
+        <span class="x-read-cap" data-bind="cap">Your time</span>
         <span class="x-read-time" data-bind="time">9:40 PM</span>
         <span class="x-read-meta"><span data-bind="phase">Evening</span><span data-bind="kelvin">2,410 K</span></span>
       </div>
@@ -466,36 +467,36 @@
   <section class="x-sec x-how" id="e-how" aria-labelledby="e-how-h">
     <h2 class="x-h2" id="e-how-h">How it works</h2>
     <ol class="x-steps">
-      <li><span class="x-step-n">01</span><h3 class="x-h3">Lives in the menu bar</h3><p>Ember runs quietly in your menu bar. Closing its windows leaves it running.</p></li>
-      <li><span class="x-step-n">02</span><h3 class="x-h3">Reads the sky</h3><p>It uses your location for sunset times, or a default location if location is off.</p></li>
-      <li><span class="x-step-n">03</span><h3 class="x-h3">Moves with it</h3><p>Ramps update every four seconds and blend smoothly, so there are no visible jumps.</p></li>
+      <li><span class="x-step-n">01</span><h3 class="x-h3">Lives in the menu bar</h3><p>Ember stays in your menu bar. Closing its windows leaves it running.</p></li>
+      <li><span class="x-step-n">02</span><h3 class="x-h3">Tracks local sunset</h3><p>Ember uses your location for sunset times, or a default location if location is off.</p></li>
+      <li><span class="x-step-n">03</span><h3 class="x-h3">Shifts smoothly</h3><p>Changes blend smoothly, with no visible jumps.</p></li>
     </ol>
   </section>
 
   <section class="x-sec x-day" aria-labelledby="e-day-h">
-    <h2 class="x-h2" id="e-day-h">Four parts of the day</h2>
+    <div class="x-sec-head"><h2 class="x-h2" id="e-day-h">Four parts of the day</h2><p class="x-body">Click a tile to see that time on the page.</p></div>
     <ol class="x-tiles">
-      <li data-tile="430"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Morning</span><span class="x-tile-time">7:10 AM</span><span class="x-tile-k" data-k></span></li>
-      <li data-tile="750"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Daylight</span><span class="x-tile-time">12:30 PM</span><span class="x-tile-k" data-k></span></li>
-      <li data-tile="1070"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Evening</span><span class="x-tile-time">5:50 PM</span><span class="x-tile-k" data-k></span></li>
-      <li data-tile="1410"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Night</span><span class="x-tile-time">11:30 PM</span><span class="x-tile-k" data-k></span></li>
+      <li data-tile="430" data-phase="morning"><button type="button" class="x-tile-btn" data-show="430"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Morning</span><span class="x-tile-time">7:10 AM</span><span class="x-tile-k" data-k></span></button></li>
+      <li data-tile="750" data-phase="day"><button type="button" class="x-tile-btn" data-show="750"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Daylight</span><span class="x-tile-time">12:30 PM</span><span class="x-tile-k" data-k></span></button></li>
+      <li data-tile="1070" data-phase="evening"><button type="button" class="x-tile-btn" data-show="1070"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Evening</span><span class="x-tile-time">5:50 PM</span><span class="x-tile-k" data-k></span></button></li>
+      <li data-tile="1410" data-phase="night"><button type="button" class="x-tile-btn" data-show="1410"><canvas aria-hidden="true"></canvas><span class="x-tile-name">Night</span><span class="x-tile-time">11:30 PM</span><span class="x-tile-k" data-k></span></button></li>
     </ol>
   </section>
 
   <section class="x-sec x-quiet" aria-labelledby="e-quiet-h">
     <h2 class="x-h2" id="e-quiet-h">Stays out of your way</h2>
     <dl class="x-list">
-      <div><dt>True color apps</dt><dd>Photos, Preview, Figma, Photoshop and apps you pick get true color in front.</dd></div>
-      <div><dt>Pause</dt><dd>Pause the tint for one hour or until morning.</dd></div>
-      <div><dt>No double tint</dt><dd>Ember quits f.lux and turns Night Shift off so tints never stack.</dd></div>
-      <div><dt>Shortcuts</dt><dd>Run Pause, Resume, On/Off and Night light from Shortcuts or Spotlight.</dd></div>
+      <div><dt>True color apps</dt><dd>Photos, Preview, Figma, Photoshop and any apps you choose stay true color while in front.</dd></div>
+      <div><dt>Pause</dt><dd>Pause Ember for an hour or until morning.</dd></div>
+      <div><dt>No double tint</dt><dd>Ember quits f.lux and turns Night Shift off while it's on, so tints don't stack.</dd></div>
+      <div><dt>Shortcuts and Spotlight</dt><dd>Run Pause, Resume, On/Off and Night light from Shortcuts or Spotlight.</dd></div>
     </dl>
   </section>
 
   <section class="x-sec x-curve" id="e-curve" aria-labelledby="e-curve-h">
     <div class="x-sec-head">
       <h2 class="x-h2" id="e-curve-h">How the color curve moves</h2>
-      <p class="x-body">Ember cools to 6,800 K after wake, restores your display profile at 6,500 K during daylight, then drops through 2,700 K toward your night setting. The curve blends smoothly so there are no visible steps.</p>
+      <p class="x-body">After you wake, Ember boosts to about 6,800 K. In daylight it restores your display profile at 6,500 K with no tint. At sunset, or 3 hours before bedtime if that comes first, it warms down to about 2,700 K and blends smoothly into your night setting.</p>
     </div>
     <div class="chart x-chart" role="slider" tabindex="0" aria-label="Time of day on the curve" aria-valuemin="0" aria-valuemax="1439" aria-valuenow="0">
       <svg class="chart-base" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true"><path class="chart-area"/><path class="chart-line"/></svg>
@@ -506,9 +507,10 @@
     <p class="x-fine">Curve after Brown et al. 2022 and CIE S 026. Times shown for Brunswick, GA on November 21, waking at 7:00 AM.</p>
   </section>
 
+  <div class="e-strip" data-sky aria-hidden="true"></div>
   <section class="x-sec x-price" id="e-price" aria-labelledby="e-price-h">
     <h2 class="x-price-h" id="e-price-h">Pay $9 once</h2>
-    <p class="x-lede">One payment gets you a license key by email, with no subscription.</p>
+    <p class="x-lede">One payment, no subscription. You get a license key by email.</p>
     <p class="x-actions">
       <a class="x-btn" href="https://licensing.cohencool.workers.dev/buy/ember">Buy Ember for $9</a>
       <a class="x-link" href="https://ember.cohencool.workers.dev/#get">Download for Mac</a>
@@ -520,9 +522,10 @@
     <h2 class="x-h2" id="e-faq-h">Questions</h2>
     <div class="faq">
       <details><summary>Does Ember change color during the day?</summary><p>No. During daylight at 6,500 K, Ember restores your display profile so your screen shows true color with no tint.</p></details>
-      <details><summary>What happens if I use f.lux or Night Shift?</summary><p>While Ember is on, it quits f.lux and turns Night Shift off. Two tints never stack on your screen.</p></details>
-      <details><summary>Is Ember a sleep aid?</summary><p>No. Ember is a display comfort tool and does not claim better sleep or eye health.</p></details>
+      <details><summary>What happens if I use f.lux or Night Shift?</summary><p>While Ember is on, it quits f.lux and turns Night Shift off so tints don't stack.</p></details>
+      <details><summary>Is Ember a sleep aid?</summary><p>No. Ember is a display comfort tool. It makes no sleep or eye health claims.</p></details>
       <details><summary>Where do sunset times come from?</summary><p>Ember uses your location for sunset times. If location is off, it uses a default location.</p></details>
+      <details><summary>How warm does it get at night?</summary><p>Standard is the default at 1,800 K and 55% brightness. You can also choose Gentle at 2,200 K and 68%, or Deep at 1,600 K and 45%.</p></details>
     </div>
   </section>
   <footer class="x-foot"><span class="x-word"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.3"/><path class="mark-lit"/></svg>Ember</span><span class="x-foot-links"><a href="https://ember.cohencool.workers.dev/privacy">Privacy</a><a href="https://ember.cohencool.workers.dev/terms">Terms</a></span></footer>
