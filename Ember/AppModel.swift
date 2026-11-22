@@ -38,7 +38,16 @@ final class AppModel: ObservableObject {
     @Published var nightUntil: Date?
     /// The moment the user is scrubbing to on the day timeline. While set, the
     /// screen shows this light instead of now.
-    @Published private(set) var preview: LightState?
+    @Published private(set) var preview: LightState? {
+        didSet {
+            if preview == nil {
+                previewMinute = nil
+            }
+        }
+    }
+
+    /// The minute of the day a dial preview points at, shared by the panel and the main window.
+    @Published private(set) var previewMinute: Double?
     @Published var state: LightState
     @Published var solar: Solar.Events?
     @Published var fluxQuit = false
@@ -326,12 +335,13 @@ final class AppModel: ObservableObject {
 
     /// Show the light at `progress` (0 wake … 1 bed) of today's plan on the
     /// screen right away, so the whole curve can be tried in a few seconds.
-    func scrub(to progress: Double) {
+    func scrub(to progress: Double, minute: Double? = nil) {
         guard isActive, !quitting, !screensAsleep else { return }
         let plan = state.plan
         let p = min(1, max(0, progress))
         let next = Schedule.state(elapsed: p * plan.awakeMinutes, plan: plan, strength: strength)
         preview = next
+        previewMinute = minute
         if Self.isRunningTests {
             return
         }

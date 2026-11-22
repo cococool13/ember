@@ -5,37 +5,30 @@ struct MenuBarView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.colorScheme) private var colorScheme
     var inMainWindow = false
-
-    private var accent: Color {
-        colorScheme == .dark ? Color(red: 0.63, green: 0.77, blue: 0.94)
-            : Color(red: 0.20, green: 0.37, blue: 0.58)
-    }
+    /// Renders pin the clock here; the app leaves it nil.
+    var clockOverride: Date?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 11) {
+        VStack(spacing: 0) {
             header
-            Divider()
-            ClockedLight(wantsTicks: model.state.kelvin == Schedule.dayKelvin || model.state.phase == .night) { date in
+            ClockedLight { date in
                 light(at: date)
             }
-            Divider()
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Night strength").font(.system(size: 12, weight: .semibold))
-                Picker("Night strength", selection: $model.strength) {
-                    ForEach(NightStrength.allCases, id: \.self) { Text($0.label).tag($0) }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
+            .padding(.top, 12)
+            StrengthChoices(selection: $model.strength)
                 .disabled(model.needsOnboarding || model.licenseLocked)
-            }
+                .padding(.top, 10)
+            actions
+                .padding(.top, 8)
             if !inMainWindow {
                 Spacer(minLength: 0)
-                Divider()
+                Divider().padding(.bottom, 8)
                 footer
             }
         }
-        .padding(inMainWindow ? 28 : 18)
-        .frame(maxWidth: inMainWindow ? 620 : Theme.panelWidth, alignment: .leading)
+        .padding(.horizontal, inMainWindow ? 28 : 16)
+        .padding(.vertical, inMainWindow ? 28 : 12)
+        .frame(maxWidth: inMainWindow ? 420 : Theme.panelWidth)
         .frame(width: inMainWindow ? nil : Theme.panelWidth, height: inMainWindow ? nil : Theme.panelHeight)
         .background {
             if !inMainWindow {
@@ -60,73 +53,102 @@ struct MenuBarView: View {
                 .toggleStyle(.switch)
                 .labelsHidden()
                 .controlSize(.small)
-                .tint(accent)
+                .tint(Theme.ember)
         }
         .frame(minHeight: 24)
     }
 
     private func light(at date: Date?) -> some View {
-        // Night light now overrides the clock; the model's state already holds it.
-        let current = (model.nightUntil == nil ? date : nil).map {
-            let elapsed = Schedule.minutesBetween(Double(model.state.plan.wake.minutes),
-                                                  Schedule.minutes(in: $0, calendar: .current))
-            return Schedule.state(elapsed: elapsed, plan: model.state.plan, strength: model.strength)
-        } ?? model.state
+        let nowMinute = Schedule.minutes(in: clockOverride ?? date ?? Date(), calendar: .current)
+        // The clock moves the knob and the time; phase and kelvin are what the display shows now.
+        let current = model.state
         let shown = model.preview ?? current
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(headline(phase: shown.phase))
-                    .font(.system(size: 30, weight: .medium, design: .rounded))
-                    .accessibilityAddTraits(.isHeader)
-                Spacer(minLength: 8)
-                if model.isActive {
-                    Text("\(Int(shown.kelvin.rounded()).formatted()) K")
-                        .font(.system(size: 13, weight: .medium, design: .monospaced))
-                        .foregroundStyle(accent)
-                        .accessibilityLabel("\(Int(shown.kelvin.rounded())) kelvin")
+        let minute = model.preview.map { preview in
+            model.previewMinute ?? Double(preview.plan.wake.minutes) + preview.dayProgress * preview.plan.awakeMinutes
+        } ?? nowMinute
+        return VStack(spacing: 8) {
+            ZStack {
+                DayDial(
+                    plan: current.plan, strength: model.strength, minute: minute, phase: shown.phase,
+                    active: model.isActive, previewing: model.preview != nil,
+                    diameter: inMainWindow ? 220 : 170,
+                    onScrub: { scrub(to: $0) }, onEnd: { model.endScrub() }
+                )
+                .disabled(!model.isActive)
+                // A sibling, so VoiceOver reads it apart from the dial's slider.
+                readout(minute: minute, shown: shown)
+                    .allowsHitTesting(false)
+            }
+            HStack(spacing: 6) {
+                Text(detail(for: shown, minute: minute))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                if model.preview != nil {
+                    Button("Return to Now") { model.endScrub() }
+                        .buttonStyle(.link)
                 }
             }
-            SunTimeline(
-                plan: current.plan, progress: shown.dayProgress, strength: model.strength,
-                active: model.isActive, accent: accent, previewing: model.preview != nil,
-                onScrub: { model.scrub(to: $0) }, onEnd: { model.endScrub() },
-                expanded: inMainWindow
-            )
-            .disabled(!model.isActive)
-            HStack(spacing: 8) {
-                Text(detail(for: shown))
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 4)
-                quickAction
-            }
-            .frame(minHeight: 24)
+            .font(.system(size: 12))
+            .frame(maxWidth: .infinity, minHeight: 16)
         }
     }
 
-    @ViewBuilder private var quickAction: some View {
-        if model.preview != nil {
-            Button("Return to Now") { model.endScrub() }
-        } else if model.needsOnboarding {
-            Button("Finish Setup") { model.showSetup?() }
-        } else if model.licenseLocked {
-            Button("Activate…") { model.showLicense?() }
-        } else if model.enabled, model.nightUntil != nil, !model.isPaused {
-            Button("End night light") { model.endNightNow() }
-        } else if model.enabled {
-            if model.isTimedPause {
-                Button("Resume") { model.resume() }.keyboardShortcut("p", modifiers: .command)
+    private func scrub(to minute: Double) {
+        model.scrub(to: DialGeometry.progress(minute: minute, plan: model.state.plan), minute: minute)
+    }
+
+    private func readout(minute: Double, shown: LightState) -> some View {
+        VStack(spacing: 2) {
+            Text(ClockTime.from(fractionalMinutes: minute).label)
+                .font(.system(size: 26, weight: .light))
+                .monospacedDigit()
+            Text(headline(phase: shown.phase))
+                .font(.system(size: 12, weight: .semibold))
+                .accessibilityAddTraits(.isHeader)
+                .padding(.top, 2)
+            Text("\(Int(shown.kelvin.rounded()).formatted()) K")
+                .font(.system(size: 11))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .accessibilityLabel("\(Int(shown.kelvin.rounded())) kelvin")
+                .opacity(model.isActive ? 1 : 0)
+                .accessibilityHidden(!model.isActive)
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+        .frame(maxWidth: 120)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var actions: some View {
+        Group {
+            if model.needsOnboarding {
+                Button { model.showSetup?() } label: { wide("Finish Setup") }
+            } else if model.licenseLocked {
+                Button { model.showLicense?() } label: { wide("Activate…") }
+            } else if model.enabled, model.nightUntil != nil, !model.isPaused {
+                Button { model.endNightNow() } label: { wide("End night light") }
+            } else if model.isTimedPause {
+                Button { model.resume() } label: { wide("Resume") }
+                    .keyboardShortcut("p", modifiers: .command)
             } else {
-                Menu("Pause") {
-                    Button("For One Hour") { model.pause(hours: 1) }
+                HStack(spacing: 8) {
+                    Button { model.pause(hours: 1) } label: { wide("Pause for 1 hour") }
                         .keyboardShortcut("p", modifiers: .command)
-                    Button("Until Morning") { model.pauseUntilMorning() }
+                    Button { model.pauseUntilMorning() } label: { wide("Until morning") }
                 }
-                .fixedSize()
-                .controlSize(.small)
+                .disabled(!model.enabled)
             }
         }
+        .buttonStyle(.bordered)
+        .controlSize(.large)
+    }
+
+    private func wide(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 12, weight: .medium))
+            .frame(maxWidth: .infinity)
     }
 
     private var footer: some View {
@@ -181,10 +203,9 @@ struct MenuBarView: View {
         return phase.title
     }
 
-    private func detail(for shown: LightState) -> String {
-        if let preview = model.preview {
-            let time = ClockTime.from(fractionalMinutes: Double(preview.plan.wake.minutes) + preview.dayProgress * preview.plan.awakeMinutes)
-            return "Preview · \(time.label)"
+    private func detail(for shown: LightState, minute: Double) -> String {
+        if model.preview != nil {
+            return "Preview · \(ClockTime.from(fractionalMinutes: minute).label)"
         }
         if model.needsOnboarding || model.licenseLocked || !model.enabled {
             return "Original display color"
@@ -223,11 +244,10 @@ extension EnvironmentValues {
 /// re-evaluate the rest of it, and the subtree keeps its identity either way.
 private struct ClockedLight<Content: View>: View {
     @Environment(\.panelClockRunning) private var running
-    var wantsTicks: Bool
     @ViewBuilder var content: (Date?) -> Content
 
     var body: some View {
-        let ticking = running && wantsTicks
+        let ticking = running
         TimelineView(MinuteSchedule(paused: !ticking)) { timeline in
             content(ticking ? timeline.date : nil)
         }
@@ -254,6 +274,49 @@ struct MinuteSchedule: TimelineSchedule {
                 next = next.flatMap { calendar.nextDate(after: $0, matching: DateComponents(second: 0), matchingPolicy: .nextTime) }
             }
             return next
+        }
+    }
+}
+
+/// Night strength as three choices, each with its moon. VoiceOver gets the
+/// native segmented control.
+private struct StrengthChoices: View {
+    @Binding var selection: NightStrength
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(NightStrength.allCases, id: \.self) { option in
+                let selected = option == selection
+                Button { selection = option } label: {
+                    HStack(spacing: 6) {
+                        MoonGlyph(terminator: option.moon).frame(width: 14, height: 14)
+                        Text(option.label)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 28)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(selected ? 0.09 : 0)))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(selected ? .primary : .secondary)
+            }
+        }
+        .font(.system(size: 12, weight: .medium))
+        .accessibilityRepresentation {
+            Picker("Night strength", selection: $selection) {
+                ForEach(NightStrength.allCases, id: \.self) { Text($0.label).tag($0) }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+}
+
+private extension NightStrength {
+    /// Gentle keeps the most light; Deep is a sliver.
+    var moon: Double {
+        switch self {
+        case .gentle: return 0.1
+        case .standard: return 0.5
+        case .deep: return 0.85
         }
     }
 }
