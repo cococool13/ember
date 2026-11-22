@@ -69,8 +69,8 @@ final class PanelTests: XCTestCase {
         XCTAssertEqual(DialGeometry.minute(dx: 0, dy: 50), 0, accuracy: 1e-9)
         XCTAssertEqual(DialGeometry.minute(dx: -50, dy: 0), 360, accuracy: 1e-9)
         for minute in stride(from: 0.0, to: 1440, by: 37) {
-            let a = DialGeometry.angle(minute: minute)
-            XCTAssertEqual(DialGeometry.minute(dx: sin(a) * 80, dy: -cos(a) * 80), minute, accuracy: 1e-6)
+            let angle = DialGeometry.angle(minute: minute)
+            XCTAssertEqual(DialGeometry.minute(dx: sin(angle) * 80, dy: -cos(angle) * 80), minute, accuracy: 1e-6)
         }
         XCTAssertEqual(DialGeometry.snapped(1438), 0)
         XCTAssertEqual(DialGeometry.snapped(1300), 1305)

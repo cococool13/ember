@@ -131,13 +131,16 @@ private struct DialTicks: View {
 
     var body: some View {
         Canvas { context, size in
-            let c = CGPoint(x: size.width / 2, y: size.height / 2)
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
             let outer = min(size.width, size.height) / 2 - inset
+            func point(_ angle: Double, _ radius: CGFloat) -> CGPoint {
+                CGPoint(x: center.x + radius * CGFloat(sin(angle)), y: center.y - radius * CGFloat(cos(angle)))
+            }
             for quarter in 0 ..< 4 {
-                let a = Double(quarter) * .pi / 2
+                let angle = Double(quarter) * .pi / 2
                 var tick = Path()
-                tick.move(to: CGPoint(x: c.x + outer * CGFloat(sin(a)), y: c.y - outer * CGFloat(cos(a))))
-                tick.addLine(to: CGPoint(x: c.x + (outer - 5) * CGFloat(sin(a)), y: c.y - (outer - 5) * CGFloat(cos(a))))
+                tick.move(to: point(angle, outer))
+                tick.addLine(to: point(angle, outer - 5))
                 context.stroke(tick, with: .style(.tertiary), lineWidth: 1)
             }
         }
@@ -151,17 +154,16 @@ private struct DialKnob: View {
 
     var body: some View {
         Canvas { context, size in
-            let r = min(size.width, size.height) / 2 - 1
-            let c = CGPoint(x: size.width / 2, y: size.height / 2)
-            let disc = Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: r * 2, height: r * 2))
+            let radius = min(size.width, size.height) / 2 - 1
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            let disc = MoonGlyph.circle(center, radius)
             context.fill(disc, with: .color(Color(white: 0.09)))
             context.stroke(disc, with: .color(.white), lineWidth: 2)
-            let inner = r * 0.62
-            let rim = Path(ellipseIn: CGRect(x: c.x - inner, y: c.y - inner, width: inner * 2, height: inner * 2))
-            context.stroke(rim, with: .color(Theme.ember.opacity(0.6)), lineWidth: 1)
+            let inner = radius * 0.62
+            context.stroke(MoonGlyph.circle(center, inner), with: .color(Theme.ember.opacity(0.6)), lineWidth: 1)
             if let terminator = MoonGlyph.terminator(phase: phase) {
-                context.fill(Path(EmberGeometry.crescent(center: c, radius: inner, terminator: terminator, yDown: true)),
-                             with: .color(Theme.ember))
+                let lit = EmberGeometry.crescent(center: center, radius: inner, terminator: terminator, yDown: true)
+                context.fill(Path(lit), with: .color(Theme.ember))
             }
         }
         .shadow(color: .black.opacity(lifted ? 0.35 : 0.25), radius: lifted ? 4 : 2.5, y: 1.5)
@@ -183,16 +185,20 @@ struct MoonGlyph: View {
         }
     }
 
+    static func circle(_ center: CGPoint, _ radius: CGFloat) -> Path {
+        Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
+    }
+
     var body: some View {
         Canvas { context, size in
-            let r = min(size.width, size.height) / 2 - 0.5
-            let c = CGPoint(x: size.width / 2, y: size.height / 2)
-            let disc = Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: r * 2, height: r * 2))
+            let radius = min(size.width, size.height) / 2 - 0.5
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            let disc = Self.circle(center, radius)
             context.fill(disc, with: .color(Color(white: 0.09)))
             context.stroke(disc, with: .style(.tertiary), lineWidth: 0.8)
             if let terminator {
-                context.fill(Path(EmberGeometry.crescent(center: c, radius: r, terminator: terminator, yDown: true)),
-                             with: .color(Theme.ember))
+                let lit = EmberGeometry.crescent(center: center, radius: radius, terminator: terminator, yDown: true)
+                context.fill(Path(lit), with: .color(Theme.ember))
             }
         }
         .accessibilityHidden(true)
