@@ -56,6 +56,72 @@ final class PanelTests: XCTestCase {
         XCTAssertLessThan(render(model, name: "panel-paused").height, 760)
     }
 
+    /// Noon at the top, midnight at the bottom, clockwise; drag points map back
+    /// to the same minute, and night hours preview as night.
+    @MainActor
+    func testDialMapsAngleToTime() {
+        XCTAssertEqual(DialGeometry.angle(minute: 720), 0, accuracy: 1e-9)
+        XCTAssertEqual(DialGeometry.angle(minute: 1080), .pi / 2, accuracy: 1e-9)
+        XCTAssertEqual(DialGeometry.angle(minute: 0), .pi, accuracy: 1e-9)
+        XCTAssertEqual(DialGeometry.angle(minute: 360), 3 * .pi / 2, accuracy: 1e-9)
+        XCTAssertEqual(DialGeometry.minute(dx: 0, dy: -50), 720, accuracy: 1e-9)
+        XCTAssertEqual(DialGeometry.minute(dx: 50, dy: 0), 1080, accuracy: 1e-9)
+        XCTAssertEqual(DialGeometry.minute(dx: 0, dy: 50), 0, accuracy: 1e-9)
+        XCTAssertEqual(DialGeometry.minute(dx: -50, dy: 0), 360, accuracy: 1e-9)
+        for minute in stride(from: 0.0, to: 1440, by: 37) {
+            let a = DialGeometry.angle(minute: minute)
+            XCTAssertEqual(DialGeometry.minute(dx: sin(a) * 80, dy: -cos(a) * 80), minute, accuracy: 1e-6)
+        }
+        XCTAssertEqual(DialGeometry.snapped(1438), 0)
+        XCTAssertEqual(DialGeometry.snapped(1300), 1305)
+
+        let plan = Schedule.plan(wake: ClockTime(hour: 7, minute: 0), bed: ClockTime(hour: 23, minute: 0),
+                                 sunrise: nil, sunset: nil)
+        XCTAssertEqual(DialGeometry.progress(minute: 7 * 60, plan: plan), 0, accuracy: 1e-9)
+        XCTAssertEqual(DialGeometry.progress(minute: 15 * 60, plan: plan), 0.5, accuracy: 1e-9)
+        XCTAssertEqual(DialGeometry.progress(minute: 2 * 60, plan: plan), 1, "after bedtime is night")
+        let model = makeModel()
+        model.scrub(to: DialGeometry.progress(minute: 3 * 60, plan: model.state.plan))
+        XCTAssertEqual(model.preview?.phase, .night)
+    }
+
+    /// Every panel state at the fixed panel size, in both appearances. Set
+    /// EMBER_PANEL_PNG to write them.
+    @MainActor
+    func testPanelStatesRender() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let times = [("day", 13 * 60), ("dusk", 20 * 60 + 20), ("night", 23 * 60 + 30)]
+        for (look, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {
+            for (name, minutes) in times {
+                let now = today.addingTimeInterval(Double(minutes) * 60)
+                let model = makeModel()
+                model.state = Schedule.state(now: now, wake: model.wake, bed: model.bed,
+                                             sunrise: nil, sunset: nil, strength: model.strength)
+                let view = MenuBarView(clockOverride: now).environmentObject(model)
+                XCTAssertEqual(renderView(view, name: "b-\(name)-\(look)", width: Theme.panelWidth,
+                                          appearance: appearance).height, Theme.panelHeight)
+            }
+            let now = today.addingTimeInterval(20 * 3600)
+            func pinned(_ model: AppModel) -> some View {
+                MenuBarView(clockOverride: now).environmentObject(model)
+            }
+            let scrubbing = makeModel()
+            scrubbing.scrub(to: DialGeometry.progress(minute: 21 * 60 + 45, plan: scrubbing.state.plan))
+            XCTAssertNotNil(scrubbing.preview)
+            XCTAssertEqual(renderView(pinned(scrubbing), name: "b-scrub-\(look)", width: Theme.panelWidth,
+                                      appearance: appearance).height, Theme.panelHeight)
+            let paused = makeModel()
+            paused.pause(hours: 1)
+            XCTAssertEqual(renderView(pinned(paused), name: "b-paused-\(look)", width: Theme.panelWidth,
+                                      appearance: appearance).height, Theme.panelHeight)
+            let locked = makeModel()
+            locked.licenseLocked = true
+            XCTAssertEqual(renderView(pinned(locked), name: "b-locked-\(look)", width: Theme.panelWidth,
+                                      appearance: appearance).height, Theme.panelHeight)
+        }
+    }
+
     @MainActor
     private func makeModel() -> AppModel {
         let suite = "EmberPanelTests.\(UUID().uuidString)"

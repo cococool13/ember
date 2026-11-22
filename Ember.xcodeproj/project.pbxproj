@@ -25,6 +25,7 @@
 		2D3CE7B0662BBD424EB2CF2C /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD9455B3FFDAD6D6E3A052C /* Analytics.swift */; };
 		2DC51342D44D81EB216A1AAC /* MenuBarMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D46140053FF98D187778E0 /* MenuBarMark.swift */; };
 		3F6CB064F2B0AA442F8E769B /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 31EEA72BCF5F671A6158A047 /* PostHog */; };
+		52DBE61C71523905DC2FC42D /* DayDial.swift in Sources */ = {isa = PBXBuildFile; fileRef = D279F5A818C128CB3DB8EED6 /* DayDial.swift */; };
 		570FA4B23EC19843FF5EDDEB /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0906923197AB189DCD84B0A0 /* AppModelTests.swift */; };
 		67859A316F0412DBA2D2E6E3 /* Solar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2695ACEB14831776BE171871 /* Solar.swift */; };
 		6B3171E1EFABE94AA3854415 /* IconTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 511602227DCF6AF7601F6901 /* IconTests.swift */; };
@@ -32,7 +33,6 @@
 		7D78F2E708DC62068AC25272 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CCAECECB01C03E7C4363DCA5 /* Assets.xcassets */; };
 		806B09AB638EC9B51F2A4B1D /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CBE3BA5EB37DB0633A5B6E /* Schedule.swift */; };
 		8962BC36FC53074A4050F3C6 /* ScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E7063E306BF5B9BA797648B /* ScheduleTests.swift */; };
-		8A45FDD6936156EBFB8CFA20 /* SunTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73037730603AA7EDFCC5A41F /* SunTimeline.swift */; };
 		9FC0D2E39705A60FB2F07825 /* AnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DD810B25916D7765EC8931 /* AnalyticsTests.swift */; };
 		A01C5A37131AE9BB90CFF385 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2109C27E486EF90CCCA3B4E9 /* SetupView.swift */; };
 		A5E38243C26B8AE4DD55810D /* ScheduleDeadlineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35DB9C16841FF4BEFF2DBDC1 /* ScheduleDeadlineTests.swift */; };
@@ -85,7 +85,6 @@
 		6A2B92CBF94C08F3AE0A4B34 /* NightShift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightShift.swift; sourceTree = "<group>"; };
 		6A3041D62A00584181B6223E /* SolarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolarTests.swift; sourceTree = "<group>"; };
 		71437483C0CF628522BDF4C4 /* LoginItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItem.swift; sourceTree = "<group>"; };
-		73037730603AA7EDFCC5A41F /* SunTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunTimeline.swift; sourceTree = "<group>"; };
 		738C57AD4865B9D8A9B2012D /* Ember.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Ember.entitlements; sourceTree = "<group>"; };
 		872DCC7E1244A51D15697EAD /* UpdatesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesTests.swift; sourceTree = "<group>"; };
 		8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
@@ -101,6 +100,7 @@
 		CCAECECB01C03E7C4363DCA5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE97F4CC41BAF4D1450AB26F /* SleepScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepScheduleView.swift; sourceTree = "<group>"; };
 		D1E129474145FB033E3BBB86 /* Ember.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ember.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D279F5A818C128CB3DB8EED6 /* DayDial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDial.swift; sourceTree = "<group>"; };
 		DC635EBE2AC3C4079688D51C /* EmberApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberApp.swift; sourceTree = "<group>"; };
 		ED26FA11AE7FFC52DC8BE916 /* Intents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Intents.swift; sourceTree = "<group>"; };
 		FB33BC60C352742153C28C80 /* HardwareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareTests.swift; sourceTree = "<group>"; };
@@ -158,6 +158,7 @@
 				9E9067BF3BE6B3B48DB3B5FE /* AppModel.swift */,
 				CCAECECB01C03E7C4363DCA5 /* Assets.xcassets */,
 				133B8690463D9CBFBF76DCA9 /* ColorApps.swift */,
+				D279F5A818C128CB3DB8EED6 /* DayDial.swift */,
 				ABE644841B4F82012455FD0C /* DisplayEngine.swift */,
 				738C57AD4865B9D8A9B2012D /* Ember.entitlements */,
 				DC635EBE2AC3C4079688D51C /* EmberApp.swift */,
@@ -178,7 +179,6 @@
 				CE97F4CC41BAF4D1450AB26F /* SleepScheduleView.swift */,
 				2695ACEB14831776BE171871 /* Solar.swift */,
 				AEEEBA365F0E9DEA369F9B3B /* StatusItem.swift */,
-				73037730603AA7EDFCC5A41F /* SunTimeline.swift */,
 				3C3A434538941A02FA9EE8B4 /* Theme.swift */,
 				A95260C272EDB245CA336719 /* Updates.swift */,
 			);
@@ -299,6 +299,7 @@
 				2D3CE7B0662BBD424EB2CF2C /* Analytics.swift in Sources */,
 				E87E30852B4E3B0863F7884D /* AppModel.swift in Sources */,
 				C2181A13B04AA0EA828F0A1D /* ColorApps.swift in Sources */,
+				52DBE61C71523905DC2FC42D /* DayDial.swift in Sources */,
 				25E9300B753D721374F8656D /* DisplayEngine.swift in Sources */,
 				78B9CA4A2393CF8AB9B1E469 /* EmberApp.swift in Sources */,
 				180B7DD41274E9840D02D8A1 /* FluxGuard.swift in Sources */,
@@ -317,7 +318,6 @@
 				14A3CE8E0B4339EC31297DDD /* SleepScheduleView.swift in Sources */,
 				67859A316F0412DBA2D2E6E3 /* Solar.swift in Sources */,
 				E238619C6876BC28D352146F /* StatusItem.swift in Sources */,
-				8A45FDD6936156EBFB8CFA20 /* SunTimeline.swift in Sources */,
 				0A88189C97FFF6ABA8117EA4 /* Theme.swift in Sources */,
 				EFDC2663B6719F1F44501DCB /* Updates.swift in Sources */,
 			);
