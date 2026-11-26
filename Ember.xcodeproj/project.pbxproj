@@ -392,7 +392,7 @@
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -409,7 +409,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.8.0;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
@@ -500,7 +500,7 @@
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -518,7 +518,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.8.0;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
