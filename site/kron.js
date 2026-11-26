@@ -189,8 +189,8 @@ export function mountKron(el, options = {}) {
 
   /** @type {Letter[]} */
   const letters = [];
-  rowEls.forEach((r, ri) =>
-    r.querySelectorAll('.krn-l').forEach((n) =>
+  rowEls.forEach((r, ri) => {
+    r.querySelectorAll('.krn-l').forEach((n) => {
       letters.push({
         el: /** @type {HTMLElement} */ (n),
         ch: n.textContent || '',
@@ -206,9 +206,9 @@ export function mountKron(el, options = {}) {
         vy: 0,
         vr: 0,
         shown: false,
-      }),
-    ),
-  );
+      });
+    });
+  });
 
   /* ---- fit the type to the box, kern the pairs, measure where everything rests ---- */
   const meas = document.createElement('canvas').getContext('2d');
@@ -352,7 +352,7 @@ export function mountKron(el, options = {}) {
       c.fillStyle = ink;
       c.font = `700 ${F * ts}px ${FACE}`;
       c.textBaseline = 'alphabetic';
-      letters.forEach((l) => c.fillText(l.ch, l.left * ts, l.base * ts));
+      for (const l of letters) c.fillText(l.ch, l.left * ts, l.base * ts);
       texDirty = true;
     }
   };

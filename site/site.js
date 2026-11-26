@@ -9,11 +9,10 @@
       document.activeElement && document.activeElement.closest
         ? document.activeElement.closest('details[open]')
         : null;
-    if (open) {
-      open.open = false;
-      var summary = open.querySelector('summary');
-      if (summary) summary.focus();
-    }
+    if (!open) return;
+    open.open = false;
+    var summary = open.querySelector('summary');
+    if (summary) summary.focus();
   });
 
   // Never turn an unavailable download into a purchase prompt.
