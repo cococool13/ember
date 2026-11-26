@@ -75,6 +75,9 @@ h2 { font: 700 clamp(32px, 4.2vw, 64px)/0.98 var(--face); letter-spacing: -0.035
 .krn-links a { text-decoration: none; position: relative; }
 .krn-links a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -0.18em; height: 0.09em; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; transition: transform 0.28s var(--ease-out); }
 .krn-links a:hover::after { transform: scaleX(1); }
+/* 44 px touch targets without moving Kron's nav: an invisible hit area around each link. */
+.krn-nav a { position: relative; }
+.krn-nav a::before { content: ""; position: absolute; inset: -12px -8px; }
 .krn-links a:last-child::after { transform: scaleX(1); background: var(--ember); }
 .krn-root :focus-visible { outline: 2px solid var(--krn-ink); outline-offset: 4px; border-radius: 2px; }
 .krn-head { position: absolute; left: 1.5cqi; right: 1.5cqi; bottom: 1.05cqi; margin: 0; font-size: var(--krn-f, 15.2cqi); font-weight: 700; line-height: 0.8; letter-spacing: var(--track-display); display: flex; flex-direction: column; z-index: 1; user-select: none; -webkit-user-select: none; text-transform: uppercase; }
@@ -216,3 +219,5 @@ h2 { font: 700 clamp(32px, 4.2vw, 64px)/0.98 var(--face); letter-spacing: -0.035
 @media (max-width: 480px) {
   .band-ticks span:nth-child(2n) { visibility: hidden; }
 }
+/* After the base footer rule so it wins: 44 px footer links on phones. */
+@media (max-width: 640px), (pointer: coarse) { .footer a { padding-block: 12px; } }

@@ -9,12 +9,12 @@
     <description>Ember updates</description>
     <language>en</language>
     <item>
-      <title>Ember 0.7.0</title>
-      <pubDate>Sun, 22 Nov 2026 13:57:16 +0000</pubDate>
-      <sparkle:version>10</sparkle:version>
-      <sparkle:shortVersionString>0.7.0</sparkle:shortVersionString>
+      <title>Ember 0.8.0</title>
+      <pubDate>Thu, 26 Nov 2026 01:47:50 +0000</pubDate>
+      <sparkle:version>11</sparkle:version>
+      <sparkle:shortVersionString>0.8.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://ember.cohencool.workers.dev/downloads/0.7.0/Ember.dmg" length="5349543" type="application/octet-stream" sparkle:edSignature="HlZPPPqCRc6LvhqTWjd7jYXwBRbD4NWeJTTSxKImJHB8iJLzVBu2JbqqMeXLUzsBfoGGizuC5uHR0rIWNTe1AQ=="/>
+      <enclosure url="https://ember.cohencool.workers.dev/downloads/0.8.0/Ember.dmg" length="5435568" type="application/octet-stream" sparkle:edSignature="xa3nN+KYXKLCPyvrbKAJyjXHiRahc0IFGCTmZH429tyoSz8VKY++YYfH/yw1gcaZTFwQ4RgeRde9NByV0aaEAA=="/>
     </item>
   </channel>
 </rss>
