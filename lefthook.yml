@@ -10,7 +10,7 @@ pre-commit:
       stage_fixed: true
     biome-format:
       glob: "*.{js,jsx,ts,tsx,json,jsonc}"
-      run: biome format --write {staged_files}
+      run: biome format --write --no-errors-on-unmatched {staged_files}
       stage_fixed: true
     gitleaks:
       run: gitleaks protect --staged --no-banner

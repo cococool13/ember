@@ -2,29 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#09090B">
-    <title>Ember for Mac — a softer screen after sunset</title>
-    <meta name="description" content="A Mac menu bar app that follows your wake time, bedtime, and the sun. True color by day. Warm and dim at night. macOS 14+, Apple silicon and Intel. $9 once.">
+    <meta name="theme-color" content="#1A1512">
+    <title>Ember for Mac: warm and dim your screen after sunset</title>
+    <meta name="description" content="Ember is a Mac menu bar app that warms and dims your display after sunset, restores true color by day, and costs $9 once for macOS 14 or later.">
     <link rel="canonical" href="https://ember.cohencool.workers.dev/">
-    <meta property="og:title" content="Ember for Mac — $9 once">
-    <meta property="og:description" content="True color by day. Warm and dim at night. A quiet Mac menu bar app.">
+    <meta property="og:title" content="Ember for Mac: warm and dim your screen after sunset">
+    <meta property="og:description" content="A Mac menu bar app that warms and dims your display after sunset and restores true color by day. $9 once for macOS 14 or later.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://ember.cohencool.workers.dev/">
-    <meta property="og:image" content="https://ember.cohencool.workers.dev/assets/icon.png">
+    <meta property="og:image" content="https://ember.cohencool.workers.dev/assets/og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="YOUR MAC WARMS & DIMS AFTER SUNSET, in giant ash capitals on a dark ground, with Ember's chrome lens and ember crescent over the type.">
     <meta property="og:video" content="https://ember.cohencool.workers.dev/assets/og-preview.mp4">
     <meta property="og:video:secure_url" content="https://ember.cohencool.workers.dev/assets/og-preview.mp4">
     <meta property="og:video:type" content="video/mp4">
     <meta property="og:video:width" content="1200">
     <meta property="og:video:height" content="630">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Ember for Mac — $9 once">
-    <meta name="twitter:description" content="True color by day. Warm and dim at night.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ember for Mac: warm and dim your screen after sunset">
+    <meta name="twitter:description" content="A Mac menu bar app that warms and dims your display after sunset and restores true color by day. $9 once for macOS 14 or later.">
+    <meta name="twitter:image" content="https://ember.cohencool.workers.dev/assets/og.png">
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="assets/fonts/fonts.css">
-    <link rel="stylesheet" href="styles.css?v=10">
+    <link rel="stylesheet" href="styles.css?v=15">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -41,135 +44,131 @@
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
-    <header class="nav">
-      <a class="wordmark" href="/" aria-label="Ember home"><img src="assets/icon.png" width="32" height="32" alt="">Ember</a>
-      <nav class="nav-links" aria-label="Main navigation">
-        <a href="#product">Product</a>
-        <a href="#get">Pricing</a>
-        <details class="resources">
-          <summary>Resources <span aria-hidden="true">⌄</span></summary>
-          <div class="resource-menu">
-            <a href="#how">Installation</a>
-            <a href="#faq">Questions</a>
-            <a href="mailto:cohenbcoolidge@gmail.com">Support</a>
-            <a href="/privacy">Privacy</a><a href="/terms">Terms</a>
-          </div>
-        </details>
-      </nav>
-      <a class="button nav-cta" href="#get">Get Ember</a>
-      <details class="mobile-menu"><summary><span aria-hidden="true">☰</span><span class="sr-only">Menu</span></summary><nav class="resource-menu" aria-label="Mobile navigation"><a href="#product">Product</a><a href="#get">Pricing</a><a href="#how">Installation</a><a href="#faq">Questions</a><a href="mailto:cohenbcoolidge@gmail.com">Support</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav></details>
-    </header>
-
     <main id="main" tabindex="-1">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="landscape hero-landscape" aria-hidden="true">
-          <video class="hero-video" muted loop playsinline preload="none" disablepictureinpicture>
-            <source data-src="assets/cinematic/dusk-hero.mp4" type="video/mp4">
-          </video>
-          <picture class="hero-still">
-            <source media="(max-width: 640px)" srcset="assets/cinematic/dusk-mobile.webp">
-            <img src="assets/cinematic/dusk.jpg" width="2400" height="1350" alt="" fetchpriority="high" decoding="async">
-          </picture>
-        </div>
-        <div class="hero-copy content-width">
-
-          <h1 id="hero-title">Let your screen<br>wind down.</h1>
-          <p class="lede">A Mac menu bar app that warms and dims your screen before bed.</p>
-          <a class="button primary" href="#get">Get Ember</a>
-          <p class="small">$9 · One-time purchase</p>
-          <p class="small subtle">Apple silicon &amp; Intel · macOS 14 or later</p>
-        </div>
-        <a class="hero-next" href="#product">Try the preview <span aria-hidden="true">↓</span></a>
-        <span class="scene-caption" aria-hidden="true">Dusk / A softer screen after sunset</span>
+      <section class="krn-root" id="top" data-ground="#1A1512" data-ink="#EFE4D6" aria-labelledby="hero-title">
+        <header class="krn-nav">
+          <a class="krn-name" href="/">Ember</a>
+          <nav class="krn-links" aria-label="Main">
+            <a href="#curve">How it works</a>
+            <a href="#faq">FAQ</a>
+            <a href="https://licensing.cohencool.workers.dev/buy/ember" rel="noopener">Buy Ember for $9</a>
+          </nav>
+        </header>
+        <h1 class="krn-head" id="hero-title" aria-label="Your Mac warms and dims after sunset">
+          <span class="krn-row" data-a="spread" aria-hidden="true"><span class="krn-w">Your</span> <span class="krn-w">Mac</span></span>
+          <span class="krn-row" data-a="left" aria-hidden="true"><span class="krn-w">Warms</span></span>
+          <span class="krn-row" data-a="spread" aria-hidden="true"><span class="krn-w">&amp;</span> <span class="krn-w">Dims</span></span>
+          <span class="krn-row" data-a="right" aria-hidden="true"><span class="krn-w">After</span> <span class="krn-w">Sunset</span></span>
+        </h1>
+        <p class="krn-note">A Mac menu bar app for macOS 14 or later, $9 once.</p>
+        <canvas class="krn-gl" aria-hidden="true"></canvas>
       </section>
 
-      <section class="interactive-preview" id="product" aria-labelledby="preview-title">
-        <div class="preview-intro content-width"><h2 id="preview-title">Preview your day.</h2></div>
-        <div class="preview-toolbar content-width">
-          <div class="phase-controls" role="group" aria-label="Preview time of day"><button type="button" data-phase="morning" aria-pressed="false">Morning</button><button type="button" data-phase="day" aria-pressed="true">Day</button><button type="button" data-phase="evening" aria-pressed="false">Evening</button><button type="button" data-phase="night" aria-pressed="false">Night</button></div>
-          <div class="foreground-control" role="group" aria-label="Preview foreground app"><span>Working in</span><button type="button" data-app="notes" aria-pressed="true">Notes</button><button type="button" data-app="photos" aria-pressed="false">Photos</button></div>
-          <button class="mini-button reset-preview" id="reset-preview" type="button">Reset preview</button>
+      <section class="curve" id="curve" aria-labelledby="curve-title">
+        <div class="wrap curve-head">
+          <h2 id="curve-title">See your screen at any hour</h2>
+          <p class="lede">Your display shows true color by day, then drops to about 2700 K over 40 minutes at sunset or three hours before bedtime. Night warms and dims further from there.</p>
         </div>
-        <div class="mac-desktop" id="stage" data-phase="day" data-enabled="true">
-          <div class="desktop-surface">
-            <img class="wallpaper" src="assets/desktop-wallpaper.webp" width="1672" height="941" alt="" loading="lazy">
-            <div class="mac-menubar">
-              <div class="mac-menu-left" aria-hidden="true"><span class="apple-symbol">●</span><strong>Finder</strong><span>File</span><span>Edit</span><span>View</span></div>
-              <div class="mac-menu-right"><button class="menu-mark" id="panel-toggle" type="button" aria-label="Toggle Ember preview panel" aria-expanded="true" aria-controls="preview-panel"><img src="assets/icon.png" width="22" height="22" alt=""><span>Ember</span></button><span id="preview-clock" aria-hidden="true">2:30 PM</span></div>
-            </div>
-            <div class="note-window" aria-hidden="true">
-              <div class="window-toolbar"><span class="traffic-lights"><i></i><i></i><i></i></span><span>Notes</span></div>
-              <div class="note-content"><span class="note-date">Today</span><h3>A little room to slow down.</h3><p>Close the last tab.<br>Make something for dinner.<br>Leave tomorrow for tomorrow.</p><div class="photo-study"><img src="assets/desktop-wallpaper.webp" width="1672" height="941" alt="" loading="lazy"></div><div class="color-samples"><i></i><i></i><i></i><i></i><i></i></div></div>
-            </div>
-            <div class="screen-cool"></div><div class="screen-tint"></div><div class="screen-dim"></div>
+        <p class="clock" id="clock" aria-hidden="true" data-fit="12:55 PM">2:30 PM</p>
+        <div class="wrap">
+          <div class="band">
+            <div class="band-fill" id="band-fill"></div>
+            <div class="band-head" id="band-head"></div>
+            <label class="sr-only" for="day">Time of day to preview</label>
+            <input class="band-input" id="day" type="range" min="0" max="1435" step="5" value="870">
           </div>
-          <div class="preview-panel" id="preview-panel">
-            <div class="preview-head"><div class="preview-brand"><img src="assets/icon.png" width="25" height="25" alt="">Ember</div><button class="mini-button" id="pause-preview" type="button" aria-pressed="false">Pause 1h</button><label class="switch"><input id="ember-enabled" type="checkbox" checked><span class="switch-track" aria-hidden="true"></span><span class="sr-only">Enable Ember preview</span></label></div>
-            <div class="light-state">
-              <div class="phase-heading"><h3 id="phase-title">Daylight</h3><span id="kelvin-reading">6500K</span></div>
-              <p id="phase-description">Your display’s original color, while you work.</p>
-              <label class="sr-only" for="day-track">Preview an hour of your day</label>
-              <input class="day-track" id="day-track" type="range" min="0" max="23" step="0.016666666666666666" value="14">
-              <div class="track-labels"><span id="wake-reading">7:00 AM</span><span id="track-time">2:30 PM</span><span id="bed-reading">11:00 PM</span></div>
-              <div class="phase-foot"><span id="state-label">Full color</span><span id="gamma-reading">Original profile</span></div>
-            </div>
-            <div class="preview-settings">
-              <p class="panel-label">Sample schedule · without sun times</p>
-              <div class="time-settings"><label for="wake-time">Wake<input id="wake-time" type="time" value="07:00"></label><label for="bed-time">Bed<input id="bed-time" type="time" value="23:00"></label></div>
-              <fieldset class="night-settings"><legend>Night light</legend><div class="strength-control" role="group" aria-label="Preview night strength"><button type="button" data-strength="gentle" aria-pressed="false">Gentle</button><button type="button" data-strength="standard" aria-pressed="true">Standard</button><button type="button" data-strength="deep" aria-pressed="false">Deep</button></div></fieldset>
-              <label class="true-color-setting" for="true-color-apps"><span>True color apps<small>Try Photos below</small></span><input id="true-color-apps" type="checkbox" checked></label>
-            </div>
-            <p class="panel-caption">Interactive illustration · Not your Mac’s settings</p>
+          <div class="band-ticks" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span></div>
+          <div class="readout">
+            <p id="readout" aria-live="polite">Daylight · 6500 K · 100% brightness</p>
+            <p class="hint">Drag or use arrow keys.</p>
           </div>
-          <noscript><p class="no-script">Enable JavaScript to try the preview. Ember itself works independently of this website.</p></noscript>
-        </div>
-        <div class="preview-controls content-width">
-          <p class="preview-status" id="demo-reading" aria-live="polite">Daylight · 6500K · Original display profile</p>
-          <p class="small subtle preview-disclaimer">Illustration only; results vary by display.</p>
+          <p class="fine">Sample day: wake 7:00 AM, bed 11:00 PM, sunset 5:28 PM, Standard night. Colors on this page are an illustration of the display change.</p>
         </div>
       </section>
 
-      <section class="night-scene" aria-labelledby="night-title">
-        <div class="landscape night-landscape" aria-hidden="true"><img src="assets/cinematic/night.jpg" width="2400" height="1350" alt="" loading="eager" decoding="async" fetchpriority="low"></div>
-        <div class="night-copy content-width"><h2 id="night-title">Let the light settle.</h2><p>Warm and dim until wake.</p></div>
+      <section class="nights" aria-labelledby="nights-title">
+        <div class="wrap">
+          <h2 id="nights-title">Pick your night strength</h2>
+          <p class="lede">Choose how warm and dim your screen gets at night.</p>
+        </div>
+        <ol class="night-rows">
+          <li class="night" data-k="2200" data-dim="0.68">
+            <span class="night-word">Gentle</span>
+            <span class="night-chip"><b>2200 K · 68%</b>Light warmth if you still want more brightness.</span>
+          </li>
+          <li class="night" data-k="1800" data-dim="0.55">
+            <span class="night-word">Standard</span>
+            <span class="night-chip"><b>About 1800 K · 55%</b>The default setting.</span>
+          </li>
+          <li class="night" data-k="1600" data-dim="0.45">
+            <span class="night-word">Deep</span>
+            <span class="night-chip"><b>1600 K · 45%</b>Warmest and dimmest.</span>
+          </li>
+        </ol>
       </section>
 
-      <section class="panel-proof content-width" id="panel">
-        <div class="panel-copy"><h2>In your menu bar.</h2><p>Check your light, choose a night strength, or pause for true color. Open Ember to edit your sleep schedule.</p><a class="text-link" href="#product" data-demo-action="photos">Try true color apps <span aria-hidden="true">↑</span></a></div>
-        <figure class="panel-render"><img src="assets/panel.png" width="680" height="730" loading="lazy" alt="Ember's dark menu-bar panel showing a 24-hour dial set to 9:45 PM Evening at 1,867 K, with Return to Now, night strength options, and pause buttons."><figcaption>Ember 0.7.0 · Actual app</figcaption></figure>
-      </section>
-
-      <section class="faq content-width" id="faq" aria-labelledby="faq-title">
-        <div class="section-intro"><h2 id="faq-title">Questions?</h2></div>
-        <div class="faq-list">
-          <details id="how"><summary>How do I buy and install?</summary><p>Pay through Stripe. Your license key arrives by email. Use Download, open Ember.dmg, drag Ember to Applications, open it, and paste the key, or unlock with the email you paid with to get a 6-digit code.</p></details>
-          <details><summary>Does it work with my display?</summary><p>External display support depends on the display and connection; HDR and color profiles can affect the result.</p></details>
-          <details><summary>What about Night Shift and f.lux?</summary><p>Ember turns Night Shift off and quits f.lux while enabled.</p></details>
+      <section class="way" aria-labelledby="way-title">
+        <div class="wrap way-grid">
+          <figure class="way-shot">
+            <img src="assets/panel.png?v=2" width="680" height="730" loading="lazy" alt="Ember's menu bar panel: a 24-hour dial with the current time, phase and kelvin in the center, night strength as three moons, and Pause for 1 hour or Until morning.">
+            <figcaption>The real panel, in your menu bar.</figcaption>
+          </figure>
+          <div class="way-copy">
+            <h2 id="way-title">Stays out of your way</h2>
+            <dl class="ledger">
+              <div><dt>Pause</dt><dd>Pause Ember for one hour or until morning from the menu bar.</dd></div>
+              <div><dt>True color apps</dt><dd>Photos, Preview, Figma, Photoshop, and any app you pick show true color while in front.</dd></div>
+              <div><dt>f.lux and Night Shift</dt><dd>While Ember runs, it quits f.lux and turns Night Shift off.</dd></div>
+              <div><dt>The dial</dt><dd>Drag the 24-hour dial in the menu bar to preview any time, then let go to return to now.</dd></div>
+              <div><dt>Location</dt><dd>Sunrise and sunset follow your location, and that location stays on your Mac.</dd></div>
+            </dl>
+          </div>
         </div>
       </section>
 
       <section class="get" id="get" aria-labelledby="get-title">
-        <div class="get-copy content-width">
-
-        <img class="app-icon" src="assets/icon.png" width="80" height="80" alt="Ember app icon">
-        <h2 id="get-title">Get Ember.</h2>
-        <div class="cta-row"><a class="button primary" href="https://licensing.cohencool.workers.dev/buy/ember" rel="noopener">Get Ember</a><a class="button secondary download-link" id="download" href="/downloads/Ember.dmg" download="Ember.dmg" aria-controls="download-help">Download</a></div>
-        <p class="small">$9 · One-time purchase · No subscription</p><p class="small subtle" id="download-note" aria-live="polite">Version 0.7.0 · Apple silicon &amp; Intel · macOS 14+ · Signed and notarized</p>
-        <p class="small subtle">Ember changes display color; it does not guarantee better sleep.</p>
+        <h2 class="price" id="get-title" data-fit>$9 once</h2>
+        <div class="wrap get-body">
+          <p class="lede">No subscription, just a license key by email or a 6-digit code sent to the email you paid with.</p>
+          <div class="cta-row">
+            <a class="button primary" href="https://licensing.cohencool.workers.dev/buy/ember" rel="noopener">Buy Ember for $9</a>
+            <a class="button secondary download-link" id="download" href="/downloads/Ember.dmg" download="Ember.dmg" aria-controls="download-help">Download for Mac</a>
+          </div>
+          <p class="facts" id="download-note" aria-live="polite">Version 0.8.0 · macOS 14 or later · Apple silicon and Intel · Signed and notarized DMG</p>
+          <p class="facts">Ember changes display color. It does not promise better sleep.</p>
         </div>
-        <div class="landscape dawn-landscape" aria-hidden="true"><img src="assets/cinematic/dawn.jpg" width="2400" height="1350" alt="" loading="eager" decoding="async" fetchpriority="low"></div>
+        <section class="download-help wrap" id="download-help" aria-labelledby="download-help-title" tabindex="-1" hidden>
+          <h3 id="download-help-title">Install Ember</h3>
+          <ol class="install-steps">
+            <li><h4>Open the download</h4><p>Find Ember.dmg in Downloads.</p></li>
+            <li><h4>Drag to Applications</h4><p>Drag Ember onto the Applications folder beside it.</p></li>
+            <li><h4>Open Ember</h4><p>Open Ember from Applications and choose Use recommended.</p></li>
+          </ol>
+          <p class="facts"><a class="download-link" href="/downloads/Ember.dmg" download="Ember.dmg">Download again</a> · <a href="mailto:cohenbcoolidge@gmail.com">Installation help</a></p>
+        </section>
       </section>
-      <section class="download-help content-width" id="download-help" aria-labelledby="download-help-title" tabindex="-1" hidden>
-        <div class="section-intro"><h2 id="download-help-title">Install Ember.</h2></div>
-        <ol class="install-steps">
-          <li><span class="step-number">1</span><h3>Open the download.</h3><p>Find Ember.dmg in Downloads.</p></li>
-          <li><span class="step-number">2</span><h3>Drag to Applications.</h3><p>Drag Ember onto the Applications folder beside it.</p></li>
-          <li><span class="step-number">3</span><h3>Open Ember.</h3><p>Open Ember from Applications and choose Use recommended.</p></li>
-        </ol>
-        <p class="small"><a class="download-link" href="/downloads/Ember.dmg" download="Ember.dmg">Download again</a> · <a href="mailto:cohenbcoolidge@gmail.com">Installation help</a></p>
+
+      <section class="faq wrap" id="faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">Questions</h2>
+        <div class="faq-list">
+          <details id="how"><summary>How do I buy and install Ember?</summary><p>Buy Ember for $9 once and download the signed and notarized DMG for macOS 14 or later on Apple silicon or Intel. Open Ember.dmg and drag Ember to Applications. Activate it with the license key from your email or a 6-digit code sent to the email you paid with.</p></details>
+          <details><summary>Does it work with my display?</summary><p>Ember works on Mac displays and restores your display profile during the day. External displays, HDR, and custom color profiles can affect how the color shift looks.</p></details>
+          <details><summary>What about Night Shift and f.lux?</summary><p>While Ember runs, it quits f.lux and turns Night Shift off. You don't have to turn them off by hand.</p></details>
+          <details><summary>How warm and dim does it get at night?</summary><p>Ember has three night strengths: Gentle at 2200 K and 68% brightness, Standard at about 1800 K and 55%, and Deep at 1600 K and 45%. Standard is the default.</p></details>
+          <details><summary>Will Ember help me sleep better?</summary><p>Ember changes display color. It does not promise better sleep.</p></details>
+        </div>
       </section>
     </main>
-    <footer class="footer content-width"><a class="wordmark" href="/"><img src="assets/icon.png" width="28" height="28" alt="">Ember</a><nav aria-label="Footer navigation"><a href="#get">Pricing</a><a href="#how">Installation</a><a href="mailto:cohenbcoolidge@gmail.com">Support</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav><p>Made by <a href="https://cohencool.com/">Cohen</a>.</p></footer>
-    <script src="site.js?v=8" defer></script>
+    <footer class="footer wrap">
+      <a class="mark-link" href="/" aria-label="Ember home">
+        <svg class="mark" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="10" class="mark-disc"/><path class="mark-crescent" d="M16.69 3.17L17.81 3.86L18.82 4.69L19.72 5.64L20.48 6.70L21.10 7.85L21.56 9.08L21.86 10.35L21.99 11.65L21.95 12.96L21.74 14.25L21.37 15.50L20.83 16.69L20.14 17.81L19.31 18.82L18.36 19.72L17.30 20.48L16.15 21.10L14.92 21.56L13.65 21.86L12.35 21.99L11.04 21.95L9.75 21.74L8.50 21.37L7.31 20.83L7.83 21.01L8.43 21.04L9.08 20.91L9.79 20.63L10.53 20.21L11.30 19.64L12.08 18.94L12.86 18.12L13.63 17.20L14.37 16.19L15.06 15.11L15.71 13.97L16.29 12.80L16.80 11.62L17.22 10.44L17.56 9.29L17.80 8.19L17.94 7.15L17.98 6.20L17.92 5.34L17.76 4.60L17.49 3.98L17.14 3.50Z"/></svg>
+        Ember
+      </a>
+      <nav aria-label="Footer"><a href="#get">Pricing</a><a href="#how">Installation</a><a href="mailto:cohenbcoolidge@gmail.com">Support</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+      <p>Support: <a href="mailto:cohenbcoolidge@gmail.com">cohenbcoolidge@gmail.com</a> · Made by <a href="https://cohencool.com/">Cohen</a>.</p>
+    </footer>
+    <script src="curve.js?v=1" defer></script>
+    <script src="site.js?v=9" defer></script>
+    <script type="module" src="main.js?v=1"></script>
   </body>
 </html>

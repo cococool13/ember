@@ -24,6 +24,8 @@
 		2BE6DAC1D01379647D97286B /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */; };
 		2D3CE7B0662BBD424EB2CF2C /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD9455B3FFDAD6D6E3A052C /* Analytics.swift */; };
 		2DC51342D44D81EB216A1AAC /* MenuBarMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D46140053FF98D187778E0 /* MenuBarMark.swift */; };
+		335C0B8F69D06DB2C551EF48 /* EmberLens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89B739B4C41E8AEB420CBF88 /* EmberLens.swift */; };
+		395D63B61D3563C0886CDDC2 /* LensTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4F51ECE327FF983EF4918A /* LensTests.swift */; };
 		3F6CB064F2B0AA442F8E769B /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 31EEA72BCF5F671A6158A047 /* PostHog */; };
 		52DBE61C71523905DC2FC42D /* DayDial.swift in Sources */ = {isa = PBXBuildFile; fileRef = D279F5A818C128CB3DB8EED6 /* DayDial.swift */; };
 		570FA4B23EC19843FF5EDDEB /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0906923197AB189DCD84B0A0 /* AppModelTests.swift */; };
@@ -33,6 +35,7 @@
 		7D78F2E708DC62068AC25272 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CCAECECB01C03E7C4363DCA5 /* Assets.xcassets */; };
 		806B09AB638EC9B51F2A4B1D /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CBE3BA5EB37DB0633A5B6E /* Schedule.swift */; };
 		8962BC36FC53074A4050F3C6 /* ScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E7063E306BF5B9BA797648B /* ScheduleTests.swift */; };
+		89AFC8267FE746FA2E060C27 /* EmberLens.metal in Sources */ = {isa = PBXBuildFile; fileRef = 009B811E6F5AE8E289731901 /* EmberLens.metal */; };
 		9FC0D2E39705A60FB2F07825 /* AnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DD810B25916D7765EC8931 /* AnalyticsTests.swift */; };
 		A01C5A37131AE9BB90CFF385 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2109C27E486EF90CCCA3B4E9 /* SetupView.swift */; };
 		A5E38243C26B8AE4DD55810D /* ScheduleDeadlineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35DB9C16841FF4BEFF2DBDC1 /* ScheduleDeadlineTests.swift */; };
@@ -62,6 +65,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		009B811E6F5AE8E289731901 /* EmberLens.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = EmberLens.metal; sourceTree = "<group>"; };
 		0906923197AB189DCD84B0A0 /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
 		0BD66A22F293D40A5CBB5111 /* PanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelTests.swift; sourceTree = "<group>"; };
 		1146318C4ADF0362CB1CD8CD /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
@@ -88,7 +92,9 @@
 		738C57AD4865B9D8A9B2012D /* Ember.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Ember.entitlements; sourceTree = "<group>"; };
 		872DCC7E1244A51D15697EAD /* UpdatesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesTests.swift; sourceTree = "<group>"; };
 		8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		89B739B4C41E8AEB420CBF88 /* EmberLens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberLens.swift; sourceTree = "<group>"; };
 		9B5E3461D20AC34B06E3EDF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		9D4F51ECE327FF983EF4918A /* LensTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LensTests.swift; sourceTree = "<group>"; };
 		9E9067BF3BE6B3B48DB3B5FE /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		A95260C272EDB245CA336719 /* Updates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updates.swift; sourceTree = "<group>"; };
 		AAD9455B3FFDAD6D6E3A052C /* Analytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
@@ -140,6 +146,7 @@
 				24B94FD76E350C9C19B65AA5 /* FadeBenchmarkTests.swift */,
 				FB33BC60C352742153C28C80 /* HardwareTests.swift */,
 				511602227DCF6AF7601F6901 /* IconTests.swift */,
+				9D4F51ECE327FF983EF4918A /* LensTests.swift */,
 				C3E2644AADB6AAC3C73D8AB1 /* LocationServiceTests.swift */,
 				0BD66A22F293D40A5CBB5111 /* PanelTests.swift */,
 				1146318C4ADF0362CB1CD8CD /* PerformanceTests.swift */,
@@ -162,6 +169,8 @@
 				ABE644841B4F82012455FD0C /* DisplayEngine.swift */,
 				738C57AD4865B9D8A9B2012D /* Ember.entitlements */,
 				DC635EBE2AC3C4079688D51C /* EmberApp.swift */,
+				009B811E6F5AE8E289731901 /* EmberLens.metal */,
+				89B739B4C41E8AEB420CBF88 /* EmberLens.swift */,
 				35FFAEBA297BB5AB64F260E5 /* FluxGuard.swift */,
 				9B5E3461D20AC34B06E3EDF9 /* Info.plist */,
 				C477123C637BF589E1C3D0EF /* Installation.swift */,
@@ -302,6 +311,8 @@
 				52DBE61C71523905DC2FC42D /* DayDial.swift in Sources */,
 				25E9300B753D721374F8656D /* DisplayEngine.swift in Sources */,
 				78B9CA4A2393CF8AB9B1E469 /* EmberApp.swift in Sources */,
+				89AFC8267FE746FA2E060C27 /* EmberLens.metal in Sources */,
+				335C0B8F69D06DB2C551EF48 /* EmberLens.swift in Sources */,
 				180B7DD41274E9840D02D8A1 /* FluxGuard.swift in Sources */,
 				E45FB08E441A143BC02547B3 /* Installation.swift in Sources */,
 				1CA4FDD944AEC33D47F1E5AF /* Intents.swift in Sources */,
@@ -334,6 +345,7 @@
 				BE6080A33BC8738C0EBDB591 /* FadeBenchmarkTests.swift in Sources */,
 				0278B9B845F9CF379AA2535F /* HardwareTests.swift in Sources */,
 				6B3171E1EFABE94AA3854415 /* IconTests.swift in Sources */,
+				395D63B61D3563C0886CDDC2 /* LensTests.swift in Sources */,
 				DC73C7A1AFA73AC24D415E20 /* LocationServiceTests.swift in Sources */,
 				FB8BF04338BCC9D9D9601BD9 /* PanelTests.swift in Sources */,
 				0B454DB03E5AE3D0E84B7883 /* PerformanceTests.swift in Sources */,
@@ -380,7 +392,7 @@
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -397,7 +409,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.8.0;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
@@ -488,7 +500,7 @@
 				CODE_SIGN_ENTITLEMENTS = Ember/Ember.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -506,7 +518,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.8.0;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;

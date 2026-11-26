@@ -1,24 +1,35 @@
 import SwiftUI
 
-/// Ciridae, elevated. Void base, two warm charcoal stages, one rust accent.
-/// Rust is for hairlines, the live marker, and the reading that matters now.
+/// Coal (docs/design/DIRECTION.md): one ground, one ink, one ember.
+/// Ember is the crescent and the one accent per screen; everything else is
+/// Coal and Ash.
 enum Theme {
-    static let void = Color(red: 11 / 255, green: 11 / 255, blue: 11 / 255)
-    static let charcoal = Color(red: 39 / 255, green: 42 / 255, blue: 42 / 255)
-    /// Raised stage inside a card: a shade warmer than charcoal.
-    static let graphite = Color(red: 48 / 255, green: 50 / 255, blue: 49 / 255)
+    /// Ground. `#1A1512`.
+    static let coal = Color(red: 26 / 255, green: 21 / 255, blue: 18 / 255)
+    /// Raised surface on Coal.
+    static let coalRaised = Color(red: 36 / 255, green: 30 / 255, blue: 26 / 255)
+    /// Ink. `#EFE4D6`, 14.6:1 on Coal.
+    static let ashInk = Color(red: 239 / 255, green: 228 / 255, blue: 214 / 255)
+    /// Secondary text on Coal. `#B3A694`, 7.6:1.
+    static let ash2 = Color(red: 179 / 255, green: 166 / 255, blue: 148 / 255)
+    /// `#CC6437`, 4.7:1 on Coal.
     static let ember = Color(red: 204 / 255, green: 100 / 255, blue: 55 / 255)
-    static let ash = Color(red: 206 / 255, green: 206 / 255, blue: 206 / 255)
-    /// Secondary text. Warm mid gray; 6.1:1 on void, 4.5:1 on charcoal.
-    static let smoke = Color(red: 146 / 255, green: 143 / 255, blue: 138 / 255)
+    /// The chrome's shadow: a burnt tint of Coal, never grey.
+    static let burnt = Color(red: 9 / 255, green: 4 / 255, blue: 2 / 255)
+
+    // Older role names, now on the Coal palette.
+    static let void = coal
+    static let charcoal = coalRaised
+    static let graphite = Color(red: 46 / 255, green: 38 / 255, blue: 33 / 255)
+    static let ash = ashInk
+    static let smoke = ash2
     /// Hairlines and dividers only. Too dark for text.
-    static let steel = Color(red: 72 / 255, green: 72 / 255, blue: 72 / 255)
-    static let white = Color.white
-    /// Website mini-button border (`#626662`) and muted pill label.
-    static let pillBorder = Color(red: 98 / 255, green: 102 / 255, blue: 98 / 255)
-    static let pillMuted = Color(red: 174 / 255, green: 181 / 255, blue: 173 / 255)
-    static let switchOff = Color(red: 91 / 255, green: 95 / 255, blue: 92 / 255)
-    static let knob = Color(red: 248 / 255, green: 248 / 255, blue: 246 / 255)
+    static let steel = Color(red: 62 / 255, green: 52 / 255, blue: 45 / 255)
+    static let white = ashInk
+    static let pillBorder = Color(red: 94 / 255, green: 82 / 255, blue: 73 / 255)
+    static let pillMuted = ash2
+    static let switchOff = Color(red: 94 / 255, green: 82 / 255, blue: 73 / 255)
+    static let knob = ashInk
 
     static let cardRadius: CGFloat = 12
     static let panelRadius: CGFloat = 14
@@ -29,6 +40,13 @@ enum Theme {
     static func display(_ size: CGFloat) -> Font {
         .system(size: size, weight: .medium, design: .default)
     }
+
+    /// Kron's display voice, in the system face: heavy capitals, pulled tight.
+    static func poster(_ size: CGFloat) -> Font {
+        .system(size: size, weight: .heavy, design: .default)
+    }
+
+    static let posterTracking = -0.052
 
     static func mono(_ size: CGFloat) -> Font {
         .system(size: size, design: .monospaced)

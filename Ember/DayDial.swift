@@ -168,7 +168,7 @@ private struct DialKnob: View {
             let radius = min(size.width, size.height) / 2 - 1
             let center = CGPoint(x: size.width / 2, y: size.height / 2)
             let disc = MoonGlyph.circle(center, radius)
-            context.fill(disc, with: .color(Color(white: 0.09)))
+            context.fill(disc, with: .color(Theme.coal))
             context.stroke(disc, with: .color(.white), lineWidth: 2)
             let inner = radius * 0.62
             context.stroke(MoonGlyph.circle(center, inner), with: .color(Theme.ember.opacity(0.6)), lineWidth: 1)
@@ -205,7 +205,7 @@ struct MoonGlyph: View {
             let radius = min(size.width, size.height) / 2 - 0.5
             let center = CGPoint(x: size.width / 2, y: size.height / 2)
             let disc = Self.circle(center, radius)
-            context.fill(disc, with: .color(Color(white: 0.09)))
+            context.fill(disc, with: .color(Theme.coal))
             context.stroke(disc, with: .style(.tertiary), lineWidth: 0.8)
             if let terminator {
                 let lit = EmberGeometry.crescent(center: center, radius: radius, terminator: terminator, yDown: true)

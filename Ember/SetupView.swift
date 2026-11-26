@@ -7,18 +7,29 @@ struct SetupView: View {
     @State var step = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                EmberMark(lit: true).frame(width: 28, height: 28)
-                Text("Ember").emberLabel(24).foregroundStyle(Theme.white)
+        VStack(alignment: .leading, spacing: step == 0 ? 12 : 20) {
+            HStack(spacing: 8) {
+                EmberMark(lit: true).frame(width: step == 0 ? 18 : 28, height: step == 0 ? 18 : 28)
+                Text("Ember").font(.system(size: step == 0 ? 13 : 20, weight: .bold)).tracking(-0.3)
+                    .foregroundStyle(Theme.ashInk)
                 Spacer()
-                Text(step == 0 ? "SETUP" : "\(step + 1) of 3").emberReading(11).foregroundStyle(Theme.smoke)
+                Text(step == 0 ? "SETUP" : "\(step + 1) of 3").emberReading(11).foregroundStyle(Theme.ash2)
             }
-            VStack(alignment: .leading, spacing: 10) {
-                Text(title).emberLabel(34).foregroundStyle(Theme.white)
-                Text(subtitle).font(Theme.body(14)).foregroundStyle(Theme.ash)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(3)
+            if step == 0 {
+                // The one chrome moment in the app.
+                LensPoster(rows: ["WARM", "AFTER SUNSET"], label: "Warm after sunset")
+                    .frame(height: 168)
+                    .padding(.horizontal, -6)
+                Text("Ember starts with these recommended settings.")
+                    .font(Theme.body(13)).foregroundStyle(Theme.ash2)
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(title).font(Theme.poster(30)).tracking(30 * Theme.posterTracking)
+                        .foregroundStyle(Theme.ashInk)
+                    Text(subtitle).font(Theme.body(14)).foregroundStyle(Theme.ash2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(3)
+                }
             }
             content
             Spacer(minLength: 0)
@@ -33,7 +44,11 @@ struct SetupView: View {
                     if step == 0 {
                         model.applyRecommendedProfile()
                         finish()
-                    } else if step == 2 { finish() } else { step += 1 }
+                    } else if step == 2 {
+                        finish()
+                    } else {
+                        step += 1
+                    }
                 }
                 .buttonStyle(SetupButtonStyle())
                 .keyboardShortcut(.defaultAction)
@@ -41,15 +56,16 @@ struct SetupView: View {
         }
         .padding(32)
         .frame(width: 480, height: 520)
-        .background(Theme.void)
+        .background(Theme.coal)
         .preferredColorScheme(.dark)
     }
 
     @ViewBuilder private var content: some View {
         switch step {
         case 0:
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
                 VStack(spacing: 0) {
+                    Divider().overlay(Theme.steel)
                     profileRow("Wake", value: RecommendedProfile.wake.label)
                     Divider().overlay(Theme.steel)
                     profileRow("Bedtime", value: RecommendedProfile.bed.label)
@@ -57,24 +73,24 @@ struct SetupView: View {
                     profileRow("Night light", value: "Standard")
                     Divider().overlay(Theme.steel)
                     profileRow("True color apps", value: "On")
-                }
-                .padding(.horizontal, 16).emberCard(padding: 0)
-                HStack(spacing: 8) {
-                    Image(nsImage: MenuBarMark.image(phase: .night))
-                    Text("Find Ember in your menu bar. Change settings anytime.")
-                        .font(Theme.body(12)).foregroundStyle(Theme.smoke)
+                    Divider().overlay(Theme.steel)
                 }
                 if !Installation.isInApplications() {
                     HStack(spacing: 12) {
                         Button("Show in Finder") { Installation.showInFinder() }
                             .buttonStyle(MiniPillStyle())
                         Text("Move to Applications, then open that copy.")
-                            .font(Theme.body(12)).foregroundStyle(Theme.smoke)
+                            .font(Theme.body(12)).foregroundStyle(Theme.ash2)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                Text("Ember turns off Night Shift and quits f.lux while on.")
-                    .font(Theme.body(12)).foregroundStyle(Theme.smoke).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Image(nsImage: MenuBarMark.image(phase: .night)).renderingMode(.template)
+                        .foregroundStyle(Theme.ash2).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
+                    Text("Find Ember in your menu bar. Ember turns off Night Shift and quits f.lux while on.")
+                        .font(Theme.body(12)).foregroundStyle(Theme.ash2).lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         case 1:
             SleepScheduleView()
@@ -100,9 +116,13 @@ struct SetupView: View {
                 }
                 if model.loginNeedsApproval || model.loginError != nil {
                     Button(!Installation.isInApplications() ? "Show in Finder" : (model.loginNeedsApproval ? "Allow in Login Items…" : "Check Login Items…")) {
-                        if Installation.isInApplications() { LoginItem.openSettings() } else { Installation.showInFinder() }
+                        if Installation.isInApplications() {
+                            LoginItem.openSettings()
+                        } else {
+                            Installation.showInFinder()
+                        }
                     }
-                        .buttonStyle(MiniPillStyle()).padding(.bottom, 14)
+                    .buttonStyle(MiniPillStyle()).padding(.bottom, 14)
                     if let error = model.loginError {
                         Text(error).font(Theme.body(12)).foregroundStyle(Theme.ash).padding(.bottom, 12)
                     }
@@ -120,15 +140,17 @@ struct SetupView: View {
             Spacer()
             Text(value).emberReading(12).foregroundStyle(Theme.white)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, step == 0 ? 7 : 10)
     }
 
     private var title: String {
         ["Recommended profile.", "Your sleep schedule.", "Make it automatic."][step]
     }
+
     private var subtitle: String {
         ["True color by day. Warm and dim at night.", "Set your wake time, bedtime and night light.", "Choose location and startup options."][step]
     }
+
     private var locationCaption: String {
         switch model.location.access {
         case .allowed: return "Location allowed. Sun times follow your area."
@@ -180,7 +202,9 @@ final class SetupController: NSObject, NSWindowDelegate {
         self.window = window
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
-        if !AppModel.isRunningTests { model.location.request() }
+        if !AppModel.isRunningTests {
+            model.location.request()
+        }
     }
 
     private func finish() {
@@ -189,7 +213,7 @@ final class SetupController: NSObject, NSWindowDelegate {
         onFinish()
     }
 
-    func windowWillClose(_ notification: Notification) {
+    func windowWillClose(_: Notification) {
         window = nil
     }
 }
