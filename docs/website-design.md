@@ -1,5 +1,11 @@
 # Ember website design
 
+## Coal · 2026-11-25
+
+`docs/design/DIRECTION.md` supersedes everything below: the Dockset reference lock (2026-10-05), "The last light" cinematic redesign (2026-10-15) and the E Dither sky pick (2026-11-21). The site is one coal ground with ash ink; the hero is Construct's Kron, ported line for line to `site/kron.js` with its motion physics untouched, the six-petal form replaced by the Ember lens and the words, colours and face made Ember's. Below it: the curve scrubber, the three night strengths, the panel with a ledger, the $9 poster on Ash, then FAQ. System fonts only; the old web fonts, cinematic landscapes and wallpaper were removed. Buy link, `/downloads/...`, `appcast.xml`, `analytics.js`, legal pages, `_headers`, meta, OG (`assets/og.png`, a render of the hero) and JSON-LD are unchanged in place. Tests: `site/qa/hero-media.test.mjs`. Screenshots: `docs/design/2026-11-25-coal/site/`.
+
+The sections below are history.
+
 ## Cinematic redesign · 2026-10-15
 
 The approved `.redesign/BRIEF.md` supersedes the website layout below with “The last light”: dusk → night → dawn, `#09090B`, large Newsreader headlines, restrained General Sans body text, asymmetric borderless sections, and the supplied cinematic landscapes. Gradient masks fade the imagery into the page without tint overlays. The hero drifts slowly while visible; the night landscape follows scroll where supported. Reduced motion stops both. The existing interactive Mac preview, product copy, $9 checkout, downloads, FAQ, science caveats, metadata, JSON-LD, privacy and 404 pages remain intact. The native app is unchanged.

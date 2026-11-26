@@ -70,12 +70,16 @@ struct MainWindowView: View {
                     .listItemTint(Theme.ember)
                 Label("Sleep schedule", systemImage: "moon").tag("schedule")
                     .listItemTint(Theme.ember)
+                Label("About", systemImage: "info.circle").tag("about")
+                    .listItemTint(Theme.ember)
             }
             .foregroundStyle(Theme.white)
             .navigationSplitViewColumnWidth(180)
         } detail: {
             Group {
-                if selection == "schedule" {
+                if selection == "about" {
+                    AboutPane()
+                } else if selection == "schedule" {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Sleep schedule").emberLabel(28)
                         SleepScheduleView()
@@ -93,7 +97,7 @@ struct MainWindowView: View {
             }
             .foregroundStyle(Theme.white)
             .background { PanelMaterial() }
-            .navigationTitle(selection == "schedule" ? "Sleep schedule" : "Your light")
+            .navigationTitle(selection == "schedule" ? "Sleep schedule" : selection == "about" ? "About" : "Your light")
             .toolbar {
                 Button { model.showPreferences?() } label: {
                     Label("Settings", systemImage: "gearshape")
@@ -150,5 +154,58 @@ struct SettingsWindowView: View {
             NSApp.setActivationPolicy(visible ? .regular : .accessory)
         }
         .onChange(of: shareAnalytics) { _, enabled in Analytics.setEnabled(enabled) }
+    }
+}
+
+/// A heavy word set edge to edge, the way the site's hero sets its rows.
+struct PosterWord: View {
+    var word: String
+    var maxSize: CGFloat = 160
+
+    var body: some View {
+        GeometryReader { proxy in
+            // Letter by letter where Core Text puts them, as on the setup poster,
+            // so the word ends exactly at the trailing edge.
+            let layout = PosterLayout.make(rows: [word], width: proxy.size.width,
+                                           maxHeight: min(maxSize, proxy.size.height) / PosterLayout.lead)
+            ZStack(alignment: .topLeading) {
+                ForEach(Array(layout.letters.enumerated()), id: \.offset) { _, letter in
+                    Text(letter.character)
+                        .font(Theme.poster(layout.fontSize))
+                        .fixedSize()
+                        .frame(width: letter.width, height: layout.rowHeight)
+                        .position(x: letter.x + letter.width / 2, y: proxy.size.height - layout.rowHeight / 2)
+                }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(word.capitalized)
+        .accessibilityAddTraits(.isHeader)
+    }
+}
+
+struct AboutPane: View {
+    private var version: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Spacer(minLength: 0)
+            EmberMark(lit: true).frame(width: 44, height: 44)
+            PosterWord(word: "EMBER")
+                .frame(height: 112)
+                .foregroundStyle(Theme.ashInk)
+            Text("Version \(version). $9 one time. macOS 14 or later, Apple silicon and Intel.")
+                .font(Theme.body(13)).foregroundStyle(Theme.ember)
+            Text("Ember warms and dims your display after sunset on a circadian curve. It lives in the menu bar and keeps running when you close its windows.")
+                .font(Theme.body(14)).foregroundStyle(Theme.ash2)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 380, alignment: .leading)
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
     }
 }

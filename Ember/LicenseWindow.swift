@@ -29,11 +29,19 @@ final class LicenseController: NSObject, NSWindowDelegate {
             window.makeKeyAndOrderFront(nil)
             return
         }
-        let host = NSHostingController(rootView: ActivationView(licensing: licensing)
-            // Buy opens the licensing /buy URL; tag it so the server-side purchase joins this install.
-            .environment(\.openURL, OpenURLAction { .systemAction(Analytics.checkoutURL($0)) })
-            .background(Theme.void)
-            .preferredColorScheme(.dark))
+        let host = NSHostingController(rootView: VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 6) {
+                PosterWord(word: "EMBER", maxSize: 72).frame(height: 60)
+                    .foregroundStyle(Theme.ashInk)
+                Text("$9 one time.").font(Theme.body(13)).foregroundStyle(Theme.ember)
+            }
+            .padding(.horizontal, 24).padding(.top, 20)
+            ActivationView(licensing: licensing)
+        }
+        // Buy opens the licensing /buy URL; tag it so the server-side purchase joins this install.
+        .environment(\.openURL, OpenURLAction { .systemAction(Analytics.checkoutURL($0)) })
+        .background(Theme.void)
+        .preferredColorScheme(.dark))
         let window = NSWindow(contentViewController: host)
         window.title = "Activate Ember"
         window.styleMask = [.titled, .closable]

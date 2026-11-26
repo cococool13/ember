@@ -32,8 +32,9 @@ struct MenuBarView: View {
         .frame(width: inMainWindow ? nil : Theme.panelWidth, height: inMainWindow ? nil : Theme.panelHeight)
         .background {
             if !inMainWindow {
-                PanelMaterial(surface: colorScheme == .dark ? Color(red: 0.09, green: 0.12, blue: 0.16)
-                    : Color(red: 0.95, green: 0.96, blue: 0.98), opacity: 0.88)
+                // Coal in the dark; a warm paper tint of the system's light in the light.
+                PanelMaterial(surface: colorScheme == .dark ? Theme.coal
+                    : Color(red: 0.975, green: 0.96, blue: 0.94), opacity: 0.88)
             }
         }
         .clipShape(.rect(cornerRadius: Theme.panelRadius))
@@ -47,7 +48,7 @@ struct MenuBarView: View {
     private var header: some View {
         HStack(spacing: 8) {
             EmberMark(lit: model.isActive).frame(width: 20, height: 20)
-            Text("Ember").font(.system(size: 14, weight: .semibold))
+            Text("Ember").font(.system(size: 14, weight: .bold)).tracking(-0.2)
             Spacer()
             Toggle("Ember", isOn: $model.enabled)
                 .toggleStyle(.switch)
@@ -101,10 +102,16 @@ struct MenuBarView: View {
     private func readout(minute: Double, shown: LightState) -> some View {
         VStack(spacing: 2) {
             Text(ClockTime.from(fractionalMinutes: minute).label)
-                .font(.system(size: 26, weight: .light))
+                .font(.system(size: 26, weight: .semibold))
+                .tracking(-0.8)
                 .monospacedDigit()
-            Text(headline(phase: shown.phase))
-                .font(.system(size: 12, weight: .semibold))
+            Text(headline(phase: shown.phase).uppercased())
+                .font(.system(size: 11, weight: .heavy))
+                .tracking(0.6)
+                // Ember only on Coal, where it clears 4.5:1; the light panel keeps the ink.
+                .foregroundStyle(colorScheme == .dark && model.isActive && (shown.phase == .evening || shown.phase == .night)
+                    ? Theme.ember : .primary)
+                .accessibilityLabel(headline(phase: shown.phase))
                 .accessibilityAddTraits(.isHeader)
                 .padding(.top, 2)
             Text("\(Int(shown.kelvin.rounded()).formatted()) K")

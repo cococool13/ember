@@ -76,7 +76,7 @@ struct EmberMark: View {
             let r = min(size.width, size.height) / 2 * 0.86
             let center = CGPoint(x: size.width / 2, y: size.height / 2)
             let disc = Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2))
-            context.fill(disc, with: .color(Color(white: 0.09)))
+            context.fill(disc, with: .color(Theme.coal))
             context.stroke(disc, with: .color(Theme.ember.opacity(lit ? 0.55 : 0.35)), lineWidth: max(1, r * 0.08))
             let crescent = Path(EmberGeometry.crescent(center: center, radius: r, terminator: EmberGeometry.iconTerminator, yDown: true))
             let hot = CGPoint(
