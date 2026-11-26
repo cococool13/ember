@@ -7,6 +7,8 @@
 # so it runs on a copy of the files git would commit: tracked plus untracked
 # but not ignored. Local data such as node_modules or state/ never trips it.
 set -euo pipefail
+# A git hook exports GIT_DIR and friends; they would aim `git -C <design-guard>` at this repo.
+unset $(git rev-parse --local-env-vars)
 ref="${1:-${DESIGN_GUARD_REF:-v1}}"
 src="${DESIGN_GUARD:-$HOME/Projects/Design Guard}"
 if ! sha="$(git -C "$src" rev-parse -q --verify "$ref^{commit}")"; then
