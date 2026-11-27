@@ -354,10 +354,14 @@ final class FrameClock: NSObject {
     private var timer: Timer?
     private let frame: () -> Bool
 
-    init(frame: @escaping () -> Bool) {
+    /// `isAsleep` is injectable so tests can simulate displays that are off.
+    init(
+        frame: @escaping () -> Bool,
+        isAsleep: (CGDirectDisplayID) -> Bool = { CGDisplayIsAsleep($0) != 0 }
+    ) {
         self.frame = frame
         super.init()
-        if let screen = NSScreen.screens.max(by: { $0.maximumFramesPerSecond < $1.maximumFramesPerSecond }) {
+        if let screen = Self.drivingScreen(isAsleep: isAsleep) {
             let link = screen.displayLink(target: self, selector: #selector(step))
             let fastest = Float(max(60, screen.maximumFramesPerSecond))
             link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: fastest, preferred: fastest)
@@ -370,6 +374,18 @@ final class FrameClock: NSObject {
             RunLoop.main.add(timer, forMode: .common)
             self.timer = timer
         }
+    }
+
+    /// The fastest awake screen. A sleeping display stays in `NSScreen.screens`
+    /// but its display link never fires, so a fade paced by it would stall.
+    static func drivingScreen(isAsleep: (CGDirectDisplayID) -> Bool) -> NSScreen? {
+        NSScreen.screens
+            .filter { screen in
+                let key = NSDeviceDescriptionKey("NSScreenNumber")
+                guard let id = screen.deviceDescription[key] as? CGDirectDisplayID else { return false }
+                return !isAsleep(id)
+            }
+            .max(by: { $0.maximumFramesPerSecond < $1.maximumFramesPerSecond })
     }
 
     @objc private func step() {

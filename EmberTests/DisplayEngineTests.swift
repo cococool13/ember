@@ -2,8 +2,8 @@ import AppKit
 @testable import Ember
 import XCTest
 
+@MainActor
 final class DisplayEngineTests: XCTestCase {
-    @MainActor
     func testSteadyTargetSkipsWritesButDisplayRefreshCanReapply() {
         let night = DisplayEngine.Target(kelvin: 1800, dim: 0.55)
         var writes: [DisplayEngine.Target] = []
@@ -18,7 +18,6 @@ final class DisplayEngineTests: XCTestCase {
     }
 
     /// Regression: fades ran on a fixed 30 Hz timer and stepped on 120 Hz screens.
-    @MainActor
     func testFadeFollowsDisplayRefresh() throws {
         let refresh = NSScreen.screens.map(\.maximumFramesPerSecond).max() ?? 0
         guard refresh >= 60 else { throw XCTSkip("No display of 60 Hz or more") }
@@ -32,6 +31,20 @@ final class DisplayEngineTests: XCTestCase {
         }
         fader.cancel()
         XCTAssertGreaterThan(Double(frames), window * 45, "Fade should write more than 45 frames a second")
+    }
+
+    /// Regression: with every display asleep (nightly CI, 03:35) the clock paced
+    /// itself off a sleeping screen's display link, which never fires, so fades stalled.
+    func testFrameClockFallsBackToTimerWhenDisplaysSleep() {
+        XCTAssertNil(FrameClock.drivingScreen(isAsleep: { _ in true }))
+        var frames = 0
+        let clock = FrameClock(frame: { frames += 1; return true }, isAsleep: { _ in true })
+        let deadline = Date().addingTimeInterval(0.3)
+        while Date() < deadline {
+            _ = RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.005))
+        }
+        clock.stop()
+        XCTAssertGreaterThan(frames, 5, "A clock with no awake display must still tick on the fallback timer")
     }
 
     func testDaylightTemperatureIsNearWhite() {
