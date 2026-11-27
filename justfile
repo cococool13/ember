@@ -38,6 +38,16 @@ app:
     xcodegen generate --quiet
     .ci/bin/ci-sim-lock xcodebuild -scheme Ember -destination platform=macOS -scmProvider system CODE_SIGN_IDENTITY=- -quiet test
 
+# Launch smoke test (XCUITest): the main window opens. Not part of `just check`. `-UITesting`
+# keeps Ember off the displays, location and license; the .e2e bundle ID keeps it clear of an installed
+# Ember. Test timeouts plus a wall-clock cap make a stuck launch (a permission prompt) fail fast.
+e2e:
+    xcodegen generate --quiet
+    timeout 900 .ci/bin/ci-sim-lock xcodebuild -scheme EmberUITests -destination platform=macOS -scmProvider system \
+        -derivedDataPath build/e2e -skipMacroValidation -skipPackagePluginValidation \
+        -test-timeouts-enabled YES -default-test-execution-time-allowance 60 -maximum-test-execution-time-allowance 120 \
+        EMBER_BUNDLE_SUFFIX=.e2e CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= test -quiet
+
 # Site hero media regression.
 site-media:
     node --test site/qa/hero-media.test.mjs

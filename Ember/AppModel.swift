@@ -458,6 +458,12 @@ final class AppModel: ObservableObject {
         if env["XCTestBundlePath"] != nil {
             return true
         }
+        #if DEBUG
+            // `-UITesting`: the `just e2e` launch smoke. No display, location, license or login-item changes.
+            if ProcessInfo.processInfo.arguments.contains("-UITesting") {
+                return true
+            }
+        #endif
         return ProcessInfo.processInfo.arguments.contains { $0.contains("xctest") }
     }()
 

@@ -48,6 +48,7 @@
 		E238619C6876BC28D352146F /* StatusItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEEEBA365F0E9DEA369F9B3B /* StatusItem.swift */; };
 		E45FB08E441A143BC02547B3 /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C477123C637BF589E1C3D0EF /* Installation.swift */; };
 		E87E30852B4E3B0863F7884D /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9067BF3BE6B3B48DB3B5FE /* AppModel.swift */; };
+		ED695BCBBBCED99C9AAE4DDF /* LaunchSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3ADCBD62E5313FB12DC7D76 /* LaunchSmokeTests.swift */; };
 		EFDC2663B6719F1F44501DCB /* Updates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95260C272EDB245CA336719 /* Updates.swift */; };
 		F65FBFB2878DE126886F5C8F /* ColorAppsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560FB4DBE6731C4343D82111 /* ColorAppsTests.swift */; };
 		FB8BF04338BCC9D9D9601BD9 /* PanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BD66A22F293D40A5CBB5111 /* PanelTests.swift */; };
@@ -55,6 +56,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7E91FF1E401F5ACA611E83B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 60EE479878F0F38411A15B19 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3E853DD93E303CC86CD1FA7F;
+			remoteInfo = Ember;
+		};
 		BB47832948DAE412B8685C9D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 60EE479878F0F38411A15B19 /* Project object */;
@@ -90,6 +98,7 @@
 		6A3041D62A00584181B6223E /* SolarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolarTests.swift; sourceTree = "<group>"; };
 		71437483C0CF628522BDF4C4 /* LoginItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItem.swift; sourceTree = "<group>"; };
 		738C57AD4865B9D8A9B2012D /* Ember.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Ember.entitlements; sourceTree = "<group>"; };
+		82EB4381F437366A2A32A4E1 /* EmberUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EmberUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		872DCC7E1244A51D15697EAD /* UpdatesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesTests.swift; sourceTree = "<group>"; };
 		8861D3BFCFDDD1016F2D7F96 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		89B739B4C41E8AEB420CBF88 /* EmberLens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberLens.swift; sourceTree = "<group>"; };
@@ -108,6 +117,7 @@
 		D1E129474145FB033E3BBB86 /* Ember.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ember.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D279F5A818C128CB3DB8EED6 /* DayDial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDial.swift; sourceTree = "<group>"; };
 		DC635EBE2AC3C4079688D51C /* EmberApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberApp.swift; sourceTree = "<group>"; };
+		E3ADCBD62E5313FB12DC7D76 /* LaunchSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchSmokeTests.swift; sourceTree = "<group>"; };
 		ED26FA11AE7FFC52DC8BE916 /* Intents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Intents.swift; sourceTree = "<group>"; };
 		FB33BC60C352742153C28C80 /* HardwareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareTests.swift; sourceTree = "<group>"; };
 		FB35145602039572AE901292 /* LicenseWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseWindow.swift; sourceTree = "<group>"; };
@@ -132,8 +142,17 @@
 			children = (
 				D1E129474145FB033E3BBB86 /* Ember.app */,
 				3FD152F594A5DA75DF7C1E1D /* EmberTests.xctest */,
+				82EB4381F437366A2A32A4E1 /* EmberUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2B56EBBCEA225732B4FB9FAD /* EmberUITests */ = {
+			isa = PBXGroup;
+			children = (
+				E3ADCBD62E5313FB12DC7D76 /* LaunchSmokeTests.swift */,
+			);
+			path = EmberUITests;
 			sourceTree = "<group>";
 		};
 		3999E6B19D269E59FFEB712F /* EmberTests */ = {
@@ -199,6 +218,7 @@
 			children = (
 				56E6B0F7A59E63C82AB86141 /* Ember */,
 				3999E6B19D269E59FFEB712F /* EmberTests */,
+				2B56EBBCEA225732B4FB9FAD /* EmberUITests */,
 				233CA52765D6C49205F221FF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -246,6 +266,24 @@
 			productReference = 3FD152F594A5DA75DF7C1E1D /* EmberTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		DDDACFB53C0138E75AAB93EA /* EmberUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AF5DC3DAF2FF1E5EB3609D9E /* Build configuration list for PBXNativeTarget "EmberUITests" */;
+			buildPhases = (
+				AF0FD1BF9F4B38D24D812590 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8ED85E83261CE80D34624880 /* PBXTargetDependency */,
+			);
+			name = EmberUITests;
+			packageProductDependencies = (
+			);
+			productName = EmberUITests;
+			productReference = 82EB4381F437366A2A32A4E1 /* EmberUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -261,6 +299,10 @@
 					};
 					9CB026868D8E745BE7705048 = {
 						DevelopmentTeam = CU8NTJWQ43;
+					};
+					DDDACFB53C0138E75AAB93EA = {
+						DevelopmentTeam = CU8NTJWQ43;
+						TestTargetID = 3E853DD93E303CC86CD1FA7F;
 					};
 				};
 			};
@@ -284,6 +326,7 @@
 			projectRoot = "";
 			targets = (
 				3E853DD93E303CC86CD1FA7F /* Ember */,
+				DDDACFB53C0138E75AAB93EA /* EmberUITests */,
 				9CB026868D8E745BE7705048 /* EmberTests */,
 			);
 		};
@@ -356,9 +399,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AF0FD1BF9F4B38D24D812590 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ED695BCBBBCED99C9AAE4DDF /* LaunchSmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		8ED85E83261CE80D34624880 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3E853DD93E303CC86CD1FA7F /* Ember */;
+			targetProxy = 7E91FF1E401F5ACA611E83B2 /* PBXContainerItemProxy */;
+		};
 		CCC5057F93882B8FFB06F9CA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 3E853DD93E303CC86CD1FA7F /* Ember */;
@@ -384,6 +440,23 @@
 			};
 			name = Debug;
 		};
+		3F84139002C3D12119DF2C7A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember.uitests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = Ember;
+			};
+			name = Debug;
+		};
 		9CC77524DDFFA3800C9DD95D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -393,6 +466,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 11;
+				EMBER_BUNDLE_SUFFIX = "";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -412,7 +486,7 @@
 				MARKETING_VERSION = 0.8.0;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cohen.ember$(EMBER_BUNDLE_SUFFIX)";
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;
 			};
@@ -475,6 +549,23 @@
 			};
 			name = Release;
 		};
+		CD90607B95617C4E7F0B0244 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember.uitests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = Ember;
+			};
+			name = Release;
+		};
 		DFA76FF5690C7DD9809D8107 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -502,6 +593,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 11;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				EMBER_BUNDLE_SUFFIX = "";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -521,7 +613,7 @@
 				MARKETING_VERSION = 0.8.0;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				POSTHOG_PROJECT_TOKEN = phc_tUUmWuYY8EkEmZf5JTeKLxcHGnVTEqHnZ2yY7gL4StKG;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cohen.ember;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cohen.ember$(EMBER_BUNDLE_SUFFIX)";
 				PRODUCT_NAME = Ember;
 				SDKROOT = macosx;
 			};
@@ -609,6 +701,15 @@
 			buildConfigurations = (
 				F1B0335DBC17697999A2175E /* Debug */,
 				A8B77AE3A697627F3CD67328 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AF5DC3DAF2FF1E5EB3609D9E /* Build configuration list for PBXNativeTarget "EmberUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3F84139002C3D12119DF2C7A /* Debug */,
+				CD90607B95617C4E7F0B0244 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
