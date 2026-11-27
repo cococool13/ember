@@ -72,7 +72,12 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
     /// Fetching then would ask for a fix before the panel is ready.
     private var started = false
 
-    init(defaults: UserDefaults = .standard, manager: CLLocationManager = CLLocationManager(), requestTimeout: TimeInterval = 20, applicationIsActive: @escaping @MainActor () -> Bool = { @MainActor in NSApp.isActive }) {
+    init(
+        defaults: UserDefaults = .standard,
+        manager: CLLocationManager = CLLocationManager(),
+        requestTimeout: TimeInterval = 20,
+        applicationIsActive: @escaping @MainActor () -> Bool = { @MainActor in NSApp.isActive }
+    ) {
         self.defaults = defaults
         self.manager = manager
         self.requestTimeout = requestTimeout
