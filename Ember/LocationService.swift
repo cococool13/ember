@@ -17,8 +17,8 @@ enum SunLine: Equatable {
         switch self {
         case .offer: return "Sunrise and sunset"
         case .locating: return "Finding sun times"
-        case .place(let times): return times
-        case .fallback(let times): return "\(times) · Brunswick, GA"
+        case let .place(times): return times
+        case let .fallback(times): return "\(times) · Brunswick, GA"
         }
     }
 
@@ -31,7 +31,9 @@ enum SunLine: Equatable {
         case .denied, .unavailable:
             return .fallback(times ?? "No sun times today")
         case .allowed:
-            if let times { return .place(times) }
+            if let times {
+                return .place(times)
+            }
             return .locating
         }
     }
@@ -56,7 +58,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
 
     private let manager: CLLocationManager
     private let requestTimeout: TimeInterval
-    private let applicationIsActive: () -> Bool
+    private let applicationIsActive: @MainActor () -> Bool
     private var activationObserver: NSObjectProtocol?
     private var timeout: DispatchWorkItem?
     private var pendingLocationRequest = false
@@ -70,7 +72,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
     /// Fetching then would ask for a fix before the panel is ready.
     private var started = false
 
-    init(defaults: UserDefaults = .standard, manager: CLLocationManager = CLLocationManager(), requestTimeout: TimeInterval = 20, applicationIsActive: @escaping () -> Bool = { NSApp.isActive }) {
+    init(defaults: UserDefaults = .standard, manager: CLLocationManager = CLLocationManager(), requestTimeout: TimeInterval = 20, applicationIsActive: @escaping @MainActor () -> Bool = { @MainActor in NSApp.isActive }) {
         self.defaults = defaults
         self.manager = manager
         self.requestTimeout = requestTimeout
@@ -84,7 +86,8 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
             Task { @MainActor in self?.requestLocationIfActive() }
         }
         if let lat = defaults.object(forKey: Keys.latitude) as? Double,
-           let lon = defaults.object(forKey: Keys.longitude) as? Double {
+           let lon = defaults.object(forKey: Keys.longitude) as? Double
+        {
             latitude = lat
             longitude = lon
             hasFix = true
@@ -130,7 +133,9 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
         case .authorizedAlways, .authorizedWhenInUse:
             fetch()
         case .denied, .restricted:
-            if access != .denied { applyDenied() }
+            if access != .denied {
+                applyDenied()
+            }
         default:
             break
         }
@@ -146,14 +151,18 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
                 return
             }
             if Date().timeIntervalSince(lastFetch) < 12 * 3600 {
-                if access != .allowed { access = .allowed }
+                if access != .allowed {
+                    access = .allowed
+                }
                 return
             }
             fetch()
         case .denied, .restricted:
-            if access != .denied { applyDenied() }
+            if access != .denied {
+                applyDenied()
+            }
         default:
-            if access != .unknown && access != .asking {
+            if access != .unknown, access != .asking {
                 access = .unknown
             }
         }
@@ -162,7 +171,9 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
         case .notDetermined:
-            if access != .asking { access = .unknown }
+            if access != .asking {
+                access = .unknown
+            }
         case .denied, .restricted:
             applyDenied()
         default:
@@ -171,11 +182,15 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
                 access = hasFix ? .allowed : .locating
                 return
             }
-            if fetching { access = hasFix ? .allowed : .locating } else { fetch() }
+            if fetching {
+                access = hasFix ? .allowed : .locating
+            } else {
+                fetch()
+            }
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let loc = locations.last else { return }
         apply(loc)
     }
@@ -261,7 +276,9 @@ final class LocationService: NSObject, CLLocationManagerDelegate, ObservableObje
 
     deinit {
         timeout?.cancel()
-        if let activationObserver { NotificationCenter.default.removeObserver(activationObserver) }
+        if let activationObserver {
+            NotificationCenter.default.removeObserver(activationObserver)
+        }
     }
 
     private enum Keys {
