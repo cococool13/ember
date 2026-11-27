@@ -39,7 +39,10 @@ targets:
       - package: Sparkle
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.cohen.ember
+        # `just e2e` sets EMBER_BUNDLE_SUFFIX=.e2e so the test copy never meets an installed Ember
+        # (one instance per bundle ID). Empty everywhere else.
+        EMBER_BUNDLE_SUFFIX: ""
+        PRODUCT_BUNDLE_IDENTIFIER: com.cohen.ember$(EMBER_BUNDLE_SUFFIX)
         PRODUCT_NAME: Ember
         ARCHS: "arm64 x86_64"
         ENABLE_APP_SANDBOX: NO
@@ -71,6 +74,21 @@ targets:
     scheme:
       testTargets:
         - EmberTests
+  EmberUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - EmberUITests
+    dependencies:
+      - target: Ember
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cohen.ember.uitests
+        TEST_TARGET_NAME: Ember
+        GENERATE_INFOPLIST_FILE: YES
+    scheme:
+      testTargets:
+        - EmberUITests
   EmberTests:
     type: bundle.unit-test
     platform: macOS

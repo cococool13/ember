@@ -35,7 +35,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !AppModel.isRunningTests {
             guard Self.keepNewestCopy() else { return }
         }
-        Analytics.start()
+        if !AppModel.isRunningTests {
+            Analytics.start()
+        }
         #if DEBUG
             let benchmarkStartup = ProcessInfo.processInfo.arguments.contains("xctest-benchmark-startup")
             let startupStart = ProcessInfo.processInfo.systemUptime
@@ -73,6 +75,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.setup = setup
         model.showSetup = { [weak setup] in setup?.show() }
         model.startSetupIfNeeded()
+        #if DEBUG
+            // `-UITesting`: the launch smoke opens the main window so it has something on screen to find;
+            // the menu-bar item is out of reach when the menu bar is hidden.
+            if ProcessInfo.processInfo.arguments.contains("-UITesting") {
+                NSApp.setActivationPolicy(.regular)
+                windows.showMain()
+            }
+        #endif
         // Off the launch path: Sparkle only schedules its first check here.
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { Updates.shared.start() }
         #if DEBUG
