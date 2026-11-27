@@ -42,7 +42,7 @@ app:
 site-media:
     node --test site/qa/hero-media.test.mjs
 
-# Stripe HOLD regression. ship runs guardrails 7 and 8 (Reviewed-by, bug-then-rule).
+# Stripe HOLD regression. ship runs guardrail 8 (bug-then-rule).
 guardrails:
     bash scripts/guardrails/check-stripe-hold.test.sh
     bash scripts/guardrails/check-site-downloads.test.sh
